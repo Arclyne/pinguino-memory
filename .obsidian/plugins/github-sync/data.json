@@ -1,0 +1,9 @@
+{
+  "remoteURL": "https://github.com/Arclyne/pinguino-memory.git",
+  "gitLocation": "/opt/homebrew/bin/git",
+  "syncinterval": 0,
+  "isSyncOnLoad": false,
+  "checkStatusOnLoad": true,
+  "noticeLevel": "ALL",
+  "showSyncSuccessNotice": true
+}
