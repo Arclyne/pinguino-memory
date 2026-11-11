@@ -1,14 +1,14 @@
 {
   "main": {
-    "id": "d762942c166b874a",
+    "id": "7907d692307d2832",
     "type": "split",
     "children": [
       {
-        "id": "fa3933c3b83c30fc",
+        "id": "225798e9512a5513",
         "type": "tabs",
         "children": [
           {
-            "id": "cdf4eaaa2e39cd8c",
+            "id": "8a7f88811d7ab063",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -22,20 +22,36 @@
             }
           }
         ]
+      },
+      {
+        "id": "c576ac1d7e36ff32",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "90f710ad36613cea",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Vista gráfica"
+            }
+          }
+        ]
       }
     ],
     "direction": "vertical"
   },
   "left": {
-    "id": "e8f2adc9f9a41707",
+    "id": "0ca11981fccf7e30",
     "type": "split",
     "children": [
       {
-        "id": "3a76c22308d71c92",
+        "id": "950f4dd1ee8d8908",
         "type": "tabs",
         "children": [
           {
-            "id": "562729b3353d7acc",
+            "id": "ec7cd72861f4a2b2",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -50,7 +66,7 @@
             }
           },
           {
-            "id": "b6a77924832ad9c9",
+            "id": "ef911dfee6adf005",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -67,7 +83,7 @@
             }
           },
           {
-            "id": "f4d77962d21c1960",
+            "id": "0c8df358b208d285",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -86,15 +102,15 @@
     "width": 300
   },
   "right": {
-    "id": "a247d75ae509e16a",
+    "id": "441ed0db72ca2050",
     "type": "split",
     "children": [
       {
-        "id": "b44873ac737bc92f",
+        "id": "2e208e74a60bc8bb",
         "type": "tabs",
         "children": [
           {
-            "id": "7c614fde3aa06fe6",
+            "id": "64e10ba4429f4c50",
             "type": "leaf",
             "state": {
               "type": "backlink",
@@ -113,7 +129,7 @@
             }
           },
           {
-            "id": "d727349b5264a940",
+            "id": "aa6cbec264a46657",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
@@ -127,7 +143,7 @@
             }
           },
           {
-            "id": "c31865e930bf4e19",
+            "id": "5fb8def2ca3b9b88",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -142,7 +158,7 @@
             }
           },
           {
-            "id": "5f76470e71733118",
+            "id": "3ce2b020fa3b7fd0",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -156,7 +172,7 @@
             }
           },
           {
-            "id": "236f24a10294a644",
+            "id": "e6e89bc7f32404b1",
             "type": "leaf",
             "state": {
               "type": "outline",
@@ -179,16 +195,47 @@
   },
   "left-ribbon": {
     "hiddenItems": {
+      "github-sync:Sync with Remote": false,
       "switcher:Abrir selector rápido": false,
       "graph:Abrir vista gráfica": false,
       "canvas:Crear nuevo lienzo": false,
       "daily-notes:Abrir la nota de hoy": false,
       "templates:Insertar plantilla": false,
       "command-palette:Abrir paleta de comandos": false,
-      "bases:Crear nueva base": false,
-      "github-sync:Sync with Remote": false
+      "bases:Crear nueva base": false
     }
   },
-  "active": "cdf4eaaa2e39cd8c",
-  "lastOpenFiles": []
+  "active": "8a7f88811d7ab063",
+  "lastOpenFiles": [
+    "Contexto para Claude.md",
+    "00 Índice.md",
+    "_Plantillas/Plantilla Sesión.md",
+    "_Plantillas/Plantilla Mecánica.md",
+    "_Plantillas/Plantilla Decisión.md",
+    "_Plantillas",
+    "07 Referencias/Referencias.md",
+    "07 Referencias",
+    "06 Bitácora/2026-11-11.md",
+    "06 Bitácora",
+    "05 Técnico/Convenciones.md",
+    "05 Técnico/Arquitectura.md",
+    "05 Técnico",
+    "04 Planeación/Roadmap.md",
+    "04 Planeación/Backlog.md",
+    "04 Planeación/Preguntas abiertas.md",
+    "04 Planeación",
+    "03 Decisiones/Registro de decisiones.md",
+    "03 Decisiones/D-001 Concepto base.md",
+    "03 Decisiones",
+    "02 Diseño/Mecánicas/Vuelo.md",
+    "02 Diseño/Mecánicas/Resortera.md",
+    "02 Diseño/Mecánicas/Obstáculos.md",
+    "02 Diseño/Mecánicas/Deslizamiento.md",
+    "02 Diseño/Mecánicas",
+    "02 Diseño",
+    "01 Visión/Concepto.md",
+    "01 Visión/Core Loop.md",
+    "01 Visión",
+    "Bienvenido.md"
+  ]
 }
