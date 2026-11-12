@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Bienvenido.md",
+                "file": "CLAUDE.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Bienvenido"
+              "title": "CLAUDE"
             }
           }
         ]
@@ -208,6 +208,8 @@
   "active": "8a7f88811d7ab063",
   "lastOpenFiles": [
     "Contexto para Claude.md",
+    "CLAUDE.md",
+    "Bienvenido.md",
     "00 Índice.md",
     "_Plantillas/Plantilla Sesión.md",
     "_Plantillas/Plantilla Mecánica.md",
@@ -235,7 +237,6 @@
     "02 Diseño",
     "01 Visión/Concepto.md",
     "01 Visión/Core Loop.md",
-    "01 Visión",
-    "Bienvenido.md"
+    "01 Visión"
   ]
 }
