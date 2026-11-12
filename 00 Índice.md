@@ -8,7 +8,7 @@ actualizado: 2026-11-11
 
 ## Estado actual
 - **Fase:** Planeación (inicio)
-- **Siguiente paso:** revisar el plano del [[Mapa]] v0.1 y seguir con [[Preguntas abiertas]]
+- **Siguiente paso:** revisar el prototipo del [[Nivel 2 - Aldea Nevada]] y seguir con [[Preguntas abiertas]]
 - **Última sesión:** [[2026-11-11]]
 
 ## Mapa
@@ -16,7 +16,7 @@ actualizado: 2026-11-11
 |---|---|
 | Contexto | [[Contexto para Claude]] |
 | 01 Visión | [[Concepto]] · [[Core Loop]] |
-| 02 Diseño | [[Mapa]] · [[Resortera]] · [[Vuelo]] · [[Deslizamiento]] · [[Obstáculos]] |
+| 02 Diseño | [[Mapa]] · [[Nivel 2 - Aldea Nevada]] · [[Resortera]] · [[Vuelo]] · [[Deslizamiento]] · [[Obstáculos]] |
 | 03 Decisiones | [[Registro de decisiones]] |
 | 04 Planeación | [[Roadmap]] · [[Backlog]] · [[Preguntas abiertas]] |
 | 05 Técnico | [[Arquitectura]] · [[Convenciones]] |
