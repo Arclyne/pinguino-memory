@@ -6,11 +6,11 @@ tipo: plan
 Al resolver una pregunta, se crea su decisión en `03 Decisiones` y se tacha aquí.
 
 ## Juego
-- [ ] ¿Cuál es el objetivo? (distancia, puntaje, llegar abajo, carreras)
-- [ ] ¿Qué pasa al chocar con una estructura?
-- [ ] ¿Qué pasa al llegar abajo?
-- [ ] ¿Single player o multijugador?
-- [ ] ¿Hay progresión? (mejoras de resortera, skins de pingüino, nuevos acantilados)
+- [x] ¿Cuál es el objetivo? (distancia, puntaje, llegar abajo, carreras)
+- [x] ¿Qué pasa al chocar con una estructura?
+- [x] ¿Qué pasa al llegar abajo?
+- [x] ¿Single player o multijugador?
+- [x] ¿Hay progresión? (mejoras de resortera, skins de pingüino, nuevos acantilados)
 
 ## Controles
 - [ ] ¿Cómo se apunta y se elige la fuerza?
@@ -23,6 +23,6 @@ Al resolver una pregunta, se crea su decisión en `03 Decisiones` y se tacha aqu
 
 ## Mapa
 - [ ] ¿Qué pasa si el pingüino cae fuera de la pista al lanzarlo?
-- [ ] ¿Qué pasa al caer al río?
-- [ ] ¿Cuánto debe durar una bajada?
-- [ ] ¿El cañón va a media bajada o al final?
+- [x] ¿Qué pasa al caer al río?
+- [x] ¿Cuánto debe durar una bajada?
+- [x] ¿El cañón va a media bajada o al final?

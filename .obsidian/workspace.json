@@ -20,23 +20,8 @@
               "icon": "lucide-file",
               "title": "Registro de decisiones"
             }
-          },
-          {
-            "id": "eb172fe54189d264",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "_Plantillas/Plantilla Decisión.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Plantilla Decisión"
-            }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -94,7 +79,8 @@
               "title": "Marcadores"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -204,8 +190,15 @@
       "github-sync:Sync with Remote": false
     }
   },
-  "active": "562729b3353d7acc",
+  "active": "cdf4eaaa2e39cd8c",
   "lastOpenFiles": [
+    "Sin título.canvas",
+    "04 Planeación/Preguntas abiertas.md",
+    "_Plantillas/Plantilla Mecánica.md",
+    "_Plantillas/Plantilla Decisión.md",
+    "05 Técnico/UpdateScripts_Levels.lua",
+    "05 Técnico/BuildLevel2_v02.lua",
+    "03 Decisiones/D-003 Nivel 2 y portal entre niveles.md",
     "02 Diseño/Nivel 2 - Aldea Nevada.md",
     "05 Técnico/BuildReturnPortal_v01.lua",
     "05 Técnico/BuildFinishPlaza_v01.lua",
@@ -220,8 +213,6 @@
     "00 Índice.md",
     "Bienvenido.md",
     "_Plantillas/Plantilla Sesión.md",
-    "_Plantillas/Plantilla Mecánica.md",
-    "_Plantillas/Plantilla Decisión.md",
     "_Plantillas",
     "Contexto para Claude.md",
     "07 Referencias/Referencias.md",
@@ -232,15 +223,10 @@
     "05 Técnico/Arquitectura.md",
     "05 Técnico",
     "04 Planeación/Roadmap.md",
-    "04 Planeación/Preguntas abiertas.md",
     "04 Planeación/Backlog.md",
-    "04 Planeación",
     "03 Decisiones/D-001 Concepto base.md",
-    "03 Decisiones",
     "02 Diseño/Mecánicas/Vuelo.md",
     "02 Diseño/Mecánicas/Resortera.md",
-    "02 Diseño/Mecánicas/Obstáculos.md",
-    "02 Diseño/Mecánicas/Deslizamiento.md",
-    "01 Visión/Core Loop.md"
+    "02 Diseño/Mecánicas/Obstáculos.md"
   ]
 }
