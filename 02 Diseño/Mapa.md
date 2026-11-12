@@ -30,12 +30,17 @@ Ver [[D-002 Mapa base y controles]].
 | 3 · Río de témpanos | 900–1000 | 100 | plano | 120 | río de 70, 3 filas de témpanos 10 × 10, huecos de 10 |
 | 4 · Cañón de hielo | 1000–1400 | 400 | 22° | 80 | rocas grandes, picos de hielo, grietas |
 | 5 · Campamento abandonado | 1400–1650 | 250 | 15° | 120 | cercas rotas, barriles, trineo, muñecos de nieve, cabaña (decoración) |
-| Meta y frenado | 1650–1800 | 150 | 5° | 120 | arco de meta en Z 1700, portal de regreso |
+| Meta y frenado | 1650–1800 | 150 | 5° | 120 | arco de meta en Z 1700 |
+| Zona plana final #decidido | 1800–1870 | 70 | plano | 120 | el pingüino se detiene y el jugador camina al portal; muro y cerca al final |
 
 - Pista: 1,780 studs en horizontal, ~1,868 sobre la superficie, 532 de desnivel. Unos 37 s por bajada a 50 studs/s.
 - Checkpoints: CP1 (Z 890), CP2 (Z 1005), CP3 (Z 1405).
 - Regla de alturas: lo saltable mide ≤ 4 studs y lo que solo se esquiva mide ≥ 9 (el salto por defecto de Roblox es de 7.2).
 - Pingüino supuesto de 3 × 3 × 4. Los pasillos más angostos miden 11.
+
+## Portal de regreso #decidido
+- v0.1 (estilo Hielo): https://claude.ai/artifact/N9dQzZxestQoVsSauFWXXW
+- En Studio: `ReturnPortalGate` en Z 1850 · X 0, mirando hacia la meta. Script: `05 Técnico/BuildReturnPortal_v01.lua` (correr después de `BuildFinishPlaza_v01.lua`).
 
 ## Por definir #pendiente
 - Qué pasa si el pingüino cae fuera de la pista al lanzarlo.

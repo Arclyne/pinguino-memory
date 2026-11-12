@@ -206,6 +206,8 @@
   },
   "active": "562729b3353d7acc",
   "lastOpenFiles": [
+    "05 Técnico/BuildReturnPortal_v01.lua",
+    "05 Técnico/BuildFinishPlaza_v01.lua",
     "05 Técnico/BuildSlingshot_v02.lua",
     "01 Visión/Concepto.md",
     "05 Técnico/BuildMap_v01.lua",
@@ -239,8 +241,6 @@
     "02 Diseño/Mecánicas/Obstáculos.md",
     "02 Diseño/Mecánicas/Deslizamiento.md",
     "02 Diseño/Mecánicas",
-    "02 Diseño",
-    "01 Visión/Core Loop.md",
-    "01 Visión"
+    "01 Visión/Core Loop.md"
   ]
 }
