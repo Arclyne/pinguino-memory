@@ -12,4 +12,4 @@ Al terminar, actualizar la bitácora, las decisiones y el estado del índice, co
 Los archivos de esta carpeta son la fuente de verdad: el contexto guardado en el proyecto de Claude puede estar desactualizado.
 
 
-puedes ver esto? palabra secreta pato
+puedes ver esto? palabra secreta gallina
