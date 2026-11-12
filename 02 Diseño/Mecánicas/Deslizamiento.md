@@ -6,6 +6,7 @@ estado: borrador
 
 ## Lo definido
 - El pingüino se desliza por el acantilado de nieve hasta abajo.
+- Se desliza de panza → [[D-004 Pose y animaciones del pingüino]]
 
 ## Por definir #pendiente
 - Control del jugador al deslizarse (girar, saltar, frenar…)

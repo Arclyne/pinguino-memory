@@ -13,8 +13,11 @@ Al resolver una pregunta, se crea su decisión en `03 Decisiones` y se tacha aqu
 - [ ] ¿Hay progresión? (mejoras de resortera, skins de pingüino, nuevos acantilados)
 
 ## Controles
-- [ ] ¿Cómo se apunta y se elige la fuerza?
+- [x] ~~¿Cómo se apunta y se elige la fuerza?~~ → [[D-005 Controles de la resortera]] (en PC; falta celular/consola y el rango exacto de ángulos)
 - [ ] ¿Control en el aire y al deslizarse?
+
+## Obstáculos
+- [x] ~~¿Qué tipos de estructuras hay?~~ → [[D-003 Tipos de obstáculos]]
 
 ## Alcance
 - [ ] ¿Qué entra en el MVP?

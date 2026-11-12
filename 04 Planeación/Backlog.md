@@ -11,5 +11,8 @@ tipo: plan
 
 ## Prototipo
 ## Arte y audio
+- [ ] Animación del pingüino en el aire
+- [ ] Animación al caer en la nieve
+- [ ] Animación deslizándose de panza
 ## UI
 ## Bugs

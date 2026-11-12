@@ -8,7 +8,7 @@ actualizado: 2026-11-11
 
 ## Estado actual
 - **Fase:** Planeación (inicio)
-- **Siguiente paso:** definir el concepto y el core loop → [[Preguntas abiertas]]
+- **Siguiente paso:** definir qué pasa al chocar con un obstáculo y el rango de ángulos → [[Preguntas abiertas]]
 - **Última sesión:** [[2026-11-11]]
 
 ## Mapa
