@@ -14,8 +14,15 @@ Al resolver una pregunta, se crea su decisión en `03 Decisiones` y se tacha aqu
 
 ## Controles
 - [ ] ¿Cómo se apunta y se elige la fuerza?
-- [ ] ¿Control en el aire y al deslizarse?
+- [x] ~~¿Control al deslizarse?~~ → [[D-002 Mapa base y controles]]
+- [ ] ¿Control en el aire?
 
 ## Alcance
 - [ ] ¿Qué entra en el MVP?
 - [ ] ¿Monetización? (gamepasses, productos)
+
+## Mapa
+- [ ] ¿Qué pasa si el pingüino cae fuera de la pista al lanzarlo?
+- [ ] ¿Qué pasa al caer al río?
+- [ ] ¿Cuánto debe durar una bajada?
+- [ ] ¿El cañón va a media bajada o al final?
