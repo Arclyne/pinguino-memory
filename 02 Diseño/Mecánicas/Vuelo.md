@@ -7,6 +7,7 @@ estado: borrador
 ## Lo definido
 - Animación del pingüino en el aire → [[D-004 Pose y animaciones del pingüino]]
 - Animación al caer en la nieve → [[D-004 Pose y animaciones del pingüino]]
+- Implementado en el prototipo: aletas abiertas, gravedad reducida, sin control en el aire (#idea) → [[Prototipo jugable v1]]
 
 ## Por definir #pendiente
 - ¿El jugador controla algo en el aire?

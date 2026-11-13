@@ -7,6 +7,7 @@ estado: borrador
 ## Lo definido
 - El jugador elige **dirección** y **fuerza** y lanza al pingüino.
 - Ángulo limitado: solo apunta hacia adelante, sin ángulos de 90° → [[D-002 Límite de ángulo de la resortera]]
+- Te subes con **E** y te bajas con **X**; implementación en [[Prototipo jugable v1]]
 - PC: el mouse controla la dirección y arrastrar de atrás hacia adelante controla la fuerza → [[D-005 Controles de la resortera]]
 
 ## Por definir #pendiente
