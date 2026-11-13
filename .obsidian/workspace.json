@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "06 Bitácora/2026-11-11.md",
+                "file": "03 Decisiones/D-006 Patrón MVP para las GUIs.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "2026-11-11"
+              "title": "D-006 Patrón MVP para las GUIs"
             }
           }
         ]
@@ -99,7 +99,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Bienvenido.md",
+                "file": "03 Decisiones/D-006 Patrón MVP para las GUIs.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -191,13 +191,21 @@
   },
   "active": "993bd3aeb980a8ee",
   "lastOpenFiles": [
+    "03 Decisiones/D-004 Pose y animaciones del pingüino.md",
+    "03 Decisiones/D-003 Tipos de obstáculos.md",
+    "03 Decisiones/D-002 Límite de ángulo de la resortera.md",
+    "03 Decisiones/D-001 Concepto base.md",
+    "CLAUDE.md",
+    "00 Índice.md",
+    "Contexto para Claude.md",
     "03 Decisiones/D-015 DataKit para los datos del jugador.md",
+    "03 Decisiones/D-010 Nivel 2 y portal entre niveles.md",
+    "06 Bitácora/2026-11-11.md",
     "06 Bitácora/2026-11-13.md",
     "03 Decisiones/D-014 Lobby en la meseta y peces como moneda.md",
     "03 Decisiones/D-013 Decoración festiva del nivel 1.md",
     "03 Decisiones/D-012 Nivel 4 en Studio.md",
     "03 Decisiones/D-011 Nivel 3 en Studio.md",
-    "03 Decisiones/D-010 Nivel 2 y portal entre niveles.md",
     "03 Decisiones/D-009 Mapa base y controles.md",
     "Sin título 1.md",
     "04 Planeación/Preguntas abiertas.md",
@@ -205,8 +213,6 @@
     "02 Diseño/Mecánicas/Resortera.md",
     "02 Diseño/Mecánicas/Obstáculos.md",
     "02 Diseño/Mecánicas/Deslizamiento.md",
-    "00 Índice.md",
-    "06 Bitácora/2026-11-11.md",
     "Sin título.canvas",
     "Sin título 1.canvas",
     "06 Bitácora/2026-11-12.md",
@@ -222,12 +228,6 @@
     "05 Técnico/BuildMap_v01.lua",
     "04 Planeación/Pendiente de agregar a Studio.md",
     "03 Decisiones/D-007 Lobby en la meseta y peces como moneda.md",
-    "03 Decisiones/D-006 Decoración festiva del nivel 1.md",
-    "03 Decisiones/D-005 Nivel 4 en Studio.md",
-    "03 Decisiones/D-004 Nivel 3 en Studio.md",
-    "03 Decisiones/D-003 Nivel 2 y portal entre niveles.md",
-    "03 Decisiones/D-002 Mapa base y controles.md",
-    "02 Diseño/Nivel 4 - Valle del Avión.md",
-    "02 Diseño/Nivel 3 - Ciudad Nevada.md"
+    "03 Decisiones/D-006 Decoración festiva del nivel 1.md"
   ]
 }
