@@ -8,20 +8,157 @@
         "type": "tabs",
         "children": [
           {
-            "id": "84421c6fd36fdaf9",
+            "id": "907ace3c5f2a7eb5",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "_Plantillas/Plantilla Decisión.md",
+                "file": "Sin título.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Plantilla Decisión"
+              "title": "Sin título"
+            }
+          },
+          {
+            "id": "8c6171d703e8f830",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "02 Diseño/Lobby y skins.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Lobby y skins"
+            }
+          },
+          {
+            "id": "f9cfd51a5d7d2175",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "02 Diseño/Mecánicas/Deslizamiento.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Deslizamiento"
+            }
+          },
+          {
+            "id": "88d73aa8e5b7ddb3",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "02 Diseño/Mecánicas/Obstáculos.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Obstáculos"
+            }
+          },
+          {
+            "id": "aa65db9882fa1e06",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "03 Decisiones/Registro de decisiones.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Registro de decisiones"
+            }
+          },
+          {
+            "id": "acbd57e70633fc01",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "04 Planeación/Pendiente de agregar a Studio.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Pendiente de agregar a Studio"
+            }
+          },
+          {
+            "id": "22cbdd55b4400c43",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "04 Planeación/Preguntas abiertas.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Preguntas abiertas"
+            }
+          },
+          {
+            "id": "341eec990447a699",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "05 Técnico/Arquitectura.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Arquitectura"
+            }
+          },
+          {
+            "id": "92d18a072fe653ff",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "06 Bitácora/2026-11-12.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "2026-11-12"
+            }
+          },
+          {
+            "id": "a881da6d027f65d5",
+            "type": "leaf",
+            "state": {
+              "type": "image",
+              "state": {
+                "file": "archivo/construccion/iconos/PinguinoIconos_v1.png"
+              },
+              "icon": "lucide-image",
+              "title": "PinguinoIconos_v1"
+            }
+          },
+          {
+            "id": "5fe4388fc485531e",
+            "type": "leaf",
+            "state": {
+              "type": "image",
+              "state": {
+                "file": "archivo/construccion/iconos/PinguinoIconos_v2_extra.png"
+              },
+              "icon": "lucide-image",
+              "title": "PinguinoIconos_v2_extra"
             }
           }
-        ]
+        ],
+        "currentTab": 8
       }
     ],
     "direction": "vertical"
@@ -189,47 +326,49 @@
       "github-sync:Sync with Remote": false
     }
   },
-  "active": "84421c6fd36fdaf9",
+  "active": "92d18a072fe653ff",
   "lastOpenFiles": [
-    "03 Decisiones/D-012 Nivel 5 en Studio.md",
-    "05 Técnico/Level5Install_v02.rbxmx",
-    "05 Técnico/WindowBreaker.lua",
-    "05 Técnico/BuildLevel5_v01.lua",
-    "05 Técnico/Level5Install_v01.rbxmx",
-    "05 Técnico/Nivel5_v02_fuente.html",
-    "05 Técnico/Nivel5_artefacto_v02.html",
-    "05 Técnico/Nivel5_artefacto_v01.html",
-    "02 Diseño/Nivel 5 Vecindario navideño.md",
-    "06 Bitácora/2026-11-13.md",
-    "CLAUDE.md",
-    "_Plantillas/Plantilla Mecánica.md",
     "Sin título.md",
+    "05 Técnico/Arquitectura.md",
+    "04 Planeación/Preguntas abiertas.md",
+    "04 Planeación/Pendiente de agregar a Studio.md",
+    "03 Decisiones/Registro de decisiones.md",
+    "02 Diseño/Mecánicas/Obstáculos.md",
+    "02 Diseño/Mecánicas/Deslizamiento.md",
+    "02 Diseño/Lobby y skins.md",
+    "00 Índice.md",
+    "archivo/construccion/iconos/PinguinoIconos_v1.png",
+    "place/valores.md",
+    "place/mapa-place.md",
+    "place/sistemas.md",
+    "place",
+    "diseno/personaje.md",
+    "diseno/nivel-4.md",
+    "diseno/nivel-5.md",
+    "diseno/nivel-1.md",
+    "diseno/nivel-3.md",
+    "diseno/nivel-2.md",
+    "diseno/juego.md",
+    "diseno/lobby-economia.md",
+    "diseno",
+    "archivo/construccion/iconos/PinguinoIconos_v2_extra.png",
+    "_Plantillas/Plantilla Decisión.md",
+    "pendientes/tareas/T-09-validacion-del-choque-y-la-velocidad.md",
+    "pendientes/tareas/T-11-limpiar-restos-de-serverstorage-y-workspace.md",
+    "pendientes/tareas/T-10-textura-de-studs-del-pinguino-en.md",
+    "pendientes/tareas/T-08-controles-de-celular-y-consola.md",
+    "pendientes/tareas/T-07-medir-rendimiento-de-la-decoracion-en.md",
+    "pendientes/tareas",
+    "pendientes/preguntas",
+    "pendientes",
+    "herramientas/verificar.py",
+    "herramientas/parche.py",
+    "herramientas/ver.py",
+    "herramientas/registros.py",
+    "herramientas/nuevo.py",
     "Sin título.canvas",
     "Sin título 1.canvas",
-    "02 Diseño/Mecánicas/Obstáculos.md",
-    "04 Planeación/Pendiente de agregar a Studio.md",
-    "02 Diseño/Puestos del lobby.md",
-    "03 Decisiones/D-011 Iconos, menú del lobby, iluminación y puestos.md",
-    "05 Técnico/BuildStalls_v01.lua",
-    "05 Técnico/BuildStalls_v01.rbxmx",
-    "05 Técnico/PuestosLobby_artefacto_v01.html",
     "05 Técnico/iconos/PinguinoIconos_v2_extra.png",
-    "05 Técnico/iconos/PinguinoIconos_v1.png",
-    "02 Diseño/Avalancha del nivel 1.md",
-    "03 Decisiones/D-010 Avalancha del nivel 1.md",
-    "03 Decisiones/D-009 Velocidad en bajadas, cámara y efectos.md",
-    "03 Decisiones/D-008 Lobby, economía y Festival de Faroles en Studio.md",
-    "01 Visión/Core Loop.md",
-    "03 Decisiones/D-007 Lobby en la meseta y peces como moneda.md",
-    "02 Diseño/Lobby y skins.md",
-    "02 Diseño/Nivel 2 - Decoración Festival de Faroles.md",
-    "03 Decisiones/D-006 Decoración festiva del nivel 1.md",
-    "03 Decisiones/D-005 Nivel 4 en Studio.md",
-    "02 Diseño/Nivel 4 - Valle del Avión.md",
-    "_Plantillas/Plantilla Decisión.md",
-    "01 Visión/Concepto.md",
-    "03 Decisiones/D-004 Nivel 3 en Studio.md",
-    "06 Bitácora/2026-11-12.md",
-    "02 Diseño/Nivel 3 - Ciudad Nevada.md"
+    "05 Técnico/iconos/PinguinoIconos_v1.png"
   ]
 }

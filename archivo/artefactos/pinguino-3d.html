@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pingüino Resortera — Prototipo 3D del pingüino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1d2433;
+    --ink-soft: #5a6478;
+    --line: #d3dceb;
+    --card: rgba(255,255,255,0.92);
+    --accent: #ff9a2e;
+    --accent-ink: #8a4a00;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: radial-gradient(1200px 600px at 20% -10%, #ffffff 0%, #eaf1fa 45%, #dbe6f3 100%) fixed;
+    color: var(--ink);
+    font-family: "Nunito", system-ui, sans-serif;
+  }
+  body { margin: 0; background: transparent; }
+  #scene-canvas, #dimension-overlay {
+    position: fixed; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none;
+  }
+  #scene-canvas { z-index: 0; }
+  #dimension-overlay { z-index: 2; }
+  .page { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 24px 20px 48px; }
+  header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+  h1 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.01em; }
+  .subtitle { margin: 4px 0 0; color: var(--ink-soft); font-weight: 600; font-size: 14px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .segmented { display: inline-flex; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+  .segmented button {
+    border: 0; background: transparent; font: inherit; font-weight: 800; font-size: 13px; color: var(--ink-soft);
+    padding: 7px 14px; border-radius: 999px; cursor: pointer;
+  }
+  .segmented button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  .toggle {
+    display: inline-flex; align-items: center; gap: 7px; background: #fff; border: 1px solid var(--line);
+    border-radius: 999px; padding: 7px 13px; font-size: 13px; font-weight: 700; cursor: pointer; user-select: none;
+  }
+  .toggle input { accent-color: var(--ink); margin: 0; }
+  .tag { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; background: #fff1de; color: var(--accent-ink); padding: 2px 6px; border-radius: 6px; }
+  .stage {
+    display: grid; gap: 12px;
+    grid-template-columns: 1.35fr 1fr 1fr;
+    grid-template-rows: 310px 310px;
+  }
+  .view { position: relative; border-radius: 16px; border: 1px solid var(--line); overflow: hidden; }
+  .view-main { grid-row: span 2; cursor: grab; touch-action: none; }
+  .view-main:active { cursor: grabbing; }
+  .view-label {
+    position: absolute; top: 10px; left: 10px; z-index: 3; background: var(--card); border: 1px solid var(--line);
+    padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; pointer-events: none;
+  }
+  .view-hint { position: absolute; bottom: 10px; left: 10px; font-size: 12px; font-weight: 700; color: var(--ink-soft); pointer-events: none; }
+  .panels { display: grid; grid-template-columns: 1fr 1.6fr; gap: 12px; margin-top: 12px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+  .panel h2 { margin: 0 0 12px; font-size: 16px; font-weight: 900; }
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .metric { background: #f3f6fb; border-radius: 12px; padding: 10px 12px; }
+  .metric-name { font-size: 12px; font-weight: 800; color: var(--ink-soft); }
+  .metric-value { font-size: 22px; font-weight: 900; font-variant-numeric: tabular-nums; }
+  .metric-sub { font-size: 12px; font-weight: 700; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .note { font-size: 13px; color: var(--ink-soft); font-weight: 600; margin: 12px 0 0; line-height: 1.45; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); font-weight: 900; padding: 0 8px 8px; }
+  td { padding: 7px 8px; border-top: 1px solid #e6ecf5; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 5px; vertical-align: -2px; margin-right: 8px; border: 1px solid rgba(0,0,0,.12); }
+  .review { margin: 12px 0 0; padding-left: 18px; font-size: 13px; font-weight: 600; line-height: 1.6; }
+  @media (max-width: 960px) {
+    .stage { grid-template-columns: 1fr 1fr; grid-template-rows: 380px 240px 240px; }
+    .view-main { grid-row: auto; grid-column: span 2; }
+    .panels { grid-template-columns: 1fr; }
+  }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="scene-canvas"></canvas>
+<canvas id="dimension-overlay"></canvas>
+<div class="page">
+  <header>
+    <div>
+      <h1>🐧 Pingüino — prototipo 3D v1</h1>
+      <p class="subtitle">Medidas en studs de Roblox · 1 stud = 0.28 m · cuadrícula del piso = 1 stud</p>
+    </div>
+    <div class="toolbar">
+      <div class="segmented" role="group" aria-label="Pose">
+        <button type="button" data-pose="standing" aria-pressed="true">De pie</button>
+        <button type="button" data-pose="sliding" aria-pressed="false">Deslizándose de panza</button>
+      </div>
+      <label class="toggle"><input type="checkbox" id="scarf-toggle" checked> Bufanda <span class="tag">idea</span></label>
+      <label class="toggle"><input type="checkbox" id="reference-toggle"> Jugador de referencia</label>
+      <label class="toggle"><input type="checkbox" id="spin-toggle" checked> Girar solo</label>
+    </div>
+  </header>
+
+  <section class="stage">
+    <div class="view view-main" id="view-main"><span class="view-label">Vista libre</span><span class="view-hint">Arrastra para girar · rueda para acercar</span></div>
+    <div class="view" id="view-front"><span class="view-label">Frente</span></div>
+    <div class="view" id="view-side"><span class="view-label">Lado</span></div>
+    <div class="view" id="view-back"><span class="view-label">Atrás</span></div>
+    <div class="view" id="view-top"><span class="view-label">Arriba</span></div>
+  </section>
+
+  <section class="panels">
+    <div class="panel">
+      <h2>Medidas totales <span id="pose-name" style="color:var(--ink-soft);font-weight:800">(de pie)</span></h2>
+      <div class="metrics">
+        <div class="metric"><div class="metric-name">Ancho (X)</div><div class="metric-value" id="metric-x">–</div><div class="metric-sub" id="metric-x-m">–</div></div>
+        <div class="metric"><div class="metric-name">Alto (Y)</div><div class="metric-value" id="metric-y">–</div><div class="metric-sub" id="metric-y-m">–</div></div>
+        <div class="metric"><div class="metric-name">Fondo (Z)</div><div class="metric-value" id="metric-z">–</div><div class="metric-sub" id="metric-z-m">–</div></div>
+      </div>
+      <p class="note">Las medidas se calculan del modelo en tiempo real, incluyendo aletas, pico, copete y bufanda si está activada. Un personaje R15 de Roblox mide unos 5 studs de alto: el pingüino queda a ~⅔ de un jugador.</p>
+      <h2 style="margin-top:16px">Qué revisar para corregir</h2>
+      <ul class="review">
+        <li>Proporción: cuerpo-cabeza en una sola pieza tipo huevo (estilo tierno)</li>
+        <li>Tamaño de ojos y separación entre ellos</li>
+        <li>Colores (azul marino, panza blanca, pico y patas naranjas, chapitas rosas)</li>
+        <li>¿Bufanda sí o no? ¿Otro accesorio?</li>
+        <li>Tamaño total contra el jugador</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>Piezas y medidas (pose de pie)</h2>
+      <table>
+        <thead><tr><th>Pieza</th><th>Cant.</th><th>Ancho × Alto × Fondo (studs)</th><th>Color</th></tr></thead>
+        <tbody id="parts-body"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const STUDS_TO_METERS = 0.28;
+const DIMENSION_GAP_PX = 22;
+const AXIS_NAMES = { x: 'Ancho', y: 'Alto', z: 'Fondo' };
+
+const palette = {
+  body: 0x2a3147,
+  belly: 0xf7f8fc,
+  beak: 0xffa53d,
+  feet: 0xff8f1f,
+  cheek: 0xff9fb4,
+  eye: 0x14161f,
+  shine: 0xffffff,
+  scarf: 0xe5484d,
+  reference: 0xb8c2d3
+};
+
+const sceneCanvas = document.getElementById('scene-canvas');
+const dimensionOverlay = document.getElementById('dimension-overlay');
+const overlayContext = dimensionOverlay.getContext('2d');
+const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+const renderer = new THREE.WebGLRenderer({ canvas: sceneCanvas, antialias: true, alpha: true });
+renderer.setPixelRatio(pixelRatio);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x9fb3cc, 1.15));
+const sunLight = new THREE.DirectionalLight(0xffffff, 1.7);
+sunLight.position.set(4, 8, 6);
+scene.add(sunLight);
+const fillLight = new THREE.DirectionalLight(0xdfe9ff, 0.7);
+fillLight.position.set(-6, 3, -4);
+scene.add(fillLight);
+
+const floorGrid = new THREE.GridHelper(16, 16, 0x8aa0bd, 0xc5d2e3);
+scene.add(floorGrid);
+
+function createContactShadow() {
+  const shadowCanvas = document.createElement('canvas');
+  shadowCanvas.width = shadowCanvas.height = 128;
+  const shadowContext = shadowCanvas.getContext('2d');
+  const gradient = shadowContext.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gradient.addColorStop(0, 'rgba(30,45,70,0.35)');
+  gradient.addColorStop(1, 'rgba(30,45,70,0)');
+  shadowContext.fillStyle = gradient;
+  shadowContext.fillRect(0, 0, 128, 128);
+  const shadowMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shadowCanvas), transparent: true, depthWrite: false })
+  );
+  shadowMesh.rotation.x = -Math.PI / 2;
+  shadowMesh.position.y = 0.005;
+  return shadowMesh;
+}
+const contactShadow = createContactShadow();
+scene.add(contactShadow);
+
+const unitSphere = new THREE.SphereGeometry(1, 48, 32);
+
+function createPart(geometry, color, { position = [0, 0, 0], scale = [1, 1, 1], rotation = [0, 0, 0] } = {}) {
+  const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0 }));
+  mesh.position.set(...position);
+  mesh.scale.set(...scale);
+  mesh.rotation.set(...rotation);
+  return mesh;
+}
+
+const SIDES = [-1, 1];
+
+function buildPenguin() {
+  const root = new THREE.Group();
+  const posePivot = new THREE.Group();
+  root.add(posePivot);
+  const parts = [];
+
+  function addPart(name, colorKey, meshes) {
+    meshes.forEach(mesh => posePivot.add(mesh));
+    parts.push({ name, colorKey, meshes });
+    return meshes;
+  }
+
+  addPart('Cuerpo', 'body', [createPart(unitSphere, palette.body, { position: [0, 1.65, 0], scale: [1.2, 1.5, 1.1] })]);
+  addPart('Panza', 'belly', [createPart(unitSphere, palette.belly, { position: [0, 1.45, 0.28], scale: [0.95, 1.15, 0.9] })]);
+  addPart('Máscara de la cara', 'belly', SIDES.map(side =>
+    createPart(unitSphere, palette.belly, { position: [0.33 * side, 2.35, 0.72], scale: [0.6, 0.55, 0.3] })));
+  addPart('Ojos', 'eye', SIDES.map(side =>
+    createPart(unitSphere, palette.eye, { position: [0.36 * side, 2.4, 0.93], scale: [0.15, 0.15, 0.15] })));
+  addPart('Brillo de ojos', 'shine', SIDES.map(side =>
+    createPart(unitSphere, palette.shine, { position: [0.36 * side + 0.045, 2.46, 1.05], scale: [0.055, 0.055, 0.055] })));
+  addPart('Pico', 'beak', [createPart(new THREE.ConeGeometry(0.14, 0.3, 24), palette.beak, { position: [0, 2.18, 1.08], rotation: [Math.PI / 2, 0, 0] })]);
+  addPart('Chapitas', 'cheek', SIDES.map(side =>
+    createPart(unitSphere, palette.cheek, { position: [0.6 * side, 2.15, 0.95], scale: [0.13, 0.078, 0.05], rotation: [0, 0.5 * side, 0] })));
+  const flippers = addPart('Aletas', 'body', SIDES.map(side =>
+    createPart(unitSphere, palette.body, { position: [1.15 * side, 1.75, 0], scale: [0.18, 0.75, 0.42], rotation: [0, 0, 0.3 * side] })));
+  flippers.forEach((flipper, index) => { flipper.userData.side = SIDES[index]; });
+  addPart('Patas', 'feet', SIDES.map(side =>
+    createPart(unitSphere, palette.feet, { position: [0.42 * side, 0.12, 0.55], scale: [0.32, 0.12, 0.45] })));
+  addPart('Copete', 'body', [createPart(new THREE.ConeGeometry(0.09, 0.38, 16), palette.body, { position: [0, 3.22, 0.12], rotation: [0.35, 0, 0] })]);
+  addPart('Colita', 'body', [createPart(new THREE.ConeGeometry(0.18, 0.4, 16), palette.body, { position: [0, 0.5, -0.8], rotation: [-Math.PI / 2 - 0.4, 0, 0] })]);
+  const scarfMeshes = addPart('Bufanda (idea)', 'scarf', [
+    createPart(new THREE.TorusGeometry(1.2, 0.12, 16, 64), palette.scarf, { position: [0, 1.78, 0], scale: [1.04, 1, 1], rotation: [Math.PI / 2, 0, 0] }),
+    createPart(new THREE.BoxGeometry(0.32, 0.75, 0.1), palette.scarf, { position: [0.5, 1.4, 1.1], rotation: [0.12, 0.42, 0.1] })
+  ]);
+
+  return { root, posePivot, parts, flippers, scarfMeshes };
+}
+
+function buildReferencePlayer() {
+  const player = new THREE.Group();
+  const blocks = [
+    { size: [0.95, 2, 1], position: [-0.5, 1, 0] },
+    { size: [0.95, 2, 1], position: [0.5, 1, 0] },
+    { size: [2, 2, 1], position: [0, 3, 0] },
+    { size: [0.95, 2, 1], position: [-1.5, 3, 0] },
+    { size: [0.95, 2, 1], position: [1.5, 3, 0] },
+    { size: [1.1, 1, 1.1], position: [0, 4.5, 0] }
+  ];
+  blocks.forEach(({ size, position }) => player.add(createPart(new THREE.BoxGeometry(...size), palette.reference, { position })));
+  player.position.set(-4.4, 0, 0);
+  player.visible = false;
+  return player;
+}
+
+const penguin = buildPenguin();
+scene.add(penguin.root);
+const referencePlayer = buildReferencePlayer();
+scene.add(referencePlayer);
+
+function formatStuds(value) { return value.toFixed(2); }
+function formatMeters(value) { return (value * STUDS_TO_METERS).toFixed(2); }
+function toHex(color) { return '#' + color.toString(16).padStart(6, '0'); }
+
+function renderPartsTable() {
+  penguin.root.updateMatrixWorld(true);
+  const partsBody = document.getElementById('parts-body');
+  const measuredBox = new THREE.Box3();
+  const measuredSize = new THREE.Vector3();
+  partsBody.innerHTML = penguin.parts.map(part => {
+    measuredBox.setFromObject(part.meshes[0]).getSize(measuredSize);
+    const color = toHex(palette[part.colorKey]);
+    return `<tr><td>${part.name}</td><td>${part.meshes.length}</td>` +
+      `<td>${formatStuds(measuredSize.x)} × ${formatStuds(measuredSize.y)} × ${formatStuds(measuredSize.z)}</td>` +
+      `<td><span class="swatch" style="background:${color}"></span>${color}</td></tr>`;
+  }).join('');
+}
+renderPartsTable();
+
+const mainViewElement = document.getElementById('view-main');
+const perspectiveCamera = new THREE.PerspectiveCamera(35, 1, 0.1, 200);
+perspectiveCamera.position.set(6, 4.2, 8);
+const orbitControls = new OrbitControls(perspectiveCamera, mainViewElement);
+orbitControls.enableDamping = true;
+orbitControls.enablePan = false;
+orbitControls.minDistance = 4;
+orbitControls.maxDistance = 30;
+orbitControls.autoRotate = true;
+orbitControls.autoRotateSpeed = 1.6;
+orbitControls.target.set(0, 1.6, 0);
+
+const orthographicViews = [
+  { element: document.getElementById('view-front'), direction: new THREE.Vector3(0, 0, 1), up: new THREE.Vector3(0, 1, 0), horizontal: 'x', vertical: 'y' },
+  { element: document.getElementById('view-side'), direction: new THREE.Vector3(1, 0, 0), up: new THREE.Vector3(0, 1, 0), horizontal: 'z', vertical: 'y' },
+  { element: document.getElementById('view-back'), direction: new THREE.Vector3(0, 0, -1), up: new THREE.Vector3(0, 1, 0), horizontal: 'x', vertical: 'y' },
+  { element: document.getElementById('view-top'), direction: new THREE.Vector3(0, 1, 0), up: new THREE.Vector3(0, 0, -1), horizontal: 'x', vertical: 'z' }
+].map(view => ({ ...view, camera: new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200) }));
+
+const VIEW_BACKGROUND = 0xf1f5fb;
+const MAIN_VIEW_BACKGROUND = 0xe7eef8;
+
+const poseState = { target: 0, blend: 0 };
+
+document.querySelectorAll('[data-pose]').forEach(button => {
+  button.addEventListener('click', () => {
+    poseState.target = button.dataset.pose === 'sliding' ? 1 : 0;
+    document.querySelectorAll('[data-pose]').forEach(other => other.setAttribute('aria-pressed', String(other === button)));
+    document.getElementById('pose-name').textContent = poseState.target ? '(deslizándose)' : '(de pie)';
+  });
+});
+document.getElementById('scarf-toggle').addEventListener('change', event => {
+  penguin.scarfMeshes.forEach(mesh => { mesh.visible = event.target.checked; });
+});
+document.getElementById('reference-toggle').addEventListener('change', event => {
+  referencePlayer.visible = event.target.checked;
+});
+document.getElementById('spin-toggle').addEventListener('change', event => {
+  orbitControls.autoRotate = event.target.checked;
+});
+
+const penguinBox = new THREE.Box3();
+const framingBox = new THREE.Box3();
+const referenceBox = new THREE.Box3();
+const boxSize = new THREE.Vector3();
+const boxCenter = new THREE.Vector3();
+
+function applyPose(delta) {
+  poseState.blend += (poseState.target - poseState.blend) * Math.min(1, delta * 6);
+  const blend = poseState.blend;
+  penguin.posePivot.rotation.x = blend * Math.PI / 2;
+  penguin.flippers.forEach(flipper => { flipper.rotation.z = flipper.userData.side * (0.3 + 0.75 * blend); });
+  penguin.posePivot.position.set(0, 0, 0);
+  penguin.root.updateMatrixWorld(true);
+  penguinBox.setFromObject(penguin.root);
+  penguinBox.getCenter(boxCenter);
+  penguin.posePivot.position.set(0, -penguinBox.min.y, -boxCenter.z);
+  penguin.root.updateMatrixWorld(true);
+  penguinBox.setFromObject(penguin.root);
+}
+
+function resizeIfNeeded() {
+  const width = sceneCanvas.clientWidth;
+  const height = sceneCanvas.clientHeight;
+  if (dimensionOverlay.width !== Math.round(width * pixelRatio) || dimensionOverlay.height !== Math.round(height * pixelRatio)) {
+    renderer.setSize(width, height, false);
+    dimensionOverlay.width = Math.round(width * pixelRatio);
+    dimensionOverlay.height = Math.round(height * pixelRatio);
+  }
+  overlayContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  overlayContext.clearRect(0, 0, width, height);
+}
+
+function fitOrthographicCamera(view, rect) {
+  framingBox.getSize(boxSize);
+  framingBox.getCenter(boxCenter);
+  const aspect = rect.width / rect.height;
+  const horizontalExtent = boxSize[view.horizontal];
+  const verticalExtent = boxSize[view.vertical];
+  const halfHeight = Math.max(verticalExtent, horizontalExtent / aspect) * 0.5 * 1.55;
+  const camera = view.camera;
+  camera.left = -halfHeight * aspect;
+  camera.right = halfHeight * aspect;
+  camera.top = halfHeight;
+  camera.bottom = -halfHeight;
+  camera.up.copy(view.up);
+  camera.position.copy(boxCenter).addScaledVector(view.direction, 40);
+  camera.lookAt(boxCenter);
+  camera.updateProjectionMatrix();
+}
+
+const projectedPoint = new THREE.Vector3();
+function projectToRect(point, camera, rect) {
+  projectedPoint.copy(point).project(camera);
+  return { x: rect.left + (projectedPoint.x + 1) / 2 * rect.width, y: rect.top + (1 - projectedPoint.y) / 2 * rect.height };
+}
+
+function screenBoundsOfBox(box, camera, rect) {
+  const bounds = { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity };
+  for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+    const screenPoint = projectToRect(new THREE.Vector3(x, y, z), camera, rect);
+    bounds.left = Math.min(bounds.left, screenPoint.x);
+    bounds.right = Math.max(bounds.right, screenPoint.x);
+    bounds.top = Math.min(bounds.top, screenPoint.y);
+    bounds.bottom = Math.max(bounds.bottom, screenPoint.y);
+  }
+  return bounds;
+}
+
+function dimensionLabel(axis, value) {
+  return `${AXIS_NAMES[axis]} ${formatStuds(value)} st · ${formatMeters(value)} m`;
+}
+
+function drawArrowHead(fromX, fromY, toX, toY) {
+  const angle = Math.atan2(toY - fromY, toX - fromX);
+  const size = 6;
+  overlayContext.beginPath();
+  overlayContext.moveTo(toX, toY);
+  overlayContext.lineTo(toX - size * Math.cos(angle - 0.45), toY - size * Math.sin(angle - 0.45));
+  overlayContext.lineTo(toX - size * Math.cos(angle + 0.45), toY - size * Math.sin(angle + 0.45));
+  overlayContext.closePath();
+  overlayContext.fill();
+}
+
+function drawLabelPill(text, centerX, centerY, rotation) {
+  overlayContext.save();
+  overlayContext.translate(centerX, centerY);
+  overlayContext.rotate(rotation);
+  overlayContext.font = '800 11px Nunito, system-ui, sans-serif';
+  const textWidth = overlayContext.measureText(text).width;
+  overlayContext.fillStyle = '#1d2433';
+  const pillWidth = textWidth + 12;
+  overlayContext.beginPath();
+  overlayContext.roundRect(-pillWidth / 2, -9, pillWidth, 18, 9);
+  overlayContext.fill();
+  overlayContext.fillStyle = '#ffffff';
+  overlayContext.textAlign = 'center';
+  overlayContext.textBaseline = 'middle';
+  overlayContext.fillText(text, 0, 0.5);
+  overlayContext.restore();
+}
+
+function drawDimensions(view, rect) {
+  const bounds = screenBoundsOfBox(penguinBox, view.camera, rect);
+  penguinBox.getSize(boxSize);
+  const horizontalLineY = bounds.bottom + DIMENSION_GAP_PX;
+  const verticalLineX = bounds.right + DIMENSION_GAP_PX;
+
+  overlayContext.save();
+  overlayContext.beginPath();
+  overlayContext.rect(rect.left, rect.top, rect.width, rect.height);
+  overlayContext.clip();
+
+  overlayContext.strokeStyle = 'rgba(29,36,51,0.35)';
+  overlayContext.setLineDash([3, 3]);
+  overlayContext.lineWidth = 1;
+  overlayContext.beginPath();
+  overlayContext.moveTo(bounds.left, bounds.bottom); overlayContext.lineTo(bounds.left, horizontalLineY + 5);
+  overlayContext.moveTo(bounds.right, bounds.bottom); overlayContext.lineTo(bounds.right, horizontalLineY + 5);
+  overlayContext.moveTo(bounds.right, bounds.top); overlayContext.lineTo(verticalLineX + 5, bounds.top);
+  overlayContext.moveTo(bounds.right, bounds.bottom); overlayContext.lineTo(verticalLineX + 5, bounds.bottom);
+  overlayContext.stroke();
+
+  overlayContext.setLineDash([]);
+  overlayContext.strokeStyle = '#1d2433';
+  overlayContext.fillStyle = '#1d2433';
+  overlayContext.lineWidth = 1.5;
+  overlayContext.beginPath();
+  overlayContext.moveTo(bounds.left, horizontalLineY); overlayContext.lineTo(bounds.right, horizontalLineY);
+  overlayContext.moveTo(verticalLineX, bounds.top); overlayContext.lineTo(verticalLineX, bounds.bottom);
+  overlayContext.stroke();
+  drawArrowHead(bounds.right, horizontalLineY, bounds.left, horizontalLineY);
+  drawArrowHead(bounds.left, horizontalLineY, bounds.right, horizontalLineY);
+  drawArrowHead(verticalLineX, bounds.bottom, verticalLineX, bounds.top);
+  drawArrowHead(verticalLineX, bounds.top, verticalLineX, bounds.bottom);
+
+  drawLabelPill(dimensionLabel(view.horizontal, boxSize[view.horizontal]), (bounds.left + bounds.right) / 2, horizontalLineY + 14, 0);
+  drawLabelPill(dimensionLabel(view.vertical, boxSize[view.vertical]), verticalLineX + 14, (bounds.top + bounds.bottom) / 2, -Math.PI / 2);
+  overlayContext.restore();
+}
+
+const displayedMetrics = { x: -1, y: -1, z: -1 };
+function updateMetrics() {
+  penguinBox.getSize(boxSize);
+  for (const axis of ['x', 'y', 'z']) {
+    if (Math.abs(displayedMetrics[axis] - boxSize[axis]) < 0.005) continue;
+    displayedMetrics[axis] = boxSize[axis];
+    document.getElementById(`metric-${axis}`).textContent = `${formatStuds(boxSize[axis])} st`;
+    document.getElementById(`metric-${axis}-m`).textContent = `${formatMeters(boxSize[axis])} m`;
+  }
+}
+
+function renderViewport(element, camera, background) {
+  const rect = element.getBoundingClientRect();
+  const canvasHeight = sceneCanvas.clientHeight;
+  if (rect.bottom < 0 || rect.top > canvasHeight || rect.width === 0) return null;
+  const viewportBottom = canvasHeight - rect.bottom;
+  renderer.setViewport(rect.left, viewportBottom, rect.width, rect.height);
+  renderer.setScissor(rect.left, viewportBottom, rect.width, rect.height);
+  renderer.setClearColor(background, 1);
+  return rect;
+}
+
+const clock = new THREE.Clock();
+function renderFrame() {
+  const delta = clock.getDelta();
+  resizeIfNeeded();
+  applyPose(delta);
+
+  penguinBox.getSize(boxSize);
+  contactShadow.scale.set(boxSize.x * 1.15, boxSize.z * 1.15, 1);
+  penguinBox.getCenter(boxCenter);
+  contactShadow.position.x = boxCenter.x;
+  contactShadow.position.z = boxCenter.z;
+
+  framingBox.copy(penguinBox);
+  if (referencePlayer.visible) framingBox.union(referenceBox.setFromObject(referencePlayer));
+
+  orbitControls.target.lerp(new THREE.Vector3(referencePlayer.visible ? -1.6 : 0, boxCenter.y, 0), Math.min(1, delta * 4));
+  orbitControls.update();
+
+  renderer.setScissorTest(false);
+  renderer.setClearColor(0x000000, 0);
+  renderer.clear();
+  renderer.setScissorTest(true);
+
+  const mainRect = renderViewport(mainViewElement, perspectiveCamera, MAIN_VIEW_BACKGROUND);
+  if (mainRect) {
+    perspectiveCamera.aspect = mainRect.width / mainRect.height;
+    perspectiveCamera.updateProjectionMatrix();
+    renderer.render(scene, perspectiveCamera);
+  }
+
+  for (const view of orthographicViews) {
+    const rect = renderViewport(view.element, view.camera, VIEW_BACKGROUND);
+    if (!rect) continue;
+    fitOrthographicCamera(view, rect);
+    renderer.render(scene, view.camera);
+    drawDimensions(view, rect);
+  }
+
+  updateMetrics();
+  requestAnimationFrame(renderFrame);
+}
+requestAnimationFrame(renderFrame);
+</script>
+</body>
+</html>
