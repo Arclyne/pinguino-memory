@@ -13,7 +13,7 @@ actualizado: 2026-11-13
 - ⚠️ **Falta decidir cómo se juntan los dos places** (qué scripts y qué mapa se quedan) → [[Preguntas abiertas]]
 - ⚠️ **NADA de lo diseñado el 2026-11-12 (después del nivel 1) está en Studio todavía.** Cuando Angel diga **"agrega lo que no agregamos"** (o "agrega todo lo que no se agregó"), meter a Studio TODO lo de [[Pendiente de agregar a Studio]]
 - **Pendiente aprobado:** cuando Angel diga "agrega la decoración al nivel 2", meter a Studio [[Nivel 2 - Decoración Festival de Faroles]]
-- **Siguiente paso:** revisar el guardado de datos que se hizo a mano y cambiarlo por una librería probada (ProfileService o ProfileStore) → [[Arquitectura]]; jugar los niveles 3 y [[Nivel 4 - Valle del Avión|4]] completos con la resortera; controles de celular/consola y [[Preguntas abiertas]]
+- **Siguiente paso:** jugar los niveles 3 y [[Nivel 4 - Valle del Avión|4]] completos con la resortera; controles de celular/consola y [[Preguntas abiertas]]
 - **Última sesión:** [[2026-11-13]]
 
 ## Mapa

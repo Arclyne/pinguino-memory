@@ -22,4 +22,6 @@ Cada decisión tiene su nota en esta carpeta (plantilla [[Plantilla Decisión]])
 | [[D-013 Decoración festiva del nivel 1]] | 2026-11-12 | Decoración festiva del nivel 1 con público de pingüinos que salta y agita las aletas | ✅ Aceptada |
 | [[D-014 Lobby en la meseta y peces como moneda]] | 2026-11-12 | El lobby es la meseta del nivel 1; los peces se recogen dispersos en cada nivel (estilo Subway Surfers) | ✅ Aceptada |
 
+| [[D-015 DataKit para los datos del jugador]] | 2026-11-13 | Los datos del jugador se guardan con DataKit (paquete propio) en vez del manejador casero | ✅ Aceptada |
+
 > D-009 a D-014 se crearon en paralelo con D-002 a D-008 y tenían los mismos números; se renumeraron el 2026-11-13.

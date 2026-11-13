@@ -8,6 +8,20 @@ estado: pendiente
 
 ## Decidido
 - GUIs con patrón **MVP** → [[D-006 Patrón MVP para las GUIs]]
+- Datos del jugador con **DataKit** → [[D-015 DataKit para los datos del jugador]]
+
+## Datos del jugador (PINGUINO TEST)
+| Pieza | Qué hace |
+|---|---|
+| `ServerStorage.Packages.DataKit` | El paquete de Angel (lease + fence, autosave cada 300 s) |
+| `ServerScriptService.Server.Data.PlayerProfile` | Forma del perfil (`Template`), reinicio semanal y `sanitize` (tipos, skin por default, skin equipada válida) |
+| `ServerScriptService.Server.Services.PlayerDataService` | Carga y cierra un store por jugador; API `get`, `update`, `addFish`, `spendFish`, `snapshot`, `currentWeek`, señales `Changed` y `Loaded` |
+
+- DataStore `PenguinPlayer`, key `<UserId>`. Los datos viejos de `PenguinProfile_v1` eran de pruebas y no se migraron.
+- `PlayerDataService` reemplaza al `ProfileService` casero con la misma API; Fish, Leaderboard, Progress, Reward, Skin y Wheel solo cambiaron el nombre del require.
+- Si la carga falla o tarda más de 60 s → `Kick`. Si otro server toma la sesión → `Kick`.
+- `BindToClose` espera a que terminen todos los guardados, incluidos los que empezó `PlayerRemoving`.
+- Probado en Play: regalo diario (+100 peces) → cerrar → volver a abrir → los 100 peces siguen ahí.
 
 ## Estructura del prototipo v1 #idea
 Scripts dentro de la place (sin Rojo por ahora):
@@ -32,6 +46,5 @@ Detalle de lo implementado: [[Prototipo jugable v1]]
 - Autoridad del servidor sobre el lanzamiento y el puntaje
 - Física: simulación del cliente vs servidor
 - Herramientas (Rojo, Wally, etc.) o solo Studio
-- Guardado de datos (DataStore): Angel quiere quitar el manejador de datos hecho a mano y usar una librería probada (ProfileService o su sucesor ProfileStore). Falta revisar el código actual en Studio. #pendiente
 
 Ver [[Convenciones]]
