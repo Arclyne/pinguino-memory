@@ -8,35 +8,20 @@
         "type": "tabs",
         "children": [
           {
-            "id": "8a7f88811d7ab063",
+            "id": "993bd3aeb980a8ee",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "00 Índice.md",
+                "file": "06 Bitácora/2026-11-11.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "00 Índice"
-            }
-          },
-          {
-            "id": "4f0ffc636e56ce7c",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "00 Índice.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "00 Índice"
+              "title": "2026-11-11"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -204,43 +189,45 @@
       "bases:Crear nueva base": false
     }
   },
-  "active": "4f0ffc636e56ce7c",
+  "active": "993bd3aeb980a8ee",
   "lastOpenFiles": [
-    "06 Bitácora/2026-11-11.md",
-    "02 Diseño/Personaje - Pingüino.md",
-    "02 Diseño/Prototipos/pinguino-3d.html",
-    "02 Diseño/Prototipos",
-    "Sin título.md",
-    "00 Índice.md",
-    "03 Decisiones/D-005 Controles de la resortera.md",
-    "CLAUDE.md",
-    "03 Decisiones/D-004 Pose y animaciones del pingüino.md",
-    "03 Decisiones/D-003 Tipos de obstáculos.md",
-    "03 Decisiones/D-002 Límite de ángulo de la resortera.md",
-    "Contexto para Claude.md",
-    "Bienvenido.md",
-    "_Plantillas/Plantilla Sesión.md",
-    "_Plantillas/Plantilla Mecánica.md",
-    "_Plantillas/Plantilla Decisión.md",
-    "_Plantillas",
-    "07 Referencias/Referencias.md",
-    "07 Referencias",
-    "06 Bitácora",
-    "05 Técnico/Convenciones.md",
-    "05 Técnico/Arquitectura.md",
-    "05 Técnico",
-    "04 Planeación/Roadmap.md",
-    "04 Planeación/Backlog.md",
+    "06 Bitácora/2026-11-13.md",
+    "03 Decisiones/D-014 Lobby en la meseta y peces como moneda.md",
+    "03 Decisiones/D-013 Decoración festiva del nivel 1.md",
+    "03 Decisiones/D-012 Nivel 4 en Studio.md",
+    "03 Decisiones/D-011 Nivel 3 en Studio.md",
+    "03 Decisiones/D-010 Nivel 2 y portal entre niveles.md",
+    "03 Decisiones/D-009 Mapa base y controles.md",
+    "Sin título 1.md",
     "04 Planeación/Preguntas abiertas.md",
-    "04 Planeación",
     "03 Decisiones/Registro de decisiones.md",
-    "03 Decisiones/D-001 Concepto base.md",
-    "03 Decisiones",
-    "02 Diseño/Mecánicas/Vuelo.md",
     "02 Diseño/Mecánicas/Resortera.md",
     "02 Diseño/Mecánicas/Obstáculos.md",
     "02 Diseño/Mecánicas/Deslizamiento.md",
-    "02 Diseño/Mecánicas",
-    "02 Diseño"
+    "00 Índice.md",
+    "06 Bitácora/2026-11-11.md",
+    "Sin título.canvas",
+    "Sin título 1.canvas",
+    "06 Bitácora/2026-11-12.md",
+    "05 Técnico/UpdateScripts_Levels.lua",
+    "05 Técnico/RuletaTabla_artefacto_v02.html",
+    "05 Técnico/Nivel2Decoracion_artefacto_v01.html",
+    "05 Técnico/LobbySkins_skins_artefacto_v02.html",
+    "05 Técnico/LobbySkins_penguin_v02.js",
+    "05 Técnico/LobbySkins_lobby_artefacto_v02.html",
+    "05 Técnico/InstallDecorationAnimation_v01.lua",
+    "05 Técnico/BuildSlingshot_v02.lua",
+    "05 Técnico/BuildReturnPortal_v01.lua",
+    "05 Técnico/BuildMap_v01.lua",
+    "04 Planeación/Pendiente de agregar a Studio.md",
+    "03 Decisiones/D-007 Lobby en la meseta y peces como moneda.md",
+    "03 Decisiones/D-006 Decoración festiva del nivel 1.md",
+    "03 Decisiones/D-005 Nivel 4 en Studio.md",
+    "03 Decisiones/D-004 Nivel 3 en Studio.md",
+    "03 Decisiones/D-003 Nivel 2 y portal entre niveles.md",
+    "03 Decisiones/D-002 Mapa base y controles.md",
+    "02 Diseño/Nivel 4 - Valle del Avión.md",
+    "02 Diseño/Nivel 3 - Ciudad Nevada.md",
+    "02 Diseño/Nivel 2 - Decoración Festival de Faroles.md"
   ]
 }
