@@ -28,4 +28,4 @@ Coordenadas reales: `grep -n "N5" place/mapa-place.md`.
 Qué pidió ciervo, qué artefacto se aprobó, zonas y obstáculos previstos, y si las ventanas deben dar peces o puntos.
 
 ## Sin probar
-Todo: nadie ha registrado una bajada en este nivel (Q-10).
+Todo: nadie ha registrado una bajada en este nivel (Q-10). a
