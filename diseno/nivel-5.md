@@ -25,7 +25,7 @@ Coordenadas reales: `grep -n "N5" place/mapa-place.md`.
 - Sin rampas de impulso.
 
 ## Sin saber
-Qué pidió Angel, qué artefacto se aprobó, zonas y obstáculos previstos, y si las ventanas deben dar peces o puntos.
+Qué pidió ciervo, qué artefacto se aprobó, zonas y obstáculos previstos, y si las ventanas deben dar peces o puntos.
 
 ## Sin probar
 Todo: nadie ha registrado una bajada en este nivel (Q-10).
