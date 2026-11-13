@@ -1,12 +1,12 @@
 ---
 tipo: estado
 verificado: 2026-11-13 (Studio, por inspección de la place en modo edición; no se jugó)
-ultima_sesion: 2026-11-13
-huella: scripts=136 lineas=18439 codigo=79f4e2ab instancias=61499 mundo=aead3f96
 ---
 # Estado
 
 Prototipo jugable en **PINGUINO TEST** (placeId 76340917059535, universeId 10776032682): 5 niveles encadenados, lobby en la meseta del nivel 1 y economía de peces con datos guardados. Sin publicar y sin monetización.
+
+Esta nota solo cambia cuando cambia lo que existe en el juego. Lo que se mueve cada sesión (huella, bitácoras, tareas urgentes, preguntas) lo arma `python3 herramientas/ver.py inicio`.
 
 ## Existe en Studio
 - **Carrera** en N1–N5: resortera → vuelo → deslizamiento → meta. Chocar, pisar un `Hazard` o caer elimina y reaparece en la meseta del mismo nivel. → [[juego]]
@@ -29,19 +29,11 @@ Personalizar, Pack inicial, VIP, Renacer, Lanzarse con un amigo, Próxima carrer
 - Rendimiento en celular (la place pasó de ~42,000 a ~61,500 instancias con N5).
 - Que el lobby y el Festival de N2 coincidan con los artefactos aprobados (Q-01).
 
-## Siguiente paso
-1. Angel responde Q-25: qué se hizo en la place la madrugada del 13 y qué quedó aprobado. Sin eso N5 no tiene diseño ni decisión.
-2. Angel juega N1 → N5 y ajusta la sensación (T-01).
-3. Angel responde el resto de hallazgos: Q-01, Q-02, Q-05, Q-06, Q-12, Q-13, Q-14, Q-22 → [[PREGUNTAS]]
-4. Definir objetivo, multijugador y MVP (Q-15, Q-16, Q-17): bloquean la fase 3 → [[TAREAS]]
-
 ## Frases gatillo
-| Angel dice | Claude hace |
+| La persona dice | Claude hace |
 |---|---|
 | "cierra sesión" | protocolo de cierre de `CLAUDE.md` |
-| "agrega lo que no agregamos" · "agrega todo lo que no se agregó" · "agrega la decoración al nivel 2" | retiradas: todo lo de esas listas ya está en Studio. Si Angel las dice, avisarle y preguntar qué falta |
+| "agrega lo que no agregamos" · "agrega todo lo que no se agregó" · "agrega la decoración al nivel 2" | retiradas: todo lo de esas listas ya está en Studio. Avisar y preguntar qué falta |
 
 ## Avisos
-- ⚠️ Angel debe guardar la place (Ctrl+S): se agregó y cambió `ServerStorage.DevTools.PlaceMap` (T-02).
-- Dos computadoras sincronizan este vault (angels-MacBook-Air y OasisMachine). La otra debe hacer pull antes de escribir: el 2026-11-13 se reestructuró todo.
 - El vault anterior está en `archivo/vault-v1.zip` (copia de las 02:15 del 2026-11-13).

@@ -3,11 +3,14 @@ import pathlib
 import re
 import sys
 
-VAULT_ROOT = pathlib.Path(__file__).resolve().parent.parent
-IGNORED_DIRECTORIES = {"archivo", ".obsidian", ".git", ".trash"}
+import registros
+
+VAULT_ROOT = registros.VAULT_ROOT
+IGNORED_DIRECTORIES = {"archivo", ".obsidian", ".git", ".trash", ".github"}
 REQUIRED_NOTES = [
     "CLAUDE.md",
     "ESTADO.md",
+    "AUTORES.md",
     "decisiones/REGISTRO.md",
     "diseno/juego.md",
     "diseno/personaje.md",
@@ -20,19 +23,26 @@ REQUIRED_NOTES = [
     "herramientas/LEEME.md",
     "archivo/MANIFIESTO.md",
 ]
-LINE_BUDGETS = {"CLAUDE.md": 80, "ESTADO.md": 70}
+LINE_BUDGETS = {"CLAUDE.md": 80, "ESTADO.md": 60}
 SESSION_NOTE_LINE_BUDGET = 40
+RECORD_LINE_BUDGET = 30
 NOTES_WITHOUT_VERIFICATION_STAMP = {"CLAUDE.md", "herramientas/LEEME.md", "place/mapa-place.md", "place/valores.md"}
-HISTORICAL_DIRECTORY = "bitacora"
+SESSION_DIRECTORY = "bitacora"
+SESSION_AUTHORS_WITHOUT_PERSON = {"resumen"}
+RECORD_AUTHORS_WITHOUT_PERSON = {"v1"}
+REQUIRED_RECORD_FIELDS = ("tipo", "id", "fecha", "autor", "estado")
 
 WIKILINK = re.compile(r"\[\[([^\]|#]+)")
-DECISION_REFERENCE = re.compile(r"\bD-(\d{3})\b")
-QUESTION_REFERENCE = re.compile(r"\bQ-(\d{2})\b")
-TASK_REFERENCE = re.compile(r"\bT-(\d{2})\b")
+RECORD_REFERENCES = {
+    "decision": re.compile(r"\bD-\d{3}[a-z]?\b"),
+    "pregunta": re.compile(r"\bQ-\d{2,3}[a-z]?\b"),
+    "tarea": re.compile(r"\bT-\d{2,3}[a-z]?\b"),
+}
 CONFIG_KEY_REFERENCE = re.compile(r"\b((?:GameConfig|EconomyConfig)(?:\.[A-Za-z]+){1,2})")
 FINGERPRINT_LINE = re.compile(r"^huella: (.+)$", re.MULTILINE)
 GENERATED_DATE = re.compile(r"generado=(\d{4}-\d{2}-\d{2})")
-SESSION_NOTE_NAME = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+SESSION_NOTE_NAME = re.compile(r"^(\d{4}-\d{2}-\d{2})-([a-z0-9]+)$")
+CONFLICT_MARKER = re.compile(r"^(<<<<<<<|>>>>>>>) ", re.MULTILINE)
 
 
 class Report:
@@ -61,27 +71,35 @@ def collect_notes():
 
 
 def frontmatter_value(text, key):
-    match = re.search(r"^" + re.escape(key) + r":\s*(.+)$", text.split("\n---", 1)[0], re.MULTILINE)
-    return match.group(1).strip() if match else None
+    return registros.split_frontmatter(text)[0].get(key)
 
 
 def section_lines(text, heading):
     lines = text.splitlines()
     if heading not in lines:
         return []
-    start = lines.index(heading) + 1
     collected = []
-    for line in lines[start:]:
+    for line in lines[lines.index(heading) + 1:]:
         if line.startswith("# "):
             break
         collected.append(line)
     return collected
 
 
-def check_required_notes(notes, report):
+def is_session_note(name):
+    return name.startswith(SESSION_DIRECTORY + "/")
+
+
+def check_required_notes(report):
     for name in REQUIRED_NOTES:
         if not (VAULT_ROOT / name).is_file():
             report.error(f"falta la nota {name}")
+
+
+def check_merge_leftovers(notes, report):
+    for name, text in notes.items():
+        if CONFLICT_MARKER.search(text):
+            report.error(f"{name}: tiene marcadores de conflicto de git sin resolver")
 
 
 def check_unique_names(notes, report):
@@ -101,49 +119,59 @@ def check_wikilinks(notes, stems, report):
                 report.error(f"{name}: enlace roto [[{target}]]")
 
 
-def check_decisions(notes, report):
-    registry = notes.get("decisiones/REGISTRO.md", "")
-    indexed = set(re.findall(r"^\| D-(\d{3}) \|", registry, re.MULTILINE))
-    detailed = set(re.findall(r"^## D-(\d{3}) ·", registry, re.MULTILINE))
-    for missing in sorted(indexed - detailed):
-        report.error(f"REGISTRO: D-{missing} está en el índice pero no tiene bloque")
-    for missing in sorted(detailed - indexed):
-        report.error(f"REGISTRO: D-{missing} tiene bloque pero no está en el índice")
-    expected = {f"{number:03d}" for number in range(1, len(detailed) + 1)}
-    if detailed != expected:
-        report.error("REGISTRO: los números de decisión no son consecutivos desde D-001")
-    for name, text in notes.items():
-        for reference in set(DECISION_REFERENCE.findall(text)) - detailed:
-            report.error(f"{name}: cita D-{reference}, que no existe en REGISTRO")
-    return detailed
-
-
-def check_numbered_items(notes, note_name, prefix, reference_pattern, report):
-    text = notes.get(note_name, "")
-    defined = set(re.findall(r"\*\*" + prefix + r"-(\d{2})\*\*", text))
-    next_free = re.search(r"[Ss]iguiente(?: número)? libre: " + prefix + r"-(\d{2})", text)
-    if not next_free:
-        report.error(f"{note_name}: falta la línea 'siguiente libre: {prefix}-NN'")
-    elif defined and int(next_free.group(1)) <= max(int(number) for number in defined):
-        report.error(f"{note_name}: el siguiente libre ({prefix}-{next_free.group(1)}) ya está usado")
-    for name, other_text in notes.items():
-        if name.startswith(HISTORICAL_DIRECTORY + "/"):
-            continue
-        for reference in sorted(set(reference_pattern.findall(other_text)) - defined):
-            if name == note_name and next_free and reference == next_free.group(1):
+def check_records(report):
+    people = set(registros.author_letters())
+    identifiers = {}
+    for kind in registros.KINDS.values():
+        identifiers[kind.name] = set()
+        directory = VAULT_ROOT / kind.directory
+        for path in sorted(directory.glob("*.md")):
+            if path.name.isupper() or path.stem.isupper():
                 continue
-            report.error(f"{name}: cita {prefix}-{reference}, que ya no está en {note_name}")
-    return defined
+            if not path.name.startswith(kind.prefix + "-"):
+                report.error(f"{relative(path)}: en esta carpeta solo van registros {kind.prefix}-…; crearlos con nuevo.py")
+        for record in registros.load_records(kind):
+            name = relative(record.path)
+            missing = [field for field in (*REQUIRED_RECORD_FIELDS, kind.group_field) if not record.fields.get(field)]
+            if missing:
+                report.error(f"{name}: faltan campos en el encabezado: {', '.join(missing)}")
+                continue
+            identifier = record.identifier
+            if not registros.RECORD_ID.match(identifier) or not identifier.startswith(kind.prefix + "-"):
+                report.error(f"{name}: id inválido '{identifier}'")
+            if not record.path.name.startswith(identifier + "-"):
+                report.error(f"{name}: el nombre del archivo no empieza con su id {identifier}")
+            if not record.title:
+                report.error(f"{name}: falta el título '# {identifier} · …'")
+            if identifier in identifiers[kind.name]:
+                report.error(f"{name}: id repetido {identifier}; renombrar el registro más nuevo con nuevo.py")
+            identifiers[kind.name].add(identifier)
+            if record.fields["autor"] not in people | RECORD_AUTHORS_WITHOUT_PERSON:
+                report.error(f"{name}: autor '{record.fields['autor']}' no está en AUTORES.md")
+            if record.text.count("\n") + 1 > RECORD_LINE_BUDGET:
+                report.warn(f"{name}: pasa de {RECORD_LINE_BUDGET} líneas; un registro debe ser corto")
+    return identifiers
+
+
+def check_record_references(notes, identifiers, report):
+    for name, text in notes.items():
+        for kind_name, pattern in RECORD_REFERENCES.items():
+            if kind_name != "decision" and is_session_note(name):
+                continue
+            for reference in sorted(set(pattern.findall(text)) - identifiers[kind_name]):
+                report.error(f"{name}: cita {reference}, que no existe (o ya se cerró)")
 
 
 def check_fingerprints(notes, report):
-    state_fingerprint = frontmatter_value(notes.get("ESTADO.md", ""), "huella")
+    fingerprints = {}
     for name in ("place/mapa-place.md", "place/valores.md"):
-        match = FINGERPRINT_LINE.search(notes.get(name, ""))
-        if not match:
-            report.error(f"{name}: no tiene línea 'huella:'")
-        elif match.group(1).strip() != state_fingerprint:
-            report.error(f"{name}: su huella no coincide con la de ESTADO.md (regenerar o actualizar ESTADO)")
+        matches = FINGERPRINT_LINE.findall(notes.get(name, ""))
+        if len(matches) != 1:
+            report.error(f"{name}: debe tener exactamente una línea 'huella:' (tiene {len(matches)}); regenerar")
+        else:
+            fingerprints[name] = matches[0].strip()
+    if len(set(fingerprints.values())) > 1:
+        report.error("place/mapa-place.md y place/valores.md tienen huellas distintas: regenerar las dos")
 
 
 def check_systems_cover_place(notes, report):
@@ -194,48 +222,48 @@ def config_key_exists(key, values):
 def check_config_keys(notes, report):
     values = notes.get("place/valores.md", "")
     for name, text in notes.items():
-        if name == "place/valores.md" or name.startswith(HISTORICAL_DIRECTORY + "/"):
+        if name == "place/valores.md" or is_session_note(name):
             continue
         for key in sorted(set(CONFIG_KEY_REFERENCE.findall(text))):
             if not config_key_exists(key, values):
                 report.error(f"{name}: cita {key}, que no existe en place/valores.md")
 
 
-def check_dates(notes, report):
-    session_dates = sorted(
-        pathlib.PurePosixPath(name).stem
-        for name in notes
-        if name.startswith(HISTORICAL_DIRECTORY + "/") and SESSION_NOTE_NAME.match(pathlib.PurePosixPath(name).stem)
-    )
-    if not session_dates:
+def check_session_notes(notes, report):
+    people = set(registros.author_letters()) | SESSION_AUTHORS_WITHOUT_PERSON
+    latest_date = ""
+    for name, text in notes.items():
+        if not is_session_note(name):
+            continue
+        match = SESSION_NOTE_NAME.match(pathlib.PurePosixPath(name).stem)
+        if not match:
+            report.error(f"{name}: el nombre debe ser AAAA-MM-DD-autor.md; crearla con nuevo.py bitacora")
+            continue
+        if match.group(2) not in people:
+            report.error(f"{name}: autor '{match.group(2)}' no está en AUTORES.md")
+        latest_date = max(latest_date, match.group(1))
+        if text.count("\n") + 1 > SESSION_NOTE_LINE_BUDGET:
+            report.warn(f"{name} pasa de {SESSION_NOTE_LINE_BUDGET} líneas: resumir")
+    if not latest_date:
         report.error("no hay notas en bitacora/")
         return
-    latest_session = session_dates[-1]
-    state = notes.get("ESTADO.md", "")
-    if frontmatter_value(state, "ultima_sesion") != latest_session:
-        report.error(f"ESTADO.md: ultima_sesion no es la última bitácora ({latest_session})")
-    verified = frontmatter_value(state, "verificado") or ""
-    if verified[:10] < latest_session:
-        report.warn(f"ESTADO.md se verificó el {verified[:10]} y hay bitácora del {latest_session}")
     generated = GENERATED_DATE.search(notes.get("place/mapa-place.md", ""))
-    if generated and generated.group(1) < latest_session:
-        report.warn(f"place/mapa-place.md se generó el {generated.group(1)}; regenerar si se tocó Studio después")
+    if generated and generated.group(1) < latest_date:
+        report.warn(f"place/mapa-place.md se generó el {generated.group(1)} y hay bitácora del {latest_date}; regenerar si se tocó Studio")
 
 
-def check_stamps_and_budgets(notes, report):
+def check_stamps_and_budgets(notes, record_paths, report):
     for name, text in notes.items():
         line_count = text.count("\n") + 1
         if name in LINE_BUDGETS and line_count > LINE_BUDGETS[name]:
             report.warn(f"{name} tiene {line_count} líneas (máximo {LINE_BUDGETS[name]}): resumir")
-        if name.startswith(HISTORICAL_DIRECTORY + "/"):
-            if line_count > SESSION_NOTE_LINE_BUDGET:
-                report.warn(f"{name} tiene {line_count} líneas (máximo {SESSION_NOTE_LINE_BUDGET}): resumir")
+        if is_session_note(name) or name in record_paths or name in NOTES_WITHOUT_VERIFICATION_STAMP:
             continue
-        if name not in NOTES_WITHOUT_VERIFICATION_STAMP and not frontmatter_value(text, "verificado"):
+        if not frontmatter_value(text, "verificado"):
             report.error(f"{name}: falta 'verificado:' en el encabezado")
 
 
-def check_archive_manifest(notes, report):
+def check_archive_manifest(report):
     archive = VAULT_ROOT / "archivo"
     manifest_path = archive / "MANIFIESTO.md"
     manifest = manifest_path.read_text(encoding="utf-8") if manifest_path.is_file() else ""
@@ -250,24 +278,28 @@ def check_archive_manifest(notes, report):
 def main():
     report = Report()
     notes = collect_notes()
-    check_required_notes(notes, report)
+    check_required_notes(report)
+    check_merge_leftovers(notes, report)
     stems = check_unique_names(notes, report)
     check_wikilinks(notes, stems, report)
-    decisions = check_decisions(notes, report)
-    questions = check_numbered_items(notes, "pendientes/PREGUNTAS.md", "Q", QUESTION_REFERENCE, report)
-    tasks = check_numbered_items(notes, "pendientes/TAREAS.md", "T", TASK_REFERENCE, report)
+    identifiers = check_records(report)
+    check_record_references(notes, identifiers, report)
     check_fingerprints(notes, report)
     script_count, tag_count = check_systems_cover_place(notes, report)
     check_level_sheets(notes, report)
     check_config_keys(notes, report)
-    check_dates(notes, report)
-    check_stamps_and_budgets(notes, report)
-    check_archive_manifest(notes, report)
+    check_session_notes(notes, report)
+    record_paths = {relative(record.path) for kind in registros.KINDS.values() for record in registros.load_records(kind)}
+    check_stamps_and_budgets(notes, record_paths, report)
+    check_archive_manifest(report)
     for message in report.errors:
         print("ERROR " + message)
     for message in report.warnings:
         print("AVISO " + message)
-    summary = f"{len(notes)} notas, {len(decisions)} decisiones, {len(questions)} preguntas, {len(tasks)} tareas, {script_count} scripts y {tag_count} etiquetas cubiertos"
+    summary = (
+        f"{len(notes)} notas, {len(identifiers['decision'])} decisiones, {len(identifiers['pregunta'])} preguntas, "
+        f"{len(identifiers['tarea'])} tareas, {script_count} scripts y {tag_count} etiquetas cubiertos"
+    )
     if report.errors:
         print(f"FALLA: {len(report.errors)} errores ({summary})")
         sys.exit(1)
