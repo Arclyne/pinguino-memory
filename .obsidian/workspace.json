@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "225798e9512a5513",
+        "id": "1d04e6d3ab5a8288",
         "type": "tabs",
         "children": [
           {
-            "id": "993bd3aeb980a8ee",
+            "id": "0fc9652fd159ba21",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "03 Decisiones/D-006 Patrón MVP para las GUIs.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "D-006 Patrón MVP para las GUIs"
+              "title": "Nueva pestaña"
             }
           }
         ]
@@ -99,7 +95,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "03 Decisiones/D-006 Patrón MVP para las GUIs.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -189,8 +184,10 @@
       "bases:Crear nueva base": false
     }
   },
-  "active": "993bd3aeb980a8ee",
+  "active": "0fc9652fd159ba21",
   "lastOpenFiles": [
+    "_Plantillas/Plantilla Mecánica.md",
+    "03 Decisiones/D-006 Patrón MVP para las GUIs.md",
     "03 Decisiones/D-004 Pose y animaciones del pingüino.md",
     "03 Decisiones/D-003 Tipos de obstáculos.md",
     "03 Decisiones/D-002 Límite de ángulo de la resortera.md",
@@ -226,8 +223,6 @@
     "05 Técnico/BuildSlingshot_v02.lua",
     "05 Técnico/BuildReturnPortal_v01.lua",
     "05 Técnico/BuildMap_v01.lua",
-    "04 Planeación/Pendiente de agregar a Studio.md",
-    "03 Decisiones/D-007 Lobby en la meseta y peces como moneda.md",
-    "03 Decisiones/D-006 Decoración festiva del nivel 1.md"
+    "04 Planeación/Pendiente de agregar a Studio.md"
   ]
 }
