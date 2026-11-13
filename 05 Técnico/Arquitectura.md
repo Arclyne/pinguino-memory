@@ -32,6 +32,6 @@ Detalle de lo implementado: [[Prototipo jugable v1]]
 - Autoridad del servidor sobre el lanzamiento y el puntaje
 - Física: simulación del cliente vs servidor
 - Herramientas (Rojo, Wally, etc.) o solo Studio
-- Guardado de datos (DataStore)
+- Guardado de datos (DataStore): Angel quiere quitar el manejador de datos hecho a mano y usar una librería probada (ProfileService o su sucesor ProfileStore). Falta revisar el código actual en Studio. #pendiente
 
 Ver [[Convenciones]]
