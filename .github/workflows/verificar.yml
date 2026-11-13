@@ -1,0 +1,8 @@
+name: Verificar vault
+on: [push]
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 herramientas/verificar.py

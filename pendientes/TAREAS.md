@@ -1,27 +1,15 @@
 ---
-tipo: tareas
+tipo: guia-registros
 verificado: 2026-11-13
 ---
 # Tareas
 
-Solo lo pendiente. Lo terminado se borra y queda en la bitácora. Siguiente número libre: T-12.
+Cada tarea es un archivo en `pendientes/tareas/`. No hay lista escrita a mano: se consulta con el visor.
 
-## Ahora
-- **T-01** (Angel) Jugar N1 → N5 seguidos con control y ajustar la sensación: `GameConfig.Boost`, `GameConfig.Feel`, `GameConfig.Slide`.
-- **T-02** (Angel) Guardar la place en Studio (Ctrl+S): se agregó `ServerStorage.DevTools.PlaceMap`.
-- **T-03** Responder los hallazgos de [[PREGUNTAS]] (Q-25, Q-01, Q-02, Q-05, Q-06, Q-12, Q-13, Q-14, Q-22).
-
-## Probar
-- **T-04** Session lock de DataKit con dos servidores: que el servidor viejo expulse al jugador.
-- **T-05** Peces: ver jugando que el reparto queda sobre la pista en los 5 niveles (en N3 son techos con huecos; en N5 la pista cruza casas).
-- **T-06** Saltos de N3, grietas de N4 y recorrido de N5 (Q-10).
-- **T-07** Rendimiento de la decoración de N1 y N2 en celular.
-
-## Construir
-- **T-08** Controles de celular y consola (bloqueada por Q-07).
-- **T-09** Validación en servidor: hoy el choque lo decide el cliente y no se valida la velocidad.
-- **T-10** (Angel) Textura de studs del pingüino en Blender (Q-09).
-- **T-11** Limpiar restos de ServerStorage y Workspace (bloqueada por Q-14).
+- Ver todas: `python3 herramientas/ver.py tareas` · una: `ver.py tareas T-01` · por texto o grupo: `ver.py tareas probar`
+- Crear: `python3 herramientas/nuevo.py tarea "Título corto" --grupo ahora` (grupos: `ahora`, `probar`, `construir`). Luego completar el cuerpo.
+- Terminar: borrar el archivo y anotarlo en la bitácora. Quien la deja a medias cambia `estado:` y explica en el cuerpo.
+- `responsable:` en el encabezado dice quién la hace; sin ese campo es de cualquiera.
 
 ## Elecciones de Claude sin aprobar
 Detalles que Claude eligió para que algo funcionara. Valen hasta que Angel los cambie; si los aprueba, pasan a "Angel decidió" en su decisión.
