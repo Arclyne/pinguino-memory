@@ -32,4 +32,7 @@ Artefacto: https://claude.ai/artifact/6D4F2runEPTEayZfYHJu3t
 ## Por definir #pendiente
 - ¿Los peces se ganan solo en carreras o también en la ruleta y el regalo diario?
 - Precios reales en Robux de los packs y pases.
-- ¿El lobby es un lugar aparte o la meseta del nivel 1?
+- ~~¿El lobby es un lugar aparte o la meseta del nivel 1?~~ → meseta ([[D-007 Lobby en la meseta y peces como moneda]])
+
+## Actualización 2026-11-12
+- Menú reorganizado por importancia, iconos dibujados y puestos rediseñados → [[D-011 Iconos, menú del lobby, iluminación y puestos]] · [[Puestos del lobby]]

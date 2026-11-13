@@ -14,3 +14,8 @@ Cada decisión tiene su nota en esta carpeta (plantilla [[Plantilla Decisión]])
 | [[D-005 Nivel 4 en Studio]] | 2026-11-12 | Nivel 4 en el mismo place (X +18000, base Y 1200) y el portal del nivel 3 lleva al nivel 4 | ✅ Aceptada |
 | [[D-006 Decoración festiva del nivel 1]] | 2026-11-12 | Decoración festiva del nivel 1 con público de pingüinos que salta y agita las aletas | ✅ Aceptada |
 | [[D-007 Lobby en la meseta y peces como moneda]] | 2026-11-12 | El lobby es la meseta del nivel 1; los peces se recogen dispersos en cada nivel (estilo Subway Surfers) | ✅ Aceptada |
+| [[D-008 Lobby, economía y Festival de Faroles en Studio]] | 2026-11-12 | Se metió a Studio todo lo pendiente: lobby, GUIs, skins, ruleta, tabla, peces y decoración del nivel 2 | ✅ Aceptada |
+| [[D-009 Velocidad en bajadas, cámara y efectos]] | 2026-11-12 | Más velocidad en bajadas, cámara que se aleja y sube, efectos de velocidad | ✅ Aceptada |
+| [[D-010 Avalancha del nivel 1]] | 2026-11-12 | Cinemática de avalancha al subirse a la resortera del nivel 1, persecución visual y final en la meta | ✅ Aceptada |
+| [[D-011 Iconos, menú del lobby, iluminación y puestos]] | 2026-11-12 | Iconos dibujados en todo el juego, menú del lobby por importancia, iluminación nueva y puestos rediseñados | ✅ Aceptada |
+| [[D-012 Nivel 5 en Studio]] | 2026-11-13 | Nivel 5 (vecindario navideño) en Studio con ventanas que se rompen, conectado desde el portal del nivel 4 | ✅ Aceptada |

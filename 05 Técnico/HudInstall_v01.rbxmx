@@ -1,0 +1,1439 @@
+<roblox version="4"><Item class="Folder" referent="R0"><Properties><string name="Name">HudInstall</string></Properties><Item class="ModuleScript" referent="R1"><Properties><string name="Name">HudIcons</string><ProtectedString name="Source"><![CDATA[--!strict
+local RunService = game:GetService("RunService")
+
+local PenguinViewport = require(script.Parent.PenguinViewport)
+
+type Animator = (model: Model, now: number, phase: number) -> ()
+type Icon = { model: Model, base: CFrame, animate: Animator, phase: number, frame: GuiObject }
+
+local rgb = Color3.fromRGB
+local V = Vector3.new
+local M = Enum.Material
+local GOLD = rgb(255, 196, 40)
+local GOLD_DARK = rgb(214, 140, 20)
+local INK = rgb(24, 26, 44)
+local SKIN_CYCLE = { "classic", "fire", "ice", "santa", "reindeer" }
+
+local icons: { Icon } = {}
+local penguins: { { viewport: any, index: number } } = {}
+local started = false
+
+local HudIcons = {}
+
+local function piece(model: Model, size: Vector3, cframe: CFrame, color: Color3, options: { material: Enum.Material?, shape: Enum.PartType?, mesh: Vector3?, transparency: number? }?): BasePart
+	local opts = options or {}
+	local p = Instance.new("Part")
+	p.Anchored = true
+	p.CanCollide = false
+	p.CastShadow = false
+	if opts.shape then
+		p.Shape = opts.shape
+	end
+	p.Size = size
+	p.CFrame = cframe
+	p.Color = color
+	p.Material = opts.material or M.SmoothPlastic
+	p.Transparency = opts.transparency or 0
+	if opts.mesh then
+		local mesh = Instance.new("SpecialMesh")
+		mesh.MeshType = Enum.MeshType.Sphere
+		mesh.Scale = opts.mesh
+		mesh.Parent = p
+	end
+	p.Parent = model
+	return p
+end
+
+local function ball(model: Model, diameter: number, position: Vector3, color: Color3, material: Enum.Material?): BasePart
+	return piece(model, V(diameter, diameter, diameter), CFrame.new(position), color, { shape = Enum.PartType.Ball, material = material })
+end
+
+local function ellipsoid(model: Model, size: Vector3, cframe: CFrame, color: Color3, material: Enum.Material?): BasePart
+	return piece(model, size, cframe, color, { mesh = V(1, 1, 1), material = material })
+end
+
+local function cylinder(model: Model, length: number, diameter: number, cframe: CFrame, color: Color3, material: Enum.Material?): BasePart
+	return piece(model, V(length, diameter, diameter), cframe, color, { shape = Enum.PartType.Cylinder, material = material })
+end
+
+local function box(model: Model, size: Vector3, cframe: CFrame, color: Color3, material: Enum.Material?): BasePart
+	return piece(model, size, cframe, color, { material = material })
+end
+
+local function sparkle(model: Model, position: Vector3, color: Color3, size: number)
+	local a = box(model, V(size * 0.22, size, 0.05), CFrame.new(position), color, M.Neon)
+	a.Name = "Sparkle"
+	local b = box(model, V(size, size * 0.22, 0.05), CFrame.new(position), color, M.Neon)
+	b.Name = "Sparkle"
+end
+
+local builders: { [string]: (Model) -> Animator } = {}
+
+builders.cart = function(model)
+	local basketColor = rgb(255, 70, 110)
+	box(model, V(3.4, 0.25, 2), CFrame.new(0, -0.6, 0), rgb(200, 40, 80))
+	box(model, V(3.6, 1.5, 0.22), CFrame.new(0, 0.1, -1) * CFrame.Angles(math.rad(12), 0, 0), basketColor)
+	box(model, V(3.6, 1.5, 0.22), CFrame.new(0, 0.1, 1) * CFrame.Angles(math.rad(-12), 0, 0), basketColor)
+	box(model, V(0.22, 1.5, 2.2), CFrame.new(-1.75, 0.1, 0), rgb(230, 50, 95))
+	box(model, V(0.22, 1.5, 2.2), CFrame.new(1.75, 0.1, 0), rgb(230, 50, 95))
+	cylinder(model, 3.9, 0.22, CFrame.new(0, 0.9, -1.1), GOLD, M.Metal)
+	cylinder(model, 1.4, 0.22, CFrame.new(-2.3, 1.2, -1.1) * CFrame.Angles(0, 0, math.rad(-50)), GOLD, M.Metal)
+	for _, x in { -1.2, 1.2 } do
+		cylinder(model, 0.35, 0.8, CFrame.new(x, -1.05, -0.9) * CFrame.Angles(0, math.rad(90), 0), INK)
+		cylinder(model, 0.36, 0.35, CFrame.new(x, -1.05, -0.9) * CFrame.Angles(0, math.rad(90), 0), rgb(200, 200, 210), M.Metal)
+	end
+	local goods = Instance.new("Model")
+	goods.Name = "Goods"
+	goods.Parent = model
+	ball(goods, 1.1, V(-0.9, 1.1, 0), rgb(80, 220, 120))
+	box(goods, V(1, 1, 1), CFrame.new(0.2, 1.15, 0.1) * CFrame.Angles(0.3, 0.6, 0.2), rgb(80, 170, 255))
+	ellipsoid(goods, V(1.4, 0.8, 0.8), CFrame.new(1.05, 1.05, -0.1) * CFrame.Angles(0, 0, 0.4), rgb(255, 214, 60))
+	sparkle(model, V(1.8, 1.9, -0.6), rgb(255, 255, 220), 0.7)
+	return function(m, now, phase)
+		local hop = math.abs(math.sin(now * 3 + phase)) * 0.25
+		local goodsModel = m:FindFirstChild("Goods") :: Model
+		goodsModel:PivotTo(m:GetPivot() * CFrame.new(0, hop, 0))
+	end
+end
+
+builders.palette = function(model)
+	cylinder(model, 0.3, 4.2, CFrame.Angles(0, math.rad(90), 0), rgb(232, 178, 112), M.Wood)
+	cylinder(model, 0.32, 1, CFrame.new(-0.9, -0.9, 0) * CFrame.Angles(0, math.rad(90), 0), rgb(150, 100, 60), M.Wood)
+	local colors = { rgb(255, 60, 80), rgb(255, 200, 40), rgb(60, 200, 255), rgb(120, 230, 90), rgb(190, 90, 255) }
+	for index, color in colors do
+		local angle = math.rad(-30 + index * 48)
+		local blob = ellipsoid(model, V(0.95, 0.95, 0.35), CFrame.new(math.cos(angle) * 1.35, math.sin(angle) * 1.35, -0.2), color)
+		blob.Name = "Blob"
+	end
+	local brush = Instance.new("Model")
+	brush.Name = "Brush"
+	brush.Parent = model
+	cylinder(brush, 3, 0.28, CFrame.new(0.9, 0.2, -0.6) * CFrame.Angles(0, 0, math.rad(55)), rgb(80, 60, 200))
+	ellipsoid(brush, V(0.45, 0.8, 0.45), CFrame.new(0.05, -1, -0.6) * CFrame.Angles(0, 0, math.rad(55)), rgb(255, 60, 80))
+	return function(m, now, phase)
+		local brushModel = m:FindFirstChild("Brush") :: Model
+		brushModel:PivotTo(m:GetPivot() * CFrame.Angles(0, 0, math.sin(now * 3 + phase) * 0.25))
+	end
+end
+
+builders.rocket = function(model)
+	local rocket = Instance.new("Model")
+	rocket.Name = "Rocket"
+	rocket.Parent = model
+	ellipsoid(rocket, V(1.5, 3.2, 1.5), CFrame.new(0, 0.2, 0), rgb(245, 248, 255))
+	ellipsoid(rocket, V(1.1, 1.3, 1.1), CFrame.new(0, 1.6, 0), rgb(255, 60, 70))
+	ball(rocket, 0.75, V(0, 0.55, -0.62), rgb(70, 200, 255), M.Glass)
+	cylinder(rocket, 0.1, 0.85, CFrame.new(0, 0.55, -0.58) * CFrame.Angles(0, math.rad(90), 0), GOLD, M.Metal)
+	for _, side in { -1, 1 } do
+		box(rocket, V(0.15, 1.2, 0.9), CFrame.new(side * 0.85, -1, 0) * CFrame.Angles(0, 0, side * 0.35), rgb(255, 60, 70))
+	end
+	box(rocket, V(0.9, 1.2, 0.15), CFrame.new(0, -1, 0.75) * CFrame.Angles(-0.35, 0, 0), rgb(255, 60, 70))
+	local flame = ellipsoid(rocket, V(0.9, 1.6, 0.9), CFrame.new(0, -2, 0), rgb(255, 150, 30), M.Neon)
+	flame.Name = "Flame"
+	local core = ellipsoid(rocket, V(0.5, 1, 0.5), CFrame.new(0, -1.8, 0), rgb(255, 240, 120), M.Neon)
+	core.Name = "Core"
+	sparkle(model, V(-1.6, 1.4, 0), rgb(255, 255, 255), 0.6)
+	sparkle(model, V(1.5, -0.4, 0), rgb(255, 230, 140), 0.5)
+	return function(m, now, phase)
+		local rocketModel = m:FindFirstChild("Rocket") :: Model
+		rocketModel:PivotTo(m:GetPivot() * CFrame.new(math.sin(now * 20) * 0.04, math.sin(now * 3 + phase) * 0.25, 0) * CFrame.Angles(0, 0, -0.5))
+		local flicker = 1 + math.sin(now * 30) * 0.18
+		local flamePart = rocketModel:FindFirstChild("Flame") :: BasePart
+		local coreOffset = rocketModel:GetPivot()
+		flamePart.Size = V(0.9, 1.6 * flicker, 0.9)
+		flamePart.CFrame = coreOffset * CFrame.new(0, -2 - (flicker - 1), 0)
+	end
+end
+
+builders.crate = function(model)
+	local wood = rgb(196, 128, 64)
+	box(model, V(3, 2.2, 3), CFrame.new(0, -0.4, 0), wood, M.WoodPlanks)
+	for _, y in { -1.3, 0.5 } do
+		box(model, V(3.1, 0.3, 3.1), CFrame.new(0, y, 0), rgb(150, 90, 40), M.Wood)
+	end
+	box(model, V(0.5, 2.25, 3.08), CFrame.new(0, -0.4, 0), GOLD, M.Metal)
+	box(model, V(3.08, 2.25, 0.5), CFrame.new(0, -0.4, 0), GOLD, M.Metal)
+	local glow = box(model, V(2.6, 0.2, 2.6), CFrame.new(0, 0.75, 0), rgb(255, 240, 140), M.Neon)
+	glow.Name = "Glow"
+	local lid = Instance.new("Model")
+	lid.Name = "Lid"
+	lid.Parent = model
+	box(lid, V(3.2, 0.5, 3.2), CFrame.new(0, 1, 0), rgb(176, 110, 52), M.WoodPlanks)
+	box(lid, V(0.5, 0.55, 3.25), CFrame.new(0, 1, 0), GOLD, M.Metal)
+	box(lid, V(3.25, 0.55, 0.5), CFrame.new(0, 1, 0), GOLD, M.Metal)
+	ellipsoid(lid, V(1, 0.7, 0.5), CFrame.new(-0.45, 1.5, 0) * CFrame.Angles(0, 0, 0.5), rgb(255, 60, 90))
+	ellipsoid(lid, V(1, 0.7, 0.5), CFrame.new(0.45, 1.5, 0) * CFrame.Angles(0, 0, -0.5), rgb(255, 60, 90))
+	ball(lid, 0.5, V(0, 1.45, 0), rgb(255, 90, 120))
+	return function(m, now, phase)
+		local cycle = (now * 0.8 + phase) % 2
+		local pop = if cycle < 0.35 then math.sin(cycle / 0.35 * math.pi) else 0
+		local lidModel = m:FindFirstChild("Lid") :: Model
+		lidModel:PivotTo(m:GetPivot() * CFrame.new(0, pop * 0.9, 0) * CFrame.Angles(0, 0, pop * 0.25))
+		local glowPart = m:FindFirstChild("Glow") :: BasePart
+		glowPart.Transparency = 1 - pop
+	end
+end
+
+builders.crown = function(model)
+	cylinder(model, 1.2, 3, CFrame.new(0, -0.6, 0) * CFrame.Angles(0, 0, math.rad(90)), GOLD, M.Metal)
+	cylinder(model, 0.3, 3.15, CFrame.new(0, -1.1, 0) * CFrame.Angles(0, 0, math.rad(90)), GOLD_DARK, M.Metal)
+	local gems = { rgb(255, 50, 80), rgb(70, 160, 255), rgb(80, 230, 120), rgb(70, 160, 255), rgb(255, 50, 80) }
+	for index = 0, 4 do
+		local angle = index / 5 * math.pi * 2
+		local spot = V(math.sin(angle) * 1.3, 0.5, -math.cos(angle) * 1.3)
+		box(model, V(0.7, 1.6, 0.25), CFrame.lookAt(spot, V(0, 0.5, 0)) * CFrame.Angles(0, 0, math.rad(45)), GOLD, M.Metal)
+		ball(model, 0.45, spot + V(0, 1.05, 0), rgb(255, 245, 200), M.Metal)
+		ball(model, 0.45, V(math.sin(angle) * 1.52, -0.6, -math.cos(angle) * 1.52), gems[index + 1], M.Neon)
+	end
+	sparkle(model, V(1.5, 1.4, -1), rgb(255, 255, 255), 0.7)
+	return function(m, now, phase)
+		local _ = m
+		local _ = now
+		local _ = phase
+	end
+end
+
+builders.gift = function(model)
+	local box1 = Instance.new("Model")
+	box1.Name = "Gift"
+	box1.Parent = model
+	box(box1, V(2.8, 2.2, 2.8), CFrame.new(0, -0.5, 0), rgb(170, 80, 255))
+	box(box1, V(3.1, 0.6, 3.1), CFrame.new(0, 0.8, 0), rgb(200, 110, 255))
+	box(box1, V(0.55, 2.85, 2.9), CFrame.new(0, -0.2, 0), GOLD, M.Metal)
+	box(box1, V(2.9, 2.85, 0.55), CFrame.new(0, -0.2, 0), GOLD, M.Metal)
+	ellipsoid(box1, V(1.3, 0.9, 0.6), CFrame.new(-0.6, 1.5, 0) * CFrame.Angles(0, 0, 0.5), GOLD, M.Metal)
+	ellipsoid(box1, V(1.3, 0.9, 0.6), CFrame.new(0.6, 1.5, 0) * CFrame.Angles(0, 0, -0.5), GOLD, M.Metal)
+	ball(box1, 0.6, V(0, 1.4, 0), rgb(255, 230, 120), M.Metal)
+	sparkle(model, V(-1.7, 1.3, -1), rgb(255, 240, 255), 0.6)
+	return function(m, now, phase)
+		local giftModel = m:FindFirstChild("Gift") :: Model
+		local cycle = (now + phase) % 2.2
+		local shake = if cycle < 0.5 then math.sin(cycle * 40) * 0.18 * (1 - cycle / 0.5) else 0
+		giftModel:PivotTo(m:GetPivot() * CFrame.Angles(0, 0, shake) * CFrame.new(0, if cycle < 0.5 then 0.15 else 0, 0))
+	end
+end
+
+builders.map = function(model)
+	box(model, V(3.6, 2.6, 0.08), CFrame.new(0, 0, 0), rgb(250, 232, 180))
+	for _, x in { -1.85, 1.85 } do
+		cylinder(model, 2.8, 0.4, CFrame.new(x, 0, 0) * CFrame.Angles(0, 0, math.rad(90)), rgb(226, 196, 130))
+	end
+	ellipsoid(model, V(1.6, 1, 0.1), CFrame.new(-0.6, 0.4, -0.05), rgb(110, 210, 120))
+	ellipsoid(model, V(1.2, 0.8, 0.1), CFrame.new(0.8, -0.5, -0.05), rgb(80, 190, 110))
+	ellipsoid(model, V(1.2, 0.6, 0.1), CFrame.new(0.6, 0.6, -0.05), rgb(90, 180, 255))
+	for index = 0, 3 do
+		box(model, V(0.35, 0.12, 0.1), CFrame.new(-0.9 + index * 0.45, -0.6 + index * 0.2, -0.08) * CFrame.Angles(0, 0, 0.4), rgb(200, 60, 60))
+	end
+	local pin = Instance.new("Model")
+	pin.Name = "Pin"
+	pin.Parent = model
+	ball(pin, 0.8, V(0.9, 0.9, -0.5), rgb(255, 60, 70))
+	box(pin, V(0.15, 0.7, 0.15), CFrame.new(0.9, 0.4, -0.45), rgb(220, 220, 230), M.Metal)
+	return function(m, now, phase)
+		local pinModel = m:FindFirstChild("Pin") :: Model
+		pinModel:PivotTo(m:GetPivot() * CFrame.new(0, math.abs(math.sin(now * 4 + phase)) * 0.35, 0))
+	end
+end
+
+builders.trophy = function(model)
+	box(model, V(2.2, 0.6, 2.2), CFrame.new(0, -1.8, 0), rgb(60, 40, 30), M.Wood)
+	box(model, V(1.6, 0.3, 1.6), CFrame.new(0, -1.4, 0), GOLD_DARK, M.Metal)
+	cylinder(model, 1.2, 0.5, CFrame.new(0, -0.8, 0) * CFrame.Angles(0, 0, math.rad(90)), GOLD, M.Metal)
+	ellipsoid(model, V(2.4, 2.2, 2.4), CFrame.new(0, 0.6, 0), GOLD, M.Metal)
+	cylinder(model, 0.25, 2.4, CFrame.new(0, 1.55, 0) * CFrame.Angles(0, 0, math.rad(90)), rgb(255, 230, 120), M.Metal)
+	for _, side in { -1, 1 } do
+		box(model, V(0.3, 1.2, 0.3), CFrame.new(side * 1.45, 0.7, 0), GOLD, M.Metal)
+		box(model, V(0.6, 0.3, 0.3), CFrame.new(side * 1.25, 1.2, 0), GOLD, M.Metal)
+		box(model, V(0.6, 0.3, 0.3), CFrame.new(side * 1.25, 0.2, 0), GOLD, M.Metal)
+	end
+	local star = box(model, V(0.6, 0.6, 0.1), CFrame.new(0, 0.6, -1.2) * CFrame.Angles(0, 0, math.rad(45)), rgb(255, 80, 80), M.Neon)
+	star.Name = "Badge"
+	sparkle(model, V(1.4, 1.8, -1.2), rgb(255, 255, 255), 0.8)
+	sparkle(model, V(-1.3, -0.2, -1.2), rgb(255, 240, 160), 0.5)
+	return function(m, now, phase)
+		local badge = m:FindFirstChild("Badge") :: BasePart
+		badge.Color = Color3.fromHSV(((now * 0.3 + phase) % 1), 0.7, 1)
+	end
+end
+
+builders.star = function(model)
+	for index = 0, 4 do
+		local angle = index / 5 * math.pi * 2
+		local direction = V(math.sin(angle), math.cos(angle), 0)
+		box(model, V(0.9, 1.9, 0.6), CFrame.fromMatrix(direction * 0.95, direction:Cross(V(0, 0, 1)), direction) * CFrame.Angles(0, math.rad(45), 0), rgb(255, 214, 40))
+	end
+	ellipsoid(model, V(1.9, 1.9, 0.9), CFrame.new(), rgb(255, 225, 60))
+	ball(model, 0.35, V(-0.35, 0.15, -0.45), INK)
+	ball(model, 0.35, V(0.35, 0.15, -0.45), INK)
+	ellipsoid(model, V(0.6, 0.25, 0.1), CFrame.new(0, -0.3, -0.45), rgb(255, 120, 140))
+	local aura = ellipsoid(model, V(4.4, 4.4, 0.1), CFrame.new(0, 0, 0.6), rgb(255, 140, 220), M.Neon)
+	aura.Transparency = 0.6
+	aura.Name = "Aura"
+	return function(m, now, phase)
+		local aura2 = m:FindFirstChild("Aura") :: BasePart
+		aura2.Transparency = 0.55 + math.sin(now * 4 + phase) * 0.2
+	end
+end
+
+builders.wheel = function(model)
+	local wheel = Instance.new("Model")
+	wheel.Name = "Spinner"
+	wheel.Parent = model
+	local colors = { rgb(255, 70, 90), rgb(255, 200, 40), rgb(70, 200, 255), rgb(120, 230, 90), rgb(190, 90, 255), rgb(255, 140, 40) }
+	for index = 0, 11 do
+		local angle = index / 12 * math.pi * 2
+		local direction = V(math.sin(angle), math.cos(angle), 0)
+		local slice = box(wheel, V(1.05, 1.6, 0.25), CFrame.fromMatrix(direction * 0.85, direction:Cross(V(0, 0, 1)), direction), colors[index % #colors + 1])
+		slice.Name = "Slice"
+	end
+	for index = 0, 15 do
+		local angle = index / 16 * math.pi * 2
+		ball(wheel, 0.32, V(math.sin(angle) * 1.82, math.cos(angle) * 1.82, -0.15), if index % 2 == 0 then rgb(255, 255, 220) else GOLD, M.Neon)
+	end
+	cylinder(model, 0.3, 4, CFrame.new(0, 0, 0.15) * CFrame.Angles(0, math.rad(90), 0), GOLD, M.Metal)
+	cylinder(model, 0.45, 0.9, CFrame.new(0, 0, -0.3) * CFrame.Angles(0, math.rad(90), 0), rgb(255, 60, 60))
+	box(model, V(0.6, 0.6, 0.3), CFrame.new(0, 2.1, -0.3) * CFrame.Angles(0, 0, math.rad(45)), rgb(255, 60, 60))
+	return function(m, now, phase)
+		local spinner = m:FindFirstChild("Spinner") :: Model
+		spinner:PivotTo(m:GetPivot() * CFrame.Angles(0, 0, -(now * 2.2 + phase)))
+	end
+end
+
+builders.fish = function(model)
+	local fish = Instance.new("Model")
+	fish.Name = "Fish"
+	fish.Parent = model
+	ellipsoid(fish, V(3, 1.7, 1.1), CFrame.new(), rgb(60, 170, 255))
+	ellipsoid(fish, V(2.2, 0.8, 1.05), CFrame.new(0.1, -0.45, 0), rgb(210, 240, 255))
+	box(fish, V(1, 1.4, 0.2), CFrame.new(1.75, 0, 0) * CFrame.Angles(0, 0, math.rad(45)), rgb(40, 130, 230))
+	box(fish, V(0.9, 0.5, 0.15), CFrame.new(0, 0.9, 0) * CFrame.Angles(0, 0, math.rad(-15)), rgb(40, 130, 230))
+	ball(fish, 0.55, V(-0.85, 0.25, -0.45), rgb(255, 255, 255))
+	ball(fish, 0.3, V(-0.92, 0.25, -0.62), INK)
+	sparkle(model, V(-1.3, 1.1, -0.6), rgb(255, 255, 255), 0.6)
+	return function(m, now, phase)
+		local fishModel = m:FindFirstChild("Fish") :: Model
+		fishModel:PivotTo(m:GetPivot() * CFrame.new(0, math.sin(now * 3 + phase) * 0.15, 0) * CFrame.Angles(0, math.sin(now * 5 + phase) * 0.3, math.sin(now * 2 + phase) * 0.1))
+	end
+end
+
+builders.snowflake = function(model)
+	for index = 0, 2 do
+		local arm = box(model, V(0.4, 3.6, 0.3), CFrame.Angles(0, 0, index * math.pi / 3), rgb(160, 230, 255), M.Neon)
+		arm.Transparency = 0.1
+		for _, sign in { -1, 1 } do
+			for _, along in { 1.1 } do
+				local tip = CFrame.Angles(0, 0, index * math.pi / 3) * CFrame.new(0, sign * along, 0)
+				box(model, V(0.25, 0.9, 0.25), tip * CFrame.Angles(0, 0, math.rad(45)), rgb(220, 248, 255), M.Neon)
+				box(model, V(0.25, 0.9, 0.25), tip * CFrame.Angles(0, 0, math.rad(-45)), rgb(220, 248, 255), M.Neon)
+			end
+		end
+	end
+	ball(model, 0.8, V(0, 0, -0.1), rgb(255, 255, 255), M.Neon)
+	return function(m, now, phase)
+		local _ = m
+		local _ = now
+		local _ = phase
+	end
+end
+
+builders.plus = function(model)
+	box(model, V(2.6, 0.9, 0.9), CFrame.new(), rgb(70, 230, 110))
+	box(model, V(0.9, 2.6, 0.9), CFrame.new(), rgb(70, 230, 110))
+	box(model, V(2.2, 0.35, 0.95), CFrame.new(0, 0.15, -0.02), rgb(160, 255, 180))
+	return function(m, now, phase)
+		local _ = m
+		local _ = now
+		local _ = phase
+	end
+end
+
+
+builders.bolt = function(model)
+	local yellow = rgb(255, 220, 40)
+	box(model, V(1, 2.2, 0.6), CFrame.new(0.35, 0.9, 0) * CFrame.Angles(0, 0, math.rad(-25)), yellow, M.Neon)
+	box(model, V(2, 0.7, 0.6), CFrame.new(0, 0, 0) * CFrame.Angles(0, 0, math.rad(-10)), yellow, M.Neon)
+	box(model, V(1, 2.2, 0.6), CFrame.new(-0.35, -0.9, 0) * CFrame.Angles(0, 0, math.rad(-25)), yellow, M.Neon)
+	box(model, V(1.2, 0.9, 0.62), CFrame.new(-0.6, -1.9, 0) * CFrame.Angles(0, 0, math.rad(40)), rgb(255, 160, 20), M.Neon)
+	local aura = ellipsoid(model, V(3.6, 4.4, 0.1), CFrame.new(0, 0, 0.5), rgb(255, 250, 160), M.Neon)
+	aura.Name = "Aura"
+	return function(m, now, phase)
+		local glowPart = m:FindFirstChild("Aura") :: BasePart
+		glowPart.Transparency = if math.floor((now + phase) * 6) % 5 == 0 then 0.35 else 0.8
+	end
+end
+
+builders.flame = function(model)
+	local outer = ellipsoid(model, V(2.4, 3.4, 2.4), CFrame.new(0, 0.2, 0), rgb(255, 80, 30), M.Neon)
+	outer.Name = "Outer"
+	local mid = ellipsoid(model, V(1.7, 2.5, 1.7), CFrame.new(0, -0.1, -0.2), rgb(255, 160, 40), M.Neon)
+	mid.Name = "Mid"
+	ellipsoid(model, V(1, 1.4, 1), CFrame.new(0, -0.5, -0.5), rgb(255, 240, 150), M.Neon)
+	for index = 0, 2 do
+		local tip = ellipsoid(model, V(0.8, 1.4, 0.8), CFrame.new((index - 1) * 0.7, 1.8 - math.abs(index - 1) * 0.4, 0), rgb(255, 110, 30), M.Neon)
+		tip.Name = "Tip"
+	end
+	return function(m, now, phase)
+		local flicker = 1 + math.sin(now * 14 + phase) * 0.08
+		local outerPart = m:FindFirstChild("Outer") :: BasePart
+		outerPart.Size = V(2.4, 3.4 * flicker, 2.4)
+	end
+end
+
+builders.diamond = function(model)
+	local blue = rgb(120, 220, 255)
+	for index = 0, 5 do
+		local angle = index / 6 * math.pi * 2
+		local outward = V(math.sin(angle), 0, math.cos(angle))
+		box(model, V(1.2, 0.8, 0.2), CFrame.lookAt(outward * 0.9 + V(0, 0.6, 0), outward * 2 + V(0, 0.9, 0)), if index % 2 == 0 then blue else rgb(190, 240, 255), M.Glass)
+		local facet = box(model, V(1.1, 2.2, 0.2), CFrame.lookAt(outward * 0.55 + V(0, -0.5, 0), outward * 2 + V(0, -1.2, 0)), if index % 2 == 0 then rgb(80, 180, 255) else blue, M.Glass)
+		facet.Transparency = 0.1
+	end
+	cylinder(model, 0.3, 2.2, CFrame.new(0, 1.05, 0) * CFrame.Angles(0, 0, math.rad(90)), rgb(220, 248, 255), M.Glass)
+	ball(model, 1, V(0, 0.1, 0), rgb(240, 252, 255), M.Neon)
+	sparkle(model, V(0.9, 1.4, -1), rgb(255, 255, 255), 0.8)
+	return function(m, now, phase)
+		local _ = m
+		local _ = now
+		local _ = phase
+	end
+end
+
+local SPIN: { [string]: number } = { diamond = 1.2, crown = 0.9, snowflake = 0.8, plus = 0, trophy = 0.6, crate = 0, gift = 0, map = 0, palette = 0, star = 0, wheel = 0, cart = 0, rocket = 0, fish = 0 }
+local TILT: { [string]: number } = { crown = 0.35, trophy = 0.2, crate = 0.6, gift = 0.6, cart = 0.45, map = 0.1, palette = 0.1, star = 0.1, wheel = 0.1, rocket = 0.2, fish = 0.25, snowflake = 0, plus = 0.4 }
+
+local function newViewport(parent: GuiObject, distance: number): (ViewportFrame, WorldModel, Camera)
+	local viewport = Instance.new("ViewportFrame")
+	viewport.Name = "Icon3D"
+	viewport.BackgroundTransparency = 1
+	viewport.Ambient = rgb(170, 170, 190)
+	viewport.LightColor = rgb(255, 250, 240)
+	viewport.LightDirection = V(-0.5, -1, 0.7)
+	viewport.Parent = parent
+	local world = Instance.new("WorldModel")
+	world.Parent = viewport
+	local camera = Instance.new("Camera")
+	camera.FieldOfView = 32
+	camera.CFrame = CFrame.lookAt(V(0, 0.4, -distance), V(0, 0, 0))
+	camera.Parent = viewport
+	viewport.CurrentCamera = camera
+	return viewport, world, camera
+end
+
+local function ensureLoop()
+	if started then
+		return
+	end
+	started = true
+	RunService.RenderStepped:Connect(function()
+		local now = os.clock()
+		for index = #icons, 1, -1 do
+			local icon = icons[index]
+			if not icon.frame.Parent then
+				table.remove(icons, index)
+			elseif icon.frame.Visible then
+				local kind = icon.model:GetAttribute("Kind") :: string
+				local spin = SPIN[kind] or 0
+				local tilt = TILT[kind] or 0.2
+				local yaw = if spin > 0 then now * spin + icon.phase else math.sin(now * 1.6 + icon.phase) * tilt
+				icon.model:PivotTo(icon.base * CFrame.new(0, math.sin(now * 2.2 + icon.phase) * 0.12, 0) * CFrame.Angles(0, yaw, 0))
+				icon.animate(icon.model, now, icon.phase)
+				for _, child in icon.model:GetChildren() do
+					if child.Name == "Sparkle" and child:IsA("BasePart") then
+						child.Transparency = 0.5 + 0.5 * math.sin(now * 5 + icon.phase + child.Position.X)
+					end
+				end
+			end
+		end
+	end)
+end
+
+local function cyclePenguins()
+	task.spawn(function()
+		while true do
+			task.wait(2.2)
+			for index = #penguins, 1, -1 do
+				local entry = penguins[index]
+				if not entry.viewport.frame.Parent then
+					table.remove(penguins, index)
+				else
+					entry.index = entry.index % #SKIN_CYCLE + 1
+					entry.viewport:setSkin(SKIN_CYCLE[entry.index])
+				end
+			end
+		end
+	end)
+end
+
+function HudIcons.create(parent: GuiObject, kind: string, phase: number?): GuiObject?
+	if kind == "penguin" or kind == "invite" then
+		local holder = Instance.new("Frame")
+		holder.Name = "Icon3D"
+		holder.BackgroundTransparency = 1
+		holder.Parent = parent
+		local viewport = PenguinViewport.new(holder, if kind == "penguin" then "fire" else "classic", 9)
+		if kind == "penguin" then
+			if #penguins == 0 then
+				cyclePenguins()
+			end
+			table.insert(penguins, { viewport = viewport, index = 2 })
+		else
+			local plusFrame = Instance.new("Frame")
+			plusFrame.BackgroundTransparency = 1
+			plusFrame.Size = UDim2.fromScale(0.5, 0.5)
+			plusFrame.Position = UDim2.fromScale(0.55, 0.45)
+			plusFrame.ZIndex = 6
+			plusFrame.Parent = holder
+			HudIcons.create(plusFrame, "plus", phase)
+		end
+		local spinPhase = phase or 0
+		task.spawn(function()
+			while holder.Parent do
+				viewport:spin(math.sin(os.clock() * 1.4 + spinPhase) * 0.02)
+				task.wait()
+			end
+		end)
+		return holder
+	end
+	local builder = builders[kind]
+	if not builder then
+		return nil
+	end
+	local viewport, world = newViewport(parent, if kind == "plus" then 8 else 10)
+	viewport.Size = UDim2.fromScale(1, 1)
+	local model = Instance.new("Model")
+	model.Name = kind
+	model:SetAttribute("Kind", kind)
+	model.Parent = world
+	local animate = builder(model)
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("Model") then
+			descendant.WorldPivot = CFrame.identity
+		end
+	end
+	model.WorldPivot = CFrame.identity
+	local base = CFrame.identity
+	table.insert(icons, { model = model, base = base, animate = animate, phase = phase or math.random() * 6, frame = viewport })
+	ensureLoop()
+	return viewport
+end
+
+function HudIcons.replaceTextIcon(label: TextLabel, kind: string, phase: number?): boolean
+	local parent = label.Parent
+	if not parent or not parent:IsA("GuiObject") then
+		return false
+	end
+	local holder = Instance.new("Frame")
+	holder.Name = "IconHolder"
+	holder.BackgroundTransparency = 1
+	holder.AnchorPoint = Vector2.new(0.5, 0.5)
+	holder.Position = UDim2.new(label.Position.X.Scale + label.Size.X.Scale / 2, label.Position.X.Offset + label.Size.X.Offset / 2, label.Position.Y.Scale + label.Size.Y.Scale / 2, label.Position.Y.Offset + label.Size.Y.Offset / 2)
+	holder.Size = UDim2.new(label.Size.X.Scale * 1.1, label.Size.X.Offset * 1.1, label.Size.Y.Scale * 1.25, label.Size.Y.Offset * 1.25)
+	holder.ZIndex = label.ZIndex
+	holder.Parent = parent
+	local aspect = Instance.new("UIAspectRatioConstraint")
+	aspect.AspectRatio = 1
+	aspect.Parent = holder
+	local created = HudIcons.create(holder, kind, phase)
+	if not created then
+		holder:Destroy()
+		return false
+	end
+	if created:IsA("GuiObject") then
+		created.Size = UDim2.fromScale(1, 1)
+		created.ZIndex = label.ZIndex
+	end
+	label.Text = ""
+	label.Visible = false
+	return true
+end
+
+HudIcons.KindByEmoji = {
+	["🛒"] = "cart",
+	["🎨"] = "palette",
+	["🐧"] = "penguin",
+	["🚀"] = "rocket",
+	["🐧➕"] = "invite",
+	["📦"] = "crate",
+	["👑"] = "crown",
+	["🎁"] = "gift",
+	["🗺️"] = "map",
+	["🏆"] = "trophy",
+	["⭐"] = "star",
+	["🎡"] = "wheel",
+	["🐟"] = "fish",
+	["❄️"] = "snowflake",
+	["⚡"] = "bolt",
+	["🔥"] = "flame",
+	["💎"] = "diamond",
+}
+
+return HudIcons
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="R2"><Properties><string name="Name">HudLife</string><ProtectedString name="Source"><![CDATA[--!strict
+local RunService = game:GetService("RunService")
+
+type Tile = { holder: Frame, button: GuiObject, shine: Frame, phase: number, sparkles: { TextLabel } }
+type Launch = { holder: Frame, button: GuiObject, gradient: UIGradient?, rays: Frame, glow: Frame, shine: Frame, arrows: { TextLabel }, sideArrows: { TextLabel }, bubble: Frame, bubbleScale: UIScale, sparkles: { TextLabel }, rings: { Frame } }
+
+local rgb = Color3.fromRGB
+local INK = rgb(20, 22, 40)
+
+local tiles: { Tile } = {}
+local launches: { Launch } = {}
+local started = false
+
+local HudLife = {}
+
+local function corner(parent: Instance, scale: number)
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(scale, 0)
+	c.Parent = parent
+end
+
+local function stroke(parent: Instance, thickness: number, color: Color3)
+	local s = Instance.new("UIStroke")
+	s.Thickness = thickness
+	s.Color = color
+	s.Parent = parent
+	return s
+end
+
+local function sparkleLabel(parent: Instance, position: UDim2, size: number, color: Color3, zIndex: number): TextLabel
+	local label = Instance.new("TextLabel")
+	label.AnchorPoint = Vector2.new(0.5, 0.5)
+	label.Position = position
+	label.Size = UDim2.fromOffset(size, size)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.FredokaOne
+	label.Text = "✦"
+	label.TextScaled = true
+	label.TextColor3 = color
+	label.ZIndex = zIndex
+	label.Parent = parent
+	stroke(label, 1.5, rgb(255, 170, 60)).Transparency = 0.4
+	return label
+end
+
+local function newShine(button: GuiObject, zIndex: number): Frame
+	button.ClipsDescendants = true
+	local shine = Instance.new("Frame")
+	shine.Name = "Sweep"
+	shine.AnchorPoint = Vector2.new(0.5, 0.5)
+	shine.Size = UDim2.new(0, 22, 2.4, 0)
+	shine.Rotation = 24
+	shine.BackgroundColor3 = rgb(255, 255, 255)
+	shine.BackgroundTransparency = 0.45
+	shine.BorderSizePixel = 0
+	shine.ZIndex = zIndex
+	shine.Position = UDim2.fromScale(-0.4, 0.5)
+	shine.Parent = button
+	local fade = Instance.new("UIGradient")
+	fade.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(1, 1) })
+	fade.Parent = shine
+	return shine
+end
+
+local function step()
+	local now = os.clock()
+	for index = #tiles, 1, -1 do
+		local tile = tiles[index]
+		if not tile.holder.Parent then
+			table.remove(tiles, index)
+		else
+			local t = now + tile.phase
+			local hop = math.max(0, math.sin(t * 2.4))
+			tile.button.Position = UDim2.fromOffset(0, -hop * hop * 5)
+			tile.holder.Rotation = math.sin(t * 1.3) * 2.2
+			local sweep = (t * 0.35) % 1.6
+			tile.shine.Position = UDim2.fromScale(-0.4 + sweep * 1.2, 0.5)
+			for sparkleIndex, sparkle in tile.sparkles do
+				local pulse = math.max(0, math.sin(t * 3 + sparkleIndex * 2.1))
+				sparkle.TextTransparency = 1 - pulse
+				sparkle.Rotation = t * 90
+				sparkle.Size = UDim2.fromOffset(10 + pulse * 12, 10 + pulse * 12)
+			end
+		end
+	end
+	for index = #launches, 1, -1 do
+		local launch = launches[index]
+		if not launch.holder.Parent then
+			table.remove(launches, index)
+		else
+			local t = now
+			launch.rays.Rotation = (t * 25) % 360
+			launch.glow.BackgroundTransparency = 0.45 + math.sin(t * 5) * 0.2
+			if launch.gradient then
+				launch.gradient.Offset = Vector2.new(0, math.sin(t * 3) * 0.12)
+			end
+			launch.shine.Position = UDim2.fromScale(-0.3 + ((t * 0.7) % 1.4), 0.5)
+			local hop = math.abs(math.sin(t * 5))
+			for arrowIndex, arrow in launch.arrows do
+				local on = math.floor(t * 6 - arrowIndex) % 3 == 0
+				arrow.TextColor3 = if on then rgb(255, 255, 255) else rgb(255, 60, 70)
+				arrow.Position = UDim2.new(0.5, 0, 0, -30 - (3 - arrowIndex) * 26 + hop * 12)
+				arrow.TextTransparency = if on then 0 else 0.15
+			end
+			for sideIndex, arrow in launch.sideArrows do
+				local direction = if sideIndex == 1 then 1 else -1
+				arrow.Position = UDim2.new(if sideIndex == 1 then 0 else 1, -direction * (46 - hop * 16), 0.5, 0)
+				arrow.TextTransparency = if math.floor(t * 4) % 2 == 0 then 0 else 0.6
+			end
+			launch.bubbleScale.Scale = 1 + math.max(0, math.sin(t * 6)) * 0.12
+			launch.bubble.Rotation = math.sin(t * 9) * 4
+			for sparkleIndex, sparkle in launch.sparkles do
+				local pulse = math.max(0, math.sin(t * 3.5 + sparkleIndex * 1.7))
+				sparkle.TextTransparency = 1 - pulse
+				sparkle.Rotation = t * 120
+				sparkle.Size = UDim2.fromOffset(14 + pulse * 18, 14 + pulse * 18)
+			end
+			for ringIndex, ring in launch.rings do
+				local cycle = (t * 0.8 + ringIndex * 0.5) % 1
+				ring.Size = UDim2.new(1 + cycle * 0.25, 0, 1 + cycle * 0.6, 0)
+				local ringStroke = ring:FindFirstChildOfClass("UIStroke")
+				if ringStroke then
+					ringStroke.Transparency = cycle
+				end
+			end
+		end
+	end
+end
+
+local function ensureLoop()
+	if started then
+		return
+	end
+	started = true
+	RunService.RenderStepped:Connect(step)
+end
+
+function HudLife.tile(holder: Frame, button: GuiObject, hasRibbon: boolean)
+	local sparkles: { TextLabel } = {}
+	if hasRibbon then
+		table.insert(sparkles, sparkleLabel(holder, UDim2.new(0, -4, 0, 10), 16, rgb(255, 245, 160), 9))
+		table.insert(sparkles, sparkleLabel(holder, UDim2.new(1, 6, 1, -14), 14, rgb(255, 255, 255), 9))
+		table.insert(sparkles, sparkleLabel(holder, UDim2.new(0.5, 0, 0, -8), 12, rgb(255, 220, 120), 9))
+	end
+	table.insert(tiles, { holder = holder, button = button, shine = newShine(button, 3), phase = math.random() * 6, sparkles = sparkles })
+	ensureLoop()
+end
+
+function HudLife.launch(holder: Frame, button: GuiObject)
+	holder.ZIndex = 2
+	local rays = Instance.new("Frame")
+	rays.Name = "Rays"
+	rays.AnchorPoint = Vector2.new(0.5, 0.5)
+	rays.Position = UDim2.fromScale(0.5, 0.5)
+	rays.Size = UDim2.fromOffset(300, 300)
+	rays.BackgroundTransparency = 1
+	rays.ZIndex = 0
+	rays.Parent = holder
+	for index = 0, 11 do
+		local ray = Instance.new("Frame")
+		ray.AnchorPoint = Vector2.new(0.5, 1)
+		ray.Position = UDim2.fromScale(0.5, 0.5)
+		ray.Size = UDim2.new(0, 34, 0.5, 0)
+		ray.Rotation = index * 30
+		ray.BackgroundColor3 = if index % 2 == 0 then rgb(255, 236, 140) else rgb(255, 180, 60)
+		ray.BackgroundTransparency = 0.55
+		ray.BorderSizePixel = 0
+		ray.ZIndex = 0
+		ray.Parent = rays
+		local fade = Instance.new("UIGradient")
+		fade.Rotation = 90
+		fade.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0.2) })
+		fade.Parent = ray
+	end
+	local glow = Instance.new("Frame")
+	glow.Name = "Glow"
+	glow.AnchorPoint = Vector2.new(0.5, 0.5)
+	glow.Position = UDim2.fromScale(0.5, 0.5)
+	glow.Size = UDim2.new(1, 36, 1, 30)
+	glow.BackgroundColor3 = rgb(255, 210, 60)
+	glow.BackgroundTransparency = 0.5
+	glow.BorderSizePixel = 0
+	glow.ZIndex = 0
+	glow.Parent = holder
+	corner(glow, 0.5)
+	local rings: { Frame } = {}
+	for _ = 1, 2 do
+		local ring = Instance.new("Frame")
+		ring.AnchorPoint = Vector2.new(0.5, 0.5)
+		ring.Position = UDim2.fromScale(0.5, 0.5)
+		ring.Size = UDim2.fromScale(1, 1)
+		ring.BackgroundTransparency = 1
+		ring.ZIndex = 0
+		ring.Parent = holder
+		corner(ring, 0.5)
+		stroke(ring, 5, rgb(255, 230, 120))
+		table.insert(rings, ring)
+	end
+
+	local gradient = button:FindFirstChildOfClass("UIGradient")
+	if gradient then
+		gradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, rgb(255, 246, 120)),
+			ColorSequenceKeypoint.new(0.45, rgb(255, 196, 30)),
+			ColorSequenceKeypoint.new(1, rgb(255, 120, 20)),
+		})
+	end
+	local label = button:FindFirstChild("Label")
+	if label and label:IsA("TextLabel") then
+		label.TextColor3 = rgb(255, 255, 255)
+		local labelStroke = label:FindFirstChildOfClass("UIStroke")
+		if labelStroke then
+			labelStroke.Thickness = 4.5
+			labelStroke.Color = rgb(140, 50, 0)
+		end
+	end
+	local shine = newShine(button, 4)
+	shine.Size = UDim2.new(0, 40, 2.6, 0)
+
+	local arrows: { TextLabel } = {}
+	for index = 1, 3 do
+		local arrow = Instance.new("TextLabel")
+		arrow.AnchorPoint = Vector2.new(0.5, 1)
+		arrow.Size = UDim2.fromOffset(70, 46)
+		arrow.BackgroundTransparency = 1
+		arrow.Font = Enum.Font.FredokaOne
+		arrow.Text = "▼"
+		arrow.TextScaled = true
+		arrow.TextColor3 = rgb(255, 60, 70)
+		arrow.ZIndex = 12
+		arrow.Parent = holder
+		stroke(arrow, 4, INK)
+		table.insert(arrows, arrow)
+	end
+	local sideArrows: { TextLabel } = {}
+	for index, glyph in { "▶", "◀" } do
+		local arrow = Instance.new("TextLabel")
+		arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+		arrow.Size = UDim2.fromOffset(52, 60)
+		arrow.BackgroundTransparency = 1
+		arrow.Font = Enum.Font.FredokaOne
+		arrow.Text = glyph
+		arrow.TextScaled = true
+		arrow.TextColor3 = if index == 1 then rgb(255, 255, 255) else rgb(255, 255, 255)
+		arrow.ZIndex = 12
+		arrow.Parent = holder
+		stroke(arrow, 4, rgb(220, 40, 60))
+		table.insert(sideArrows, arrow)
+	end
+
+	local bubble = Instance.new("Frame")
+	bubble.AnchorPoint = Vector2.new(0.5, 0.5)
+	bubble.Position = UDim2.new(1, -10, 0, -6)
+	bubble.Size = UDim2.fromOffset(150, 40)
+	bubble.BackgroundColor3 = rgb(255, 255, 255)
+	bubble.ZIndex = 13
+	bubble.Parent = holder
+	corner(bubble, 0.5)
+	stroke(bubble, 3.5, INK)
+	local bubbleGradient = Instance.new("UIGradient")
+	bubbleGradient.Rotation = 90
+	bubbleGradient.Color = ColorSequence.new(rgb(255, 90, 110), rgb(220, 30, 60))
+	bubbleGradient.Parent = bubble
+	local bubbleLabel = Instance.new("TextLabel")
+	bubbleLabel.BackgroundTransparency = 1
+	bubbleLabel.Size = UDim2.new(1, -12, 1, -8)
+	bubbleLabel.Position = UDim2.fromOffset(6, 4)
+	bubbleLabel.Font = Enum.Font.FredokaOne
+	bubbleLabel.Text = "¡JUEGA YA!"
+	bubbleLabel.TextScaled = true
+	bubbleLabel.TextColor3 = rgb(255, 255, 255)
+	bubbleLabel.ZIndex = 14
+	bubbleLabel.Parent = bubble
+	stroke(bubbleLabel, 2.5, rgb(90, 0, 20))
+	local bubbleScale = Instance.new("UIScale")
+	bubbleScale.Parent = bubble
+
+	local sparkles: { TextLabel } = {}
+	for _, spot in { UDim2.new(0, 10, 0, 6), UDim2.new(0.3, 0, 1, 4), UDim2.new(0.75, 0, 0, -4), UDim2.new(1, -8, 1, -10), UDim2.new(0.55, 0, 1, 8) } do
+		table.insert(sparkles, sparkleLabel(holder, spot, 20, rgb(255, 255, 230), 11))
+	end
+
+	table.insert(launches, {
+		holder = holder,
+		button = button,
+		gradient = gradient,
+		rays = rays,
+		glow = glow,
+		shine = shine,
+		arrows = arrows,
+		sideArrows = sideArrows,
+		bubble = bubble,
+		bubbleScale = bubbleScale,
+		sparkles = sparkles,
+		rings = rings,
+	})
+	ensureLoop()
+end
+
+return HudLife
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="R3"><Properties><string name="Name">LobbyHud</string><ProtectedString name="Source"><![CDATA[--!strict
+local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local Shared = ReplicatedStorage.Shared
+local EconomyConfig = require(Shared.EconomyConfig)
+local EconomyRemotes = require(Shared.EconomyRemotes)
+local RunState = require(Shared.RunState)
+
+local Client = script.Parent
+local Feedback = require(Client.Feedback)
+local PanelHost = require(Client.PanelHost)
+local ProfileStore = require(Client.ProfileStore)
+local UiKit = require(Client.UiKit)
+local HudIcons = require(Client.HudIcons)
+local HudLife = require(Client.HudLife)
+local Panels = Client.Panels
+local InfoPanel = require(Panels.InfoPanel)
+local LeaderboardPanel = require(Panels.LeaderboardPanel)
+local LevelsPanel = require(Panels.LevelsPanel)
+local ShopPanel = require(Panels.ShopPanel)
+local SkinsPanel = require(Panels.SkinsPanel)
+local WheelPanel = require(Panels.WheelPanel)
+
+local rgb = Color3.fromRGB
+local OPEN_PANEL_ATTRIBUTE = "OpensPanel"
+local VISIBLE_STATES = { [RunState.Idle] = true, [RunState.Finished] = true }
+
+type PanelEntry = { title: string, palette: { Color3 }, build: PanelHost.Builder }
+
+local localPlayer = Players.LocalPlayer
+local host: PanelHost.PanelHost? = nil
+local hudRoot: Frame? = nil
+local panels: { [string]: PanelEntry } = {}
+local keyBindings: { [Enum.KeyCode]: () -> () } = {}
+
+local LobbyHud = {}
+
+local function registerPanels()
+	panels.skins = { title = "🐧 SKINS", palette = { rgb(123, 92, 255), rgb(90, 140, 255), rgb(63, 208, 255) }, build = SkinsPanel.build }
+	panels.shop = { title = "🛒 TIENDA", palette = { rgb(255, 111, 216), rgb(123, 92, 255), rgb(63, 208, 255) }, build = ShopPanel.build }
+	panels.wheel = { title = "🎡 RULETA DE LA SUERTE", palette = { rgb(255, 79, 163), rgb(255, 179, 0), rgb(255, 79, 163) }, build = WheelPanel.build }
+	panels.levels = { title = "🗺️ NIVELES", palette = UiKit.Palettes.purple, build = LevelsPanel.build }
+	panels.leaderboard = { title = "🏆 TABLA DE CAMPEONES", palette = { rgb(123, 92, 255), rgb(63, 208, 255), rgb(123, 92, 255) }, build = LeaderboardPanel.build }
+	for name, spec in InfoPanel.Specs do
+		panels[name] = { title = spec.title, palette = spec.palette, build = InfoPanel.build(spec) }
+	end
+end
+
+function LobbyHud.open(name: string)
+	local activeHost = host
+	local entry = panels[name]
+	if not (activeHost and entry) then
+		return
+	end
+	if activeHost.openName == name then
+		activeHost:close()
+		return
+	end
+	activeHost:open(name, entry.title, entry.palette, entry.build)
+end
+
+local function launch()
+	local ok, success, message = pcall(function()
+		return EconomyRemotes.LaunchPadRequested:InvokeServer()
+	end)
+	if ok and success then
+		Feedback.toast("🐧💨 ¡Presiona E en la resortera!", UiKit.Palettes.gold)
+	else
+		Feedback.toast(if ok and typeof(message) == "string" then message else "No se pudo", UiKit.Palettes.red)
+	end
+end
+
+local function tile(parent: Instance, options: { icon: string, text: string, palette: { Color3 }, key: Enum.KeyCode?, ribbon: string?, order: number, size: number?, action: () -> () }): Frame
+	local size = options.size or 104
+	local button, holder = UiKit.button({ parent = parent, size = UDim2.fromOffset(size, size), palette = options.palette, radius = 18, layoutOrder = options.order })
+	local icon = UiKit.label(button, options.icon, { Size = UDim2.new(1, -16, 0.56, 0), Position = UDim2.new(0, 8, 0, 8), StrokeThickness = 0, MaxTextSize = 64, ZIndex = 4 })
+	icon.Name = "Icon"
+	local kind = HudIcons.KindByEmoji[options.icon]
+	if kind then
+		HudIcons.replaceTextIcon(icon, kind, options.order)
+	end
+	UiKit.label(button, options.text, { Name = "Caption", Size = UDim2.new(1, -8, 0.24, 0), Position = UDim2.new(0, 4, 0.7, 0), MaxTextSize = 20, StrokeThickness = 2.5, ZIndex = 4 })
+	if options.key then
+		UiKit.label(button, "[" .. options.key.Name .. "]", { Size = UDim2.fromOffset(34, 18), Position = UDim2.fromOffset(6, 4), MaxTextSize = 16, StrokeThickness = 2, ZIndex = 5, TextXAlignment = Enum.TextXAlignment.Left })
+		keyBindings[options.key] = options.action
+	end
+	if options.ribbon then
+		UiKit.ribbon(holder, options.ribbon)
+	end
+	HudLife.tile(holder, button, options.ribbon ~= nil)
+	button.MouseButton1Click:Connect(options.action)
+	return holder
+end
+
+local function belowChip(holder: Frame, text: string, palette: { Color3 }?): (Frame, TextLabel, Frame)
+	local chip = UiKit.new("Frame", { Size = UDim2.new(1, 0, 0, 26), Position = UDim2.new(0, 0, 1, 12), BackgroundColor3 = UiKit.Ink, ZIndex = 6, Parent = holder })
+	UiKit.cornerScale(chip, 0.5)
+	UiKit.border(chip, 2.5)
+	local fill = UiKit.new("Frame", { Size = UDim2.fromScale(0, 1), BackgroundColor3 = UiKit.White, ZIndex = 6, Parent = chip })
+	UiKit.cornerScale(fill, 0.5)
+	UiKit.gradient(fill, palette or UiKit.Palettes.orange, 90)
+	local label = UiKit.label(chip, text, { Size = UDim2.new(1, -10, 1, -6), Position = UDim2.fromOffset(5, 3), MaxTextSize = 16, StrokeThickness = 1.8, ZIndex = 7 })
+	return chip, label, fill
+end
+
+local function buildHud(screen: ScreenGui): Frame
+	local root = UiKit.new("Frame", { Name = "Hud", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Parent = screen })
+	local scale = UiKit.new("UIScale", { Parent = root })
+	local function rescale()
+		local camera = workspace.CurrentCamera
+		local viewport = if camera then camera.ViewportSize else Vector2.new(1400, 850)
+		scale.Scale = math.clamp(math.min(viewport.X / 1400, viewport.Y / 820), 0.55, 1)
+		root.Size = UDim2.fromScale(1 / scale.Scale, 1 / scale.Scale)
+	end
+	rescale()
+	if workspace.CurrentCamera then
+		workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(rescale)
+	end
+
+	local eventButton, eventHolder = UiKit.button({ parent = root, size = UDim2.fromOffset(300, 40), position = UDim2.fromOffset(14, 8), palette = { rgb(94, 225, 255), rgb(60, 140, 230), rgb(47, 111, 214) }, text = "❄️ EVENTO AVALANCHA · PRONTO", radius = 20, textSize = 22, shadow = 4 })
+	eventButton.MouseButton1Click:Connect(function()
+		LobbyHud.open("event")
+	end)
+	UiKit.pulse(eventHolder, eventHolder:FindFirstChildOfClass("UIScale"), 0.03)
+	local eventLabel = eventButton:FindFirstChild("Label")
+	if eventLabel and eventLabel:IsA("TextLabel") then
+		eventLabel.Text = "EVENTO AVALANCHA · PRONTO"
+		eventLabel.Position = UDim2.fromOffset(46, 4)
+		eventLabel.Size = UDim2.new(1, -54, 1, -10)
+	end
+	local eventIcon = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(46, 46), Position = UDim2.fromOffset(2, -3), ZIndex = 4, Parent = eventButton })
+	HudIcons.create(eventIcon, "snowflake", 1)
+
+	local left = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(230, 380), Position = UDim2.fromOffset(14, 66), Parent = root })
+	UiKit.new("UIGridLayout", { CellSize = UDim2.fromOffset(104, 104), CellPadding = UDim2.fromOffset(16, 22), SortOrder = Enum.SortOrder.LayoutOrder, Parent = left })
+	tile(left, { icon = "🛒", text = "TIENDA", palette = { rgb(255, 111, 216), rgb(123, 92, 255), rgb(63, 208, 255) }, key = Enum.KeyCode.G, ribbon = "NUEVO", order = 1, action = function() LobbyHud.open("shop") end })
+	tile(left, { icon = "🎨", text = "PERSONALIZAR", palette = UiKit.Palettes.pink, order = 2, action = function() LobbyHud.open("custom") end })
+	tile(left, { icon = "🐧", text = "SKINS", palette = UiKit.Palettes.purple, key = Enum.KeyCode.K, ribbon = "NUEVO", order = 3, action = function() LobbyHud.open("skins") end })
+	tile(left, { icon = "🚀", text = "IMPULSO", palette = UiKit.Palettes.cyan, order = 4, action = function() LobbyHud.open("boost") end })
+	local inviteHolder = tile(left, { icon = "🐧➕", text = "INVITAR", palette = UiKit.Palettes.blue, key = Enum.KeyCode.U, order = 5, action = function() LobbyHud.open("invite") end })
+	local inviteChip = belowChip(inviteHolder, "¡JUEGA CON AMIGOS!", UiKit.Palettes.gold)
+	inviteChip.Rotation = -4
+	tile(left, { icon = "📦", text = "INICIAL", palette = UiKit.Palettes.gold, order = 6, action = function() LobbyHud.open("starter") end })
+
+	local topRight = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(420, 60), Position = UDim2.new(1, -14, 0, 6), AnchorPoint = Vector2.new(1, 0), Parent = root })
+	UiKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 10), SortOrder = Enum.SortOrder.LayoutOrder, Parent = topRight })
+	tile(topRight, { icon = "👑", text = "VIP", palette = UiKit.Palettes.gold, key = Enum.KeyCode.X, order = 1, size = 58, action = function() LobbyHud.open("vip") end })
+	local giftHolder = tile(topRight, { icon = "🎁", text = "REGALO", palette = UiKit.Palettes.purple, key = Enum.KeyCode.Y, order = 2, size = 58, action = function() LobbyHud.open("gift") end })
+	local giftBadge = UiKit.badge(giftHolder, "!")
+	local money = UiKit.new("Frame", { Size = UDim2.fromOffset(210, 56), BackgroundColor3 = UiKit.Ink, LayoutOrder = 3, Parent = topRight })
+	UiKit.corner(money, 16)
+	UiKit.border(money, 3, rgb(10, 13, 24))
+	local moneyLabel = UiKit.label(money, "0", { Size = UDim2.new(1, -76, 1, -12), Position = UDim2.fromOffset(66, 6), MaxTextSize = 38, ZIndex = 3 })
+	local moneyIcon = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(62, 62), Position = UDim2.fromOffset(2, -3), ZIndex = 4, Parent = money })
+	HudIcons.create(moneyIcon, "fish", 0)
+	local boostChip = UiKit.new("Frame", { Size = UDim2.fromOffset(150, 34), Position = UDim2.new(1, -14, 0, 74), AnchorPoint = Vector2.new(1, 0), BackgroundColor3 = UiKit.White, Visible = false, Parent = root })
+	UiKit.corner(boostChip, 12)
+	UiKit.border(boostChip, 3)
+	UiKit.gradient(boostChip, UiKit.Palettes.cyan, 90)
+	local boostLabel = UiKit.label(boostChip, "", { Size = UDim2.new(1, -10, 1, -8), Position = UDim2.fromOffset(5, 4), MaxTextSize = 20, ZIndex = 3 })
+
+	local right = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(480, 120), Position = UDim2.new(1, -14, 1, -250), AnchorPoint = Vector2.new(1, 1), Parent = root })
+	UiKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Bottom, Padding = UDim.new(0, 14), SortOrder = Enum.SortOrder.LayoutOrder, Parent = right })
+	tile(right, { icon = "🗺️", text = "NIVELES", palette = UiKit.Palettes.purple, key = Enum.KeyCode.Q, ribbon = "NUEVO", order = 1, action = function() LobbyHud.open("levels") end })
+	tile(right, { icon = "🏆", text = "TABLA", palette = UiKit.Palettes.orange, key = Enum.KeyCode.L, order = 2, action = function() LobbyHud.open("leaderboard") end })
+	local rebirthHolder = tile(right, { icon = "⭐", text = "RENACER", palette = UiKit.Palettes.pink, key = Enum.KeyCode.Z, order = 3, action = function() LobbyHud.open("rebirth") end })
+	belowChip(rebirthHolder, "PRONTO")
+	local wheelHolder = tile(right, { icon = "🎡", text = "RULETA", palette = UiKit.Palettes.blue, key = Enum.KeyCode.P, order = 4, action = function() LobbyHud.open("wheel") end })
+	local wheelBadge, wheelBadgeLabel = UiKit.badge(wheelHolder, "1")
+	local _, wheelChipLabel, wheelChipFill = belowChip(wheelHolder, "¡GIRO GRATIS!", UiKit.Palettes.gold)
+	local wheelIcon = (wheelHolder:FindFirstChild("Button") :: Instance):FindFirstChild("Icon") :: TextLabel
+
+	local launchButton, launchHolder = UiKit.button({ parent = root, size = UDim2.fromOffset(460, 116), position = UDim2.new(0.5, 0, 1, -124), anchor = Vector2.new(0.5, 1), palette = UiKit.Palettes.gold, text = "¡LANZAR! [R]", radius = 58, textSize = 66, shadow = 9 })
+	UiKit.pulse(launchHolder, launchHolder:FindFirstChildOfClass("UIScale"), 0.05)
+	HudLife.launch(launchHolder, launchButton)
+	launchButton.MouseButton1Click:Connect(launch)
+	keyBindings[Enum.KeyCode.R] = launch
+	local friendButton = UiKit.button({ parent = root, size = UDim2.fromOffset(440, 80), position = UDim2.new(0.5, 0, 1, -18), anchor = Vector2.new(0.5, 1), palette = UiKit.Palettes.blue, text = "LANZARSE CON UN AMIGO [F] · x2 PECES", radius = 40, textSize = 28 })
+	friendButton.MouseButton1Click:Connect(function()
+		LobbyHud.open("friend")
+	end)
+	keyBindings[Enum.KeyCode.F] = function()
+		LobbyHud.open("friend")
+	end
+
+	local race = UiKit.new("Frame", { Size = UDim2.fromOffset(330, 124), Position = UDim2.new(1, -14, 1, -14), AnchorPoint = Vector2.new(1, 1), BackgroundColor3 = UiKit.White, Parent = root })
+	UiKit.corner(race, 22)
+	UiKit.border(race, 4)
+	UiKit.gradient(race, UiKit.Palettes.blue, 90)
+	UiKit.label(race, "PRÓXIMA CARRERA", { Size = UDim2.new(1, -20, 0, 30), Position = UDim2.fromOffset(10, 8), MaxTextSize = 28, ZIndex = 3 })
+	UiKit.label(race, "Carreras programadas · pronto", { Size = UDim2.new(1, -20, 0, 20), Position = UDim2.fromOffset(10, 40), MaxTextSize = 18, StrokeThickness = 2, ZIndex = 3 })
+	local raceButton = UiKit.button({ parent = race, size = UDim2.new(1, -24, 0, 42), position = UDim2.new(0, 12, 1, -54), palette = UiKit.Palettes.gold, text = "[N] ÚNETE A LA PRÓXIMA CARRERA", radius = 16, textSize = 20, shadow = 4 })
+	raceButton.MouseButton1Click:Connect(function()
+		LobbyHud.open("race")
+	end)
+	keyBindings[Enum.KeyCode.N] = function()
+		LobbyHud.open("race")
+	end
+
+	local shownFish: number? = nil
+	local function refresh()
+		local snapshot = ProfileStore.get()
+		if not snapshot then
+			return
+		end
+		if shownFish and snapshot.fish > shownFish then
+			local gain = snapshot.fish - shownFish
+			local pop = UiKit.label(root, "+" .. UiKit.formatNumber(gain) .. " 🐟", { Size = UDim2.fromOffset(140, 36), Position = UDim2.new(1, -170, 0, 70), MaxTextSize = 30, TextColor3 = rgb(125, 255, 122), ZIndex = 10 })
+			TweenService:Create(pop, TweenInfo.new(0.9), { Position = UDim2.new(1, -170, 0, 40), TextTransparency = 1 }):Play()
+			task.delay(1, function()
+				pop:Destroy()
+			end)
+		end
+		shownFish = snapshot.fish
+		moneyLabel.Text = UiKit.formatNumber(snapshot.fish)
+		local now = ProfileStore.now()
+		local freeRemaining = snapshot.lastFreeSpin + EconomyConfig.Wheel.FreeSpinCooldownSeconds - now
+		local spins = snapshot.extraSpins + (if freeRemaining <= 0 then 1 else 0)
+		wheelBadge.Visible = spins > 0
+		wheelBadgeLabel.Text = tostring(spins)
+		wheelChipLabel.Text = if freeRemaining <= 0 then "¡GIRO GRATIS!" else UiKit.formatClock(freeRemaining)
+		wheelChipFill.Size = UDim2.fromScale(if freeRemaining <= 0 then 1 else 1 - freeRemaining / EconomyConfig.Wheel.FreeSpinCooldownSeconds, 1)
+		giftBadge.Visible = now - snapshot.lastGift >= EconomyConfig.DailyGift.CooldownSeconds
+		local boostRemaining = snapshot.boostUntil - now
+		boostChip.Visible = boostRemaining > 0
+		boostLabel.Text = "⚡ x2 · " .. UiKit.formatClock(boostRemaining)
+	end
+	ProfileStore.Changed:Connect(refresh)
+	task.spawn(function()
+		while root.Parent do
+			refresh()
+			if wheelIcon then
+				wheelIcon.Rotation = (wheelIcon.Rotation + 6) % 360
+			end
+			task.wait(0.1)
+		end
+	end)
+	return root
+end
+
+local function applyVisibility()
+	local root = hudRoot
+	if not root then
+		return
+	end
+	local state = localPlayer:GetAttribute("RunState")
+	local visible = state == nil or VISIBLE_STATES[state] == true
+	root.Visible = visible
+	if not visible and host and host:isOpen() then
+		host:close()
+	end
+end
+
+function LobbyHud.init()
+	registerPanels()
+	local playerGui = localPlayer:WaitForChild("PlayerGui")
+	local screen = UiKit.new("ScreenGui", { Name = "LobbyHud", ResetOnSpawn = false, DisplayOrder = 10, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, Parent = playerGui })
+	hudRoot = buildHud(screen)
+	local panelScreen = UiKit.new("ScreenGui", { Name = "LobbyPanels", ResetOnSpawn = false, DisplayOrder = 20, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, Parent = playerGui })
+	local panelHost = PanelHost.new(panelScreen);
+	(panelHost :: any).openNamed = function(_self: any, name: string)
+		LobbyHud.open(name)
+	end
+	host = panelHost
+	localPlayer:GetAttributeChangedSignal("RunState"):Connect(applyVisibility)
+	applyVisibility()
+	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
+		if processed or UserInputService:GetFocusedTextBox() then
+			return
+		end
+		local root = hudRoot
+		if input.KeyCode == Enum.KeyCode.Escape and host and host:isOpen() then
+			host:close()
+			return
+		end
+		if not (root and root.Visible) then
+			return
+		end
+		local action = keyBindings[input.KeyCode]
+		if action then
+			action()
+		end
+	end)
+	ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
+		local panelName = prompt:GetAttribute(OPEN_PANEL_ATTRIBUTE)
+		if typeof(panelName) == "string" then
+			LobbyHud.open(panelName)
+		end
+	end)
+end
+
+return LobbyHud
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="R4"><Properties><string name="Name">WheelPanel</string><ProtectedString name="Source"><![CDATA[--!strict
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local Shared = ReplicatedStorage.Shared
+local EconomyConfig = require(Shared.EconomyConfig)
+local EconomyRemotes = require(Shared.EconomyRemotes)
+local WheelCatalog = require(Shared.WheelCatalog)
+
+local Client = script.Parent.Parent
+local Feedback = require(Client.Feedback)
+local ProfileStore = require(Client.ProfileStore)
+local UiKit = require(Client.UiKit)
+local HudIcons = require(Client.HudIcons)
+
+local SLIVERS_PER_SEGMENT = 9
+local BULB_COUNT = 28
+local EXTRA_TURNS = 6
+
+local recentWinners: { string } = {
+	"🎉 copito77 ganó el Pingüino Inferno",
+	"💎 IceKing_RD sacó el JACKPOT",
+	"🎁 nievesita abrió un Cofre Épico",
+}
+
+local WheelPanel = {}
+
+function WheelPanel.recordWinner(text: string)
+	table.insert(recentWinners, 1, text)
+	while #recentWinners > 8 do
+		table.remove(recentWinners)
+	end
+end
+
+local function shade(color: Color3, amount: number): Color3
+	return if amount >= 0 then color:Lerp(Color3.new(1, 1, 1), amount) else color:Lerp(Color3.new(0, 0, 0), -amount)
+end
+
+local function circle(parent: Instance, size: UDim2, position: UDim2, color: Color3, zIndex: number): Frame
+	local frame = UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Size = size, Position = position, BackgroundColor3 = color, ZIndex = zIndex, Parent = parent })
+	UiKit.cornerScale(frame, 0.5)
+	return frame
+end
+
+local function spinsAvailable(snapshot: ProfileStore.Snapshot?): (number, number)
+	if not snapshot then
+		return 0, 0
+	end
+	local remaining = snapshot.lastFreeSpin + EconomyConfig.Wheel.FreeSpinCooldownSeconds - ProfileStore.now()
+	local free = if remaining <= 0 then 1 else 0
+	return free + snapshot.extraSpins, math.max(0, remaining)
+end
+
+function WheelPanel.build(body: Frame, _host: any): () -> ()
+	local connections: { RBXScriptConnection } = {}
+	local prizes = WheelCatalog.list()
+	local segmentDegrees = 360 / #prizes
+
+	local stageArea = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(0.5, 0, 1, 0), ZIndex = 22, Parent = body })
+	local square = UiKit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.52), Size = UDim2.fromScale(0.96, 0.96), ZIndex = 22, Parent = stageArea })
+	UiKit.new("UIAspectRatioConstraint", { AspectRatio = 1, Parent = square })
+
+	local rays = UiKit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(1.3, 1.3), ZIndex = 22, Parent = square })
+	local rayGroup = UiKit.new("CanvasGroup", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), GroupTransparency = 0.55, ZIndex = 22, Parent = rays })
+	for index = 0, 11 do
+		local ray = UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.09, 0.5), Rotation = index * 30, BackgroundColor3 = Color3.fromRGB(255, 226, 120), BorderSizePixel = 0, ZIndex = 22, Parent = rayGroup })
+		UiKit.new("UIGradient", { Rotation = 90, Transparency = NumberSequence.new(1, 0), Parent = ray })
+	end
+
+	local rim = circle(square, UDim2.fromScale(1, 1), UDim2.fromScale(0.5, 0.5), UiKit.White, 23)
+	UiKit.border(rim, 5)
+	UiKit.gradient(rim, { Color3.fromRGB(255, 243, 160), Color3.fromRGB(255, 194, 26), Color3.fromRGB(244, 163, 0), Color3.fromRGB(255, 227, 110) }, 45)
+	circle(rim, UDim2.fromScale(0.86, 0.86), UDim2.fromScale(0.5, 0.5), UiKit.Ink, 24)
+
+	local bulbs: { Frame } = {}
+	for index = 0, BULB_COUNT - 1 do
+		local angle = index / BULB_COUNT * math.pi * 2
+		local bulb = circle(rim, UDim2.fromScale(0.042, 0.042), UDim2.fromScale(0.5 + math.cos(angle) * 0.465, 0.5 + math.sin(angle) * 0.465), Color3.fromRGB(194, 122, 0), 25)
+		UiKit.border(bulb, 2)
+		table.insert(bulbs, bulb)
+	end
+
+	local disc = UiKit.new("CanvasGroup", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.82, 0.82), BackgroundColor3 = UiKit.Ink, ZIndex = 25, Parent = rim })
+	UiKit.cornerScale(disc, 0.5)
+	local sliverWidth = 2 * math.sin(math.rad(segmentDegrees / SLIVERS_PER_SEGMENT) / 2) * 0.5 * 1.35
+	for index, prize in prizes do
+		local startDegrees = -90 + (index - 1) * segmentDegrees
+		for slice = 0, SLIVERS_PER_SEGMENT - 1 do
+			local angle = startDegrees + (slice + 0.5) * segmentDegrees / SLIVERS_PER_SEGMENT
+			local arm = UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(sliverWidth, 1), Rotation = angle + 90, BackgroundTransparency = 1, ZIndex = 26, Parent = disc })
+			local sliver = UiKit.new("Frame", { Size = UDim2.fromScale(1, 0.5), BackgroundColor3 = UiKit.White, BorderSizePixel = 0, ZIndex = 26, Parent = arm })
+			UiKit.gradient(sliver, { shade(prize.color, -0.25), prize.color, shade(prize.color, 0.45) }, 90)
+		end
+		local center = math.rad(startDegrees + segmentDegrees / 2)
+		local icon = UiKit.label(disc, prize.icon, { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromScale(0.12, 0.12), Position = UDim2.fromScale(0.5 + math.cos(center) * 0.28, 0.5 + math.sin(center) * 0.28), Rotation = math.deg(center) + 90, StrokeThickness = 0, ZIndex = 28 })
+		icon.TextScaled = true
+		local text = UiKit.label(disc, prize.label, { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromScale(0.17, 0.075), Position = UDim2.fromScale(0.5 + math.cos(center) * 0.415, 0.5 + math.sin(center) * 0.415), Rotation = math.deg(center) + 90, StrokeThickness = 2.5, ZIndex = 28 })
+		text.TextColor3 = if prize.amount >= 10000 then Color3.fromRGB(255, 227, 110) else UiKit.White
+		local divider = math.rad(startDegrees)
+		local lineArm = UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.new(0, 4, 1, 0), Rotation = startDegrees + 90, BackgroundTransparency = 1, ZIndex = 27, Parent = disc })
+		local line = UiKit.new("Frame", { Size = UDim2.fromScale(1, 0.5), BackgroundColor3 = UiKit.Ink, BorderSizePixel = 0, ZIndex = 27, Parent = lineArm })
+		UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0), Size = UDim2.new(0, 2, 1, 0), BackgroundColor3 = UiKit.White, BorderSizePixel = 0, ZIndex = 27, Parent = line })
+		local peg = circle(disc, UDim2.fromScale(0.035, 0.035), UDim2.fromScale(0.5 + math.cos(divider) * 0.475, 0.5 + math.sin(divider) * 0.475), Color3.fromRGB(255, 210, 63), 29)
+		UiKit.border(peg, 2)
+	end
+	local gloss = UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0.04), Size = UDim2.fromScale(0.76, 0.42), BackgroundColor3 = UiKit.White, BackgroundTransparency = 0.82, ZIndex = 30, Parent = rim })
+	UiKit.cornerScale(gloss, 0.5)
+
+	local hub = UiKit.new("TextButton", { Text = "", AutoButtonColor = false, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.2, 0.2), BackgroundColor3 = UiKit.White, ZIndex = 31, Parent = rim })
+	UiKit.cornerScale(hub, 0.5)
+	UiKit.border(hub, 5)
+	UiKit.gradient(hub, { Color3.fromRGB(255, 138, 138), Color3.fromRGB(255, 59, 59), Color3.fromRGB(179, 18, 44) }, 90)
+	UiKit.label(hub, "GO!", { Size = UDim2.fromScale(0.7, 0.5), Position = UDim2.fromScale(0.15, 0.25), ZIndex = 32, StrokeThickness = 3 })
+	UiKit.pulse(hub, nil, 0.07)
+
+	local pointer = UiKit.label(square, "▼", { AnchorPoint = Vector2.new(0.5, 0.15), Size = UDim2.fromScale(0.16, 0.16), Position = UDim2.fromScale(0.5, -0.04), TextColor3 = Color3.fromRGB(255, 59, 59), StrokeThickness = 4, ZIndex = 33, MaxTextSize = 120 })
+
+	local side = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(0.5, -18, 1, 0), Position = UDim2.new(0.5, 18, 0, 0), ZIndex = 22, Parent = body })
+	local spinButton, spinHolder = UiKit.button({ parent = side, size = UDim2.new(1, 0, 0, 84), palette = UiKit.Palettes.gold, text = "¡GIRAR!", radius = 26, textSize = 48 })
+	UiKit.pulse(spinHolder, spinHolder:FindFirstChildOfClass("UIScale"), 0.035)
+	local info = UiKit.label(side, "", { Size = UDim2.new(1, 0, 0, 26), Position = UDim2.fromOffset(0, 96), Font = UiKit.BodyFont, StrokeThickness = 1.5, MaxTextSize = 20, ZIndex = 23 })
+	local buyRow = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 66), Position = UDim2.fromOffset(0, 130), ZIndex = 22, Parent = side })
+	UiKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 12), Parent = buyRow })
+	local fishBuy = UiKit.button({ parent = buyRow, size = UDim2.new(0.333, -8, 1, -6), palette = UiKit.Palettes.green, text = "+1 GIRO · 🐟1,000", radius = 18, textSize = 22, layoutOrder = 1 })
+	local robuxOne = UiKit.button({ parent = buyRow, size = UDim2.new(0.333, -8, 1, -6), palette = UiKit.Palettes.cyan, text = "+1 GIRO · R$ ?", radius = 18, textSize = 22, layoutOrder = 2 })
+	local robuxTen, robuxTenHolder = UiKit.button({ parent = buyRow, size = UDim2.new(0.333, -8, 1, -6), palette = UiKit.Palettes.purple, text = "+10 GIROS · R$ ?", radius = 18, textSize = 22, layoutOrder = 3 })
+	UiKit.ribbon(robuxTenHolder, "-20%")
+	UiKit.label(side, "PREMIOS POSIBLES", { Size = UDim2.new(1, 0, 0, 28), Position = UDim2.fromOffset(0, 206), TextXAlignment = Enum.TextXAlignment.Left, MaxTextSize = 24, ZIndex = 23 })
+	local prizeGrid = UiKit.new("ScrollingFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, -290), Position = UDim2.fromOffset(0, 240), AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(), ScrollBarThickness = 6, BorderSizePixel = 0, ZIndex = 22, Parent = side })
+	UiKit.padding(prizeGrid, 6)
+	UiKit.new("UIGridLayout", { CellSize = UDim2.new(0.333, -10, 0, 86), CellPadding = UDim2.fromOffset(10, 10), Parent = prizeGrid })
+	for index, prize in prizes do
+		local card = UiKit.new("Frame", { BackgroundColor3 = UiKit.White, ZIndex = 23, Parent = prizeGrid })
+		UiKit.corner(card, 14)
+		UiKit.border(card, 3)
+		UiKit.gradient(card, { shade(prize.color, 0.3), prize.color }, 135)
+		local cardIcon = UiKit.label(card, prize.icon, { Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromOffset(0, 4), StrokeThickness = 0, ZIndex = 24 })
+		local cardKind = if prize.kind == "chest" then "crate" else HudIcons.KindByEmoji[prize.icon]
+		if cardKind then
+			HudIcons.replaceTextIcon(cardIcon, cardKind)
+		end
+		UiKit.label(card, prize.title, { Size = UDim2.new(1, -8, 0, 20), Position = UDim2.fromOffset(4, 38), MaxTextSize = 15, StrokeThickness = 1.5, ZIndex = 24 })
+		local chance = UiKit.new("Frame", { Size = UDim2.fromOffset(52, 18), Position = UDim2.new(0.5, 0, 0, 62), AnchorPoint = Vector2.new(0.5, 0), BackgroundColor3 = UiKit.Ink, ZIndex = 24, Parent = card })
+		UiKit.corner(chance, 8)
+		UiKit.label(chance, ("%d%%"):format(math.floor(WheelCatalog.chance(index) * 100 + 0.5)), { Size = UDim2.new(1, -6, 1, -4), Position = UDim2.fromOffset(3, 2), StrokeThickness = 1, ZIndex = 25 })
+	end
+	local ticker = UiKit.new("Frame", { Size = UDim2.new(1, 0, 0, 34), Position = UDim2.new(0, 0, 1, -38), BackgroundColor3 = UiKit.Ink, ClipsDescendants = true, ZIndex = 23, Parent = side })
+	UiKit.corner(ticker, 12)
+	local tickerText = UiKit.label(ticker, table.concat(recentWinners, "   ·   "), { Size = UDim2.new(3, 0, 1, -8), Position = UDim2.new(1, 0, 0, 4), TextXAlignment = Enum.TextXAlignment.Left, Font = UiKit.BodyFont, StrokeThickness = 1, MaxTextSize = 16, ZIndex = 24 })
+
+	local win = UiKit.new("Frame", { Visible = false, BackgroundColor3 = Color3.fromRGB(10, 6, 30), BackgroundTransparency = 0.35, Size = UDim2.fromScale(1, 1), ZIndex = 40, Parent = body })
+	local winCard = UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(400, 300), BackgroundColor3 = UiKit.White, ZIndex = 41, Parent = win })
+	UiKit.corner(winCard, 28)
+	UiKit.border(winCard, 5)
+	UiKit.gradient(winCard, UiKit.Palettes.gold, 90)
+	local winIcon = UiKit.label(winCard, "🐟", { Size = UDim2.new(1, 0, 0, 110), Position = UDim2.fromOffset(0, 10), StrokeThickness = 0, MaxTextSize = 100, ZIndex = 42 })
+	UiKit.label(winCard, "¡GANASTE!", { Size = UDim2.new(1, -20, 0, 52), Position = UDim2.fromOffset(10, 118), MaxTextSize = 52, StrokeThickness = 4, ZIndex = 42 })
+	local winText = UiKit.label(winCard, "", { Size = UDim2.new(1, -20, 0, 36), Position = UDim2.fromOffset(10, 170), MaxTextSize = 32, StrokeThickness = 3, ZIndex = 42 })
+	local okButton = UiKit.button({ parent = winCard, size = UDim2.new(1, -60, 0, 54), position = UDim2.new(0, 30, 1, -72), palette = UiKit.Palettes.green, text = "¡GENIAL!", radius = 20, textSize = 30 })
+	okButton.MouseButton1Click:Connect(function()
+		win.Visible = false
+	end)
+
+	local rotation = 0
+	local spin: { from: number, to: number, elapsed: number, duration: number, index: number, title: string }? = nil
+	local flashSeconds = 0
+	local clock = 0
+
+	local function refreshInfo()
+		local count, remaining = spinsAvailable(ProfileStore.get())
+		info.Text = if remaining > 0 then ("Giros: %d · gratis en %s"):format(count, UiKit.formatClock(remaining)) else ("Giros: %d · ¡tienes un giro gratis!"):format(count)
+		local label = spinButton:FindFirstChild("Label") :: TextLabel
+		label.Text = if count > 0 then ("¡GIRAR! (%d)"):format(count) else "SIN GIROS"
+	end
+
+	local function startSpin()
+		if spin then
+			return
+		end
+		local ok, success, result = pcall(function()
+			return EconomyRemotes.WheelSpinRequested:InvokeServer()
+		end)
+		if not ok or not success or typeof(result) ~= "table" then
+			Feedback.toast(if ok and typeof(result) == "string" then result else "No se pudo girar", UiKit.Palettes.red)
+			return
+		end
+		local index = result.index :: number
+		local base = -((index - 1) * segmentDegrees + segmentDegrees / 2)
+		local target = base
+		while target < rotation + 360 * EXTRA_TURNS do
+			target += 360
+		end
+		spin = { from = rotation, to = target, elapsed = 0, duration = EconomyConfig.Wheel.SpinSeconds, index = index, title = result.title :: string }
+	end
+
+	spinButton.MouseButton1Click:Connect(startSpin)
+	hub.MouseButton1Click:Connect(startSpin)
+	fishBuy.MouseButton1Click:Connect(function()
+		local ok, success, message = pcall(function()
+			return EconomyRemotes.WheelSpinPurchaseRequested:InvokeServer()
+		end)
+		if ok and success then
+			Feedback.toast("¡+1 giro! 🎟️", UiKit.Palettes.cyan)
+			Feedback.confetti(60)
+		else
+			Feedback.toast(if ok and typeof(message) == "string" then message else "No se pudo comprar", UiKit.Palettes.red)
+		end
+	end)
+	for _, robuxButton in { robuxOne, robuxTen } do
+		robuxButton.MouseButton1Click:Connect(function()
+			Feedback.toast("Precios en Robux: próximamente", UiKit.Palettes.purple)
+		end)
+	end
+
+	table.insert(connections, RunService.RenderStepped:Connect(function(deltaSeconds: number)
+		clock += deltaSeconds
+		rays.Rotation += deltaSeconds * (if spin then 60 else 18)
+		local active = spin
+		if active then
+			active.elapsed += deltaSeconds
+			local progress = math.min(1, active.elapsed / active.duration)
+			local eased = 1 - (1 - progress) ^ 4
+			rotation = active.from + (active.to - active.from) * eased
+			if progress >= 1 then
+				spin = nil
+				flashSeconds = 2.5
+				local prize = prizes[active.index]
+				winIcon.Text = prize.icon
+				winText.Text = active.title
+				win.Visible = true
+				Feedback.confetti(if prize.weight <= 2 then 320 else 200)
+				WheelPanel.recordWinner("🎉 Tú ganaste " .. active.title)
+			end
+		end
+		disc.Rotation = rotation
+		local offset = (rotation % segmentDegrees) / segmentDegrees
+		local flap = math.max(0, 1 - math.min(offset, 1 - offset) * 6)
+		pointer.Rotation = if spin then -flap * 26 else 0
+		flashSeconds = math.max(0, flashSeconds - deltaSeconds)
+		local chase = math.floor(clock * (if spin then 22 else 9))
+		for index, bulb in bulbs do
+			local lit = if flashSeconds > 0 then math.floor(clock * 10) % 2 == 0 else (index + chase) % 4 == 0 or (index + chase) % 4 == 2 and spin ~= nil
+			bulb.BackgroundColor3 = if lit then Color3.fromRGB(255, 251, 224) else Color3.fromRGB(194, 122, 0)
+		end
+		local width = tickerText.AbsoluteSize.X
+		local position = tickerText.Position.X.Offset - deltaSeconds * 90
+		if position < -width * 0.6 then
+			position = ticker.AbsoluteSize.X
+			tickerText.Text = table.concat(recentWinners, "   ·   ")
+		end
+		tickerText.Position = UDim2.new(0, position, 0, 4)
+	end))
+	table.insert(connections, ProfileStore.Changed:Connect(refreshInfo))
+	local refreshing = true
+	task.spawn(function()
+		while refreshing do
+			refreshInfo()
+			task.wait(1)
+		end
+	end)
+	tickerText.Position = UDim2.new(0, 400, 0, 4)
+	TweenService:Create(rim, TweenInfo.new(0.4, Enum.EasingStyle.Back), { Size = UDim2.fromScale(1, 1) }):Play()
+	return function()
+		refreshing = false
+		for _, connection in connections do
+			connection:Disconnect()
+		end
+	end
+end
+
+return WheelPanel
+]]></ProtectedString></Properties></Item></Item></roblox>

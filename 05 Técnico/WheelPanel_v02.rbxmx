@@ -1,0 +1,268 @@
+<roblox version="4"><Item class="ModuleScript" referent="RBX1"><Properties><string name="Name">WheelPanel</string><ProtectedString name="Source"><![CDATA[--!strict
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local Shared = ReplicatedStorage.Shared
+local EconomyConfig = require(Shared.EconomyConfig)
+local EconomyRemotes = require(Shared.EconomyRemotes)
+local WheelCatalog = require(Shared.WheelCatalog)
+
+local Client = script.Parent.Parent
+local Feedback = require(Client.Feedback)
+local ProfileStore = require(Client.ProfileStore)
+local UiKit = require(Client.UiKit)
+
+local SLIVERS_PER_SEGMENT = 9
+local BULB_COUNT = 28
+local EXTRA_TURNS = 6
+
+local recentWinners: { string } = {
+	"🎉 copito77 ganó el Pingüino Inferno",
+	"💎 IceKing_RD sacó el JACKPOT",
+	"🎁 nievesita abrió un Cofre Épico",
+}
+
+local WheelPanel = {}
+
+function WheelPanel.recordWinner(text: string)
+	table.insert(recentWinners, 1, text)
+	while #recentWinners > 8 do
+		table.remove(recentWinners)
+	end
+end
+
+local function shade(color: Color3, amount: number): Color3
+	return if amount >= 0 then color:Lerp(Color3.new(1, 1, 1), amount) else color:Lerp(Color3.new(0, 0, 0), -amount)
+end
+
+local function circle(parent: Instance, size: UDim2, position: UDim2, color: Color3, zIndex: number): Frame
+	local frame = UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Size = size, Position = position, BackgroundColor3 = color, ZIndex = zIndex, Parent = parent })
+	UiKit.cornerScale(frame, 0.5)
+	return frame
+end
+
+local function spinsAvailable(snapshot: ProfileStore.Snapshot?): (number, number)
+	if not snapshot then
+		return 0, 0
+	end
+	local remaining = snapshot.lastFreeSpin + EconomyConfig.Wheel.FreeSpinCooldownSeconds - ProfileStore.now()
+	local free = if remaining <= 0 then 1 else 0
+	return free + snapshot.extraSpins, math.max(0, remaining)
+end
+
+function WheelPanel.build(body: Frame, _host: any): () -> ()
+	local connections: { RBXScriptConnection } = {}
+	local prizes = WheelCatalog.list()
+	local segmentDegrees = 360 / #prizes
+
+	local stageArea = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(0.5, 0, 1, 0), ZIndex = 22, Parent = body })
+	local square = UiKit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.52), Size = UDim2.fromScale(0.96, 0.96), ZIndex = 22, Parent = stageArea })
+	UiKit.new("UIAspectRatioConstraint", { AspectRatio = 1, Parent = square })
+
+	local rays = UiKit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(1.3, 1.3), ZIndex = 22, Parent = square })
+	local rayGroup = UiKit.new("CanvasGroup", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), GroupTransparency = 0.55, ZIndex = 22, Parent = rays })
+	for index = 0, 11 do
+		local ray = UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.09, 0.5), Rotation = index * 30, BackgroundColor3 = Color3.fromRGB(255, 226, 120), BorderSizePixel = 0, ZIndex = 22, Parent = rayGroup })
+		UiKit.new("UIGradient", { Rotation = 90, Transparency = NumberSequence.new(1, 0), Parent = ray })
+	end
+
+	local rim = circle(square, UDim2.fromScale(1, 1), UDim2.fromScale(0.5, 0.5), UiKit.White, 23)
+	UiKit.border(rim, 5)
+	UiKit.gradient(rim, { Color3.fromRGB(255, 243, 160), Color3.fromRGB(255, 194, 26), Color3.fromRGB(244, 163, 0), Color3.fromRGB(255, 227, 110) }, 45)
+	circle(rim, UDim2.fromScale(0.86, 0.86), UDim2.fromScale(0.5, 0.5), UiKit.Ink, 24)
+
+	local bulbs: { Frame } = {}
+	for index = 0, BULB_COUNT - 1 do
+		local angle = index / BULB_COUNT * math.pi * 2
+		local bulb = circle(rim, UDim2.fromScale(0.042, 0.042), UDim2.fromScale(0.5 + math.cos(angle) * 0.465, 0.5 + math.sin(angle) * 0.465), Color3.fromRGB(194, 122, 0), 25)
+		UiKit.border(bulb, 2)
+		table.insert(bulbs, bulb)
+	end
+
+	local disc = UiKit.new("CanvasGroup", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.82, 0.82), BackgroundColor3 = UiKit.Ink, ZIndex = 25, Parent = rim })
+	UiKit.cornerScale(disc, 0.5)
+	local sliverWidth = 2 * math.sin(math.rad(segmentDegrees / SLIVERS_PER_SEGMENT) / 2) * 0.5 * 1.35
+	for index, prize in prizes do
+		local startDegrees = -90 + (index - 1) * segmentDegrees
+		for slice = 0, SLIVERS_PER_SEGMENT - 1 do
+			local angle = startDegrees + (slice + 0.5) * segmentDegrees / SLIVERS_PER_SEGMENT
+			local arm = UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(sliverWidth, 1), Rotation = angle + 90, BackgroundTransparency = 1, ZIndex = 26, Parent = disc })
+			local sliver = UiKit.new("Frame", { Size = UDim2.fromScale(1, 0.5), BackgroundColor3 = UiKit.White, BorderSizePixel = 0, ZIndex = 26, Parent = arm })
+			UiKit.gradient(sliver, { shade(prize.color, -0.25), prize.color, shade(prize.color, 0.45) }, 90)
+		end
+		local center = math.rad(startDegrees + segmentDegrees / 2)
+		local icon = UiKit.label(disc, prize.icon, { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromScale(0.12, 0.12), Position = UDim2.fromScale(0.5 + math.cos(center) * 0.28, 0.5 + math.sin(center) * 0.28), Rotation = math.deg(center) + 90, StrokeThickness = 0, ZIndex = 28 })
+		icon.TextScaled = true
+		local text = UiKit.label(disc, prize.label, { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromScale(0.17, 0.075), Position = UDim2.fromScale(0.5 + math.cos(center) * 0.415, 0.5 + math.sin(center) * 0.415), Rotation = math.deg(center) + 90, StrokeThickness = 2.5, ZIndex = 28 })
+		text.TextColor3 = if prize.amount >= 10000 then Color3.fromRGB(255, 227, 110) else UiKit.White
+		local divider = math.rad(startDegrees)
+		local lineArm = UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.new(0, 4, 1, 0), Rotation = startDegrees + 90, BackgroundTransparency = 1, ZIndex = 27, Parent = disc })
+		local line = UiKit.new("Frame", { Size = UDim2.fromScale(1, 0.5), BackgroundColor3 = UiKit.Ink, BorderSizePixel = 0, ZIndex = 27, Parent = lineArm })
+		UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0), Size = UDim2.new(0, 2, 1, 0), BackgroundColor3 = UiKit.White, BorderSizePixel = 0, ZIndex = 27, Parent = line })
+		local peg = circle(disc, UDim2.fromScale(0.035, 0.035), UDim2.fromScale(0.5 + math.cos(divider) * 0.475, 0.5 + math.sin(divider) * 0.475), Color3.fromRGB(255, 210, 63), 29)
+		UiKit.border(peg, 2)
+	end
+	local gloss = UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0.04), Size = UDim2.fromScale(0.76, 0.42), BackgroundColor3 = UiKit.White, BackgroundTransparency = 0.82, ZIndex = 30, Parent = rim })
+	UiKit.cornerScale(gloss, 0.5)
+
+	local hub = UiKit.new("TextButton", { Text = "", AutoButtonColor = false, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.2, 0.2), BackgroundColor3 = UiKit.White, ZIndex = 31, Parent = rim })
+	UiKit.cornerScale(hub, 0.5)
+	UiKit.border(hub, 5)
+	UiKit.gradient(hub, { Color3.fromRGB(255, 138, 138), Color3.fromRGB(255, 59, 59), Color3.fromRGB(179, 18, 44) }, 90)
+	UiKit.label(hub, "GO!", { Size = UDim2.fromScale(0.7, 0.5), Position = UDim2.fromScale(0.15, 0.25), ZIndex = 32, StrokeThickness = 3 })
+	UiKit.pulse(hub, nil, 0.07)
+
+	local pointer = UiKit.label(square, "▼", { AnchorPoint = Vector2.new(0.5, 0.15), Size = UDim2.fromScale(0.16, 0.16), Position = UDim2.fromScale(0.5, -0.04), TextColor3 = Color3.fromRGB(255, 59, 59), StrokeThickness = 4, ZIndex = 33, MaxTextSize = 120 })
+
+	local side = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(0.5, -18, 1, 0), Position = UDim2.new(0.5, 18, 0, 0), ZIndex = 22, Parent = body })
+	local spinButton, spinHolder = UiKit.button({ parent = side, size = UDim2.new(1, 0, 0, 84), palette = UiKit.Palettes.gold, text = "¡GIRAR!", radius = 26, textSize = 48 })
+	UiKit.pulse(spinHolder, spinHolder:FindFirstChildOfClass("UIScale"), 0.035)
+	local info = UiKit.label(side, "", { Size = UDim2.new(1, 0, 0, 26), Position = UDim2.fromOffset(0, 96), Font = UiKit.BodyFont, StrokeThickness = 1.5, MaxTextSize = 20, ZIndex = 23 })
+	local buyRow = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 66), Position = UDim2.fromOffset(0, 130), ZIndex = 22, Parent = side })
+	UiKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 12), Parent = buyRow })
+	local fishBuy = UiKit.button({ parent = buyRow, size = UDim2.new(0.333, -8, 1, -6), palette = UiKit.Palettes.green, text = "+1 GIRO · 🐟1,000", radius = 18, textSize = 22, layoutOrder = 1 })
+	local robuxOne = UiKit.button({ parent = buyRow, size = UDim2.new(0.333, -8, 1, -6), palette = UiKit.Palettes.cyan, text = "+1 GIRO · R$ ?", radius = 18, textSize = 22, layoutOrder = 2 })
+	local robuxTen, robuxTenHolder = UiKit.button({ parent = buyRow, size = UDim2.new(0.333, -8, 1, -6), palette = UiKit.Palettes.purple, text = "+10 GIROS · R$ ?", radius = 18, textSize = 22, layoutOrder = 3 })
+	UiKit.ribbon(robuxTenHolder, "-20%")
+	UiKit.label(side, "PREMIOS POSIBLES", { Size = UDim2.new(1, 0, 0, 28), Position = UDim2.fromOffset(0, 206), TextXAlignment = Enum.TextXAlignment.Left, MaxTextSize = 24, ZIndex = 23 })
+	local prizeGrid = UiKit.new("ScrollingFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, -290), Position = UDim2.fromOffset(0, 240), AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(), ScrollBarThickness = 6, BorderSizePixel = 0, ZIndex = 22, Parent = side })
+	UiKit.padding(prizeGrid, 6)
+	UiKit.new("UIGridLayout", { CellSize = UDim2.new(0.333, -10, 0, 86), CellPadding = UDim2.fromOffset(10, 10), Parent = prizeGrid })
+	for index, prize in prizes do
+		local card = UiKit.new("Frame", { BackgroundColor3 = UiKit.White, ZIndex = 23, Parent = prizeGrid })
+		UiKit.corner(card, 14)
+		UiKit.border(card, 3)
+		UiKit.gradient(card, { shade(prize.color, 0.3), prize.color }, 135)
+		UiKit.label(card, prize.icon, { Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromOffset(0, 4), StrokeThickness = 0, ZIndex = 24 })
+		UiKit.label(card, prize.title, { Size = UDim2.new(1, -8, 0, 20), Position = UDim2.fromOffset(4, 38), MaxTextSize = 15, StrokeThickness = 1.5, ZIndex = 24 })
+		local chance = UiKit.new("Frame", { Size = UDim2.fromOffset(52, 18), Position = UDim2.new(0.5, 0, 0, 62), AnchorPoint = Vector2.new(0.5, 0), BackgroundColor3 = UiKit.Ink, ZIndex = 24, Parent = card })
+		UiKit.corner(chance, 8)
+		UiKit.label(chance, ("%d%%"):format(math.floor(WheelCatalog.chance(index) * 100 + 0.5)), { Size = UDim2.new(1, -6, 1, -4), Position = UDim2.fromOffset(3, 2), StrokeThickness = 1, ZIndex = 25 })
+	end
+	local ticker = UiKit.new("Frame", { Size = UDim2.new(1, 0, 0, 34), Position = UDim2.new(0, 0, 1, -38), BackgroundColor3 = UiKit.Ink, ClipsDescendants = true, ZIndex = 23, Parent = side })
+	UiKit.corner(ticker, 12)
+	local tickerText = UiKit.label(ticker, table.concat(recentWinners, "   ·   "), { Size = UDim2.new(3, 0, 1, -8), Position = UDim2.new(1, 0, 0, 4), TextXAlignment = Enum.TextXAlignment.Left, Font = UiKit.BodyFont, StrokeThickness = 1, MaxTextSize = 16, ZIndex = 24 })
+
+	local win = UiKit.new("Frame", { Visible = false, BackgroundColor3 = Color3.fromRGB(10, 6, 30), BackgroundTransparency = 0.35, Size = UDim2.fromScale(1, 1), ZIndex = 40, Parent = body })
+	local winCard = UiKit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(400, 300), BackgroundColor3 = UiKit.White, ZIndex = 41, Parent = win })
+	UiKit.corner(winCard, 28)
+	UiKit.border(winCard, 5)
+	UiKit.gradient(winCard, UiKit.Palettes.gold, 90)
+	local winIcon = UiKit.label(winCard, "🐟", { Size = UDim2.new(1, 0, 0, 110), Position = UDim2.fromOffset(0, 10), StrokeThickness = 0, MaxTextSize = 100, ZIndex = 42 })
+	UiKit.label(winCard, "¡GANASTE!", { Size = UDim2.new(1, -20, 0, 52), Position = UDim2.fromOffset(10, 118), MaxTextSize = 52, StrokeThickness = 4, ZIndex = 42 })
+	local winText = UiKit.label(winCard, "", { Size = UDim2.new(1, -20, 0, 36), Position = UDim2.fromOffset(10, 170), MaxTextSize = 32, StrokeThickness = 3, ZIndex = 42 })
+	local okButton = UiKit.button({ parent = winCard, size = UDim2.new(1, -60, 0, 54), position = UDim2.new(0, 30, 1, -72), palette = UiKit.Palettes.green, text = "¡GENIAL!", radius = 20, textSize = 30 })
+	okButton.MouseButton1Click:Connect(function()
+		win.Visible = false
+	end)
+
+	local rotation = 0
+	local spin: { from: number, to: number, elapsed: number, duration: number, index: number, title: string }? = nil
+	local flashSeconds = 0
+	local clock = 0
+
+	local function refreshInfo()
+		local count, remaining = spinsAvailable(ProfileStore.get())
+		info.Text = if remaining > 0 then ("Giros: %d · gratis en %s"):format(count, UiKit.formatClock(remaining)) else ("Giros: %d · ¡tienes un giro gratis!"):format(count)
+		local label = spinButton:FindFirstChild("Label") :: TextLabel
+		label.Text = if count > 0 then ("¡GIRAR! (%d)"):format(count) else "SIN GIROS"
+	end
+
+	local function startSpin()
+		if spin then
+			return
+		end
+		local ok, success, result = pcall(function()
+			return EconomyRemotes.WheelSpinRequested:InvokeServer()
+		end)
+		if not ok or not success or typeof(result) ~= "table" then
+			Feedback.toast(if ok and typeof(result) == "string" then result else "No se pudo girar", UiKit.Palettes.red)
+			return
+		end
+		local index = result.index :: number
+		local base = -((index - 1) * segmentDegrees + segmentDegrees / 2)
+		local target = base
+		while target < rotation + 360 * EXTRA_TURNS do
+			target += 360
+		end
+		spin = { from = rotation, to = target, elapsed = 0, duration = EconomyConfig.Wheel.SpinSeconds, index = index, title = result.title :: string }
+	end
+
+	spinButton.MouseButton1Click:Connect(startSpin)
+	hub.MouseButton1Click:Connect(startSpin)
+	fishBuy.MouseButton1Click:Connect(function()
+		local ok, success, message = pcall(function()
+			return EconomyRemotes.WheelSpinPurchaseRequested:InvokeServer()
+		end)
+		if ok and success then
+			Feedback.toast("¡+1 giro! 🎟️", UiKit.Palettes.cyan)
+			Feedback.confetti(60)
+		else
+			Feedback.toast(if ok and typeof(message) == "string" then message else "No se pudo comprar", UiKit.Palettes.red)
+		end
+	end)
+	for _, robuxButton in { robuxOne, robuxTen } do
+		robuxButton.MouseButton1Click:Connect(function()
+			Feedback.toast("Precios en Robux: próximamente", UiKit.Palettes.purple)
+		end)
+	end
+
+	table.insert(connections, RunService.RenderStepped:Connect(function(deltaSeconds: number)
+		clock += deltaSeconds
+		rays.Rotation += deltaSeconds * (if spin then 60 else 18)
+		local active = spin
+		if active then
+			active.elapsed += deltaSeconds
+			local progress = math.min(1, active.elapsed / active.duration)
+			local eased = 1 - (1 - progress) ^ 4
+			rotation = active.from + (active.to - active.from) * eased
+			if progress >= 1 then
+				spin = nil
+				flashSeconds = 2.5
+				local prize = prizes[active.index]
+				winIcon.Text = prize.icon
+				winText.Text = active.title
+				win.Visible = true
+				Feedback.confetti(if prize.weight <= 2 then 320 else 200)
+				WheelPanel.recordWinner("🎉 Tú ganaste " .. active.title)
+			end
+		end
+		disc.Rotation = rotation
+		local offset = (rotation % segmentDegrees) / segmentDegrees
+		local flap = math.max(0, 1 - math.min(offset, 1 - offset) * 6)
+		pointer.Rotation = if spin then -flap * 26 else 0
+		flashSeconds = math.max(0, flashSeconds - deltaSeconds)
+		local chase = math.floor(clock * (if spin then 22 else 9))
+		for index, bulb in bulbs do
+			local lit = if flashSeconds > 0 then math.floor(clock * 10) % 2 == 0 else (index + chase) % 4 == 0 or (index + chase) % 4 == 2 and spin ~= nil
+			bulb.BackgroundColor3 = if lit then Color3.fromRGB(255, 251, 224) else Color3.fromRGB(194, 122, 0)
+		end
+		local width = tickerText.AbsoluteSize.X
+		local position = tickerText.Position.X.Offset - deltaSeconds * 90
+		if position < -width * 0.6 then
+			position = ticker.AbsoluteSize.X
+			tickerText.Text = table.concat(recentWinners, "   ·   ")
+		end
+		tickerText.Position = UDim2.new(0, position, 0, 4)
+	end))
+	table.insert(connections, ProfileStore.Changed:Connect(refreshInfo))
+	local refreshing = true
+	task.spawn(function()
+		while refreshing do
+			refreshInfo()
+			task.wait(1)
+		end
+	end)
+	tickerText.Position = UDim2.new(0, 400, 0, 4)
+	TweenService:Create(rim, TweenInfo.new(0.4, Enum.EasingStyle.Back), { Size = UDim2.fromScale(1, 1) }):Play()
+	return function()
+		refreshing = false
+		for _, connection in connections do
+			connection:Disconnect()
+		end
+	end
+end
+
+return WheelPanel
+]]></ProtectedString></Properties></Item></roblox>

@@ -1,0 +1,110 @@
+--!strict
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local MAX_STEP_HEIGHT = 1.6
+local MIN_STEP_HEIGHT = 0.05
+local PROBE_LIFT = 0.12
+local PROBE_REACH = 0.9
+local STEP_COOLDOWN = 0.12
+local WALKING_STATES = { Idle = true, Finished = true }
+local STEPPABLE_HUMANOID_STATES = {
+	[Enum.HumanoidStateType.Running] = true,
+	[Enum.HumanoidStateType.RunningNoPhysics] = true,
+	[Enum.HumanoidStateType.Climbing] = true,
+}
+
+local player = Players.LocalPlayer
+local rayParams = RaycastParams.new()
+rayParams.FilterType = Enum.RaycastFilterType.Exclude
+rayParams.IgnoreWater = true
+local lastStepAt = 0
+
+local StepAssist = {}
+
+local function isWalkingPhase(): boolean
+	local runState = player:GetAttribute("RunState")
+	return runState == nil or WALKING_STATES[runState] == true
+end
+
+local function horizontal(vector: Vector3): Vector3
+	return Vector3.new(vector.X, 0, vector.Z)
+end
+
+local function bodyReach(character: Model, root: BasePart, direction: Vector3): number
+	local _, size = character:GetBoundingBox()
+	local local3 = root.CFrame:VectorToObjectSpace(direction)
+	return math.abs(local3.X) * size.X / 2 + math.abs(local3.Z) * size.Z / 2
+end
+
+local function findLedgeTop(origin: Vector3, direction: Vector3, footY: number): number?
+	local above = Vector3.new(origin.X, footY + MAX_STEP_HEIGHT + 0.2, origin.Z) + direction * 0.35
+	local result = Workspace:Raycast(above, Vector3.new(0, -(MAX_STEP_HEIGHT + 0.2), 0), rayParams)
+	if not result or result.Normal.Y < 0.7 or not result.Instance.CanCollide then
+		return nil
+	end
+	return result.Position.Y
+end
+
+local function headroomIsClear(root: BasePart, lift: number, direction: Vector3): boolean
+	local result = Workspace:Raycast(root.Position, Vector3.new(0, lift + 0.2, 0) + direction * 0.5, rayParams)
+	return result == nil or not result.Instance.CanCollide
+end
+
+local function tryStep(character: Model, humanoid: Humanoid, root: BasePart)
+	local direction = horizontal(humanoid.MoveDirection)
+	if direction.Magnitude < 0.1 then
+		return
+	end
+	direction = direction.Unit
+	local footY = root.Position.Y - root.Size.Y / 2 - humanoid.HipHeight
+	local reach = bodyReach(character, root, direction) + PROBE_REACH
+	local probeOrigin = Vector3.new(root.Position.X, footY + PROBE_LIFT, root.Position.Z)
+	local hit = Workspace:Raycast(probeOrigin, direction * reach, rayParams)
+	if not hit or math.abs(hit.Normal.Y) > 0.5 or not hit.Instance.CanCollide then
+		return
+	end
+	local top = findLedgeTop(hit.Position, direction, footY)
+	if not top then
+		return
+	end
+	local stepHeight = top - footY
+	if stepHeight < MIN_STEP_HEIGHT or stepHeight > MAX_STEP_HEIGHT then
+		return
+	end
+	local lift = stepHeight + 0.08
+	if not headroomIsClear(root, lift, direction) then
+		return
+	end
+	root.CFrame = root.CFrame + Vector3.new(0, lift, 0) + direction * 0.25
+	local velocity = root.AssemblyLinearVelocity
+	root.AssemblyLinearVelocity = Vector3.new(direction.X * humanoid.WalkSpeed, math.max(velocity.Y, 0), direction.Z * humanoid.WalkSpeed)
+	lastStepAt = os.clock()
+end
+
+local function update()
+	if os.clock() - lastStepAt < STEP_COOLDOWN or not isWalkingPhase() then
+		return
+	end
+	local character = player.Character
+	if not character then
+		return
+	end
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if not (humanoid and root and root:IsA("BasePart")) then
+		return
+	end
+	if humanoid.Health <= 0 or not STEPPABLE_HUMANOID_STATES[humanoid:GetState()] or root.Anchored then
+		return
+	end
+	rayParams.FilterDescendantsInstances = { character }
+	tryStep(character, humanoid, root)
+end
+
+function StepAssist.init()
+	RunService.Heartbeat:Connect(update)
+end
+
+return StepAssist

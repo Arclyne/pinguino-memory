@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "becbd5444d20bb86",
+        "id": "33d15076f535a6bf",
         "type": "tabs",
         "children": [
           {
-            "id": "c1813ca68c4f0f86",
+            "id": "84421c6fd36fdaf9",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "04 Planeación/Pendiente de agregar a Studio.md",
+                "file": "_Plantillas/Plantilla Decisión.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Pendiente de agregar a Studio"
+              "title": "Plantilla Decisión"
             }
           }
         ]
@@ -189,44 +189,47 @@
       "github-sync:Sync with Remote": false
     }
   },
-  "active": "c1813ca68c4f0f86",
+  "active": "84421c6fd36fdaf9",
   "lastOpenFiles": [
-    "01 Visión/Core Loop.md",
-    "05 Técnico/RuletaTabla_artefacto_v02.html",
-    "03 Decisiones/D-007 Lobby en la meseta y peces como moneda.md",
-    "05 Técnico/LobbySkins_skins_artefacto_v02.html",
-    "05 Técnico/LobbySkins_lobby_artefacto_v02.html",
-    "05 Técnico/LobbySkins_penguin_v02.js",
+    "03 Decisiones/D-012 Nivel 5 en Studio.md",
+    "05 Técnico/Level5Install_v02.rbxmx",
+    "05 Técnico/WindowBreaker.lua",
+    "05 Técnico/BuildLevel5_v01.lua",
+    "05 Técnico/Level5Install_v01.rbxmx",
+    "05 Técnico/Nivel5_v02_fuente.html",
+    "05 Técnico/Nivel5_artefacto_v02.html",
+    "05 Técnico/Nivel5_artefacto_v01.html",
+    "02 Diseño/Nivel 5 Vecindario navideño.md",
+    "06 Bitácora/2026-11-13.md",
+    "CLAUDE.md",
+    "_Plantillas/Plantilla Mecánica.md",
+    "Sin título.md",
+    "Sin título.canvas",
+    "Sin título 1.canvas",
+    "02 Diseño/Mecánicas/Obstáculos.md",
     "04 Planeación/Pendiente de agregar a Studio.md",
+    "02 Diseño/Puestos del lobby.md",
+    "03 Decisiones/D-011 Iconos, menú del lobby, iluminación y puestos.md",
+    "05 Técnico/BuildStalls_v01.lua",
+    "05 Técnico/BuildStalls_v01.rbxmx",
+    "05 Técnico/PuestosLobby_artefacto_v01.html",
+    "05 Técnico/iconos/PinguinoIconos_v2_extra.png",
+    "05 Técnico/iconos/PinguinoIconos_v1.png",
+    "02 Diseño/Avalancha del nivel 1.md",
+    "03 Decisiones/D-010 Avalancha del nivel 1.md",
+    "03 Decisiones/D-009 Velocidad en bajadas, cámara y efectos.md",
+    "03 Decisiones/D-008 Lobby, economía y Festival de Faroles en Studio.md",
+    "01 Visión/Core Loop.md",
+    "03 Decisiones/D-007 Lobby en la meseta y peces como moneda.md",
     "02 Diseño/Lobby y skins.md",
-    "05 Técnico/Nivel2Decoracion_artefacto_v01.html",
     "02 Diseño/Nivel 2 - Decoración Festival de Faroles.md",
-    "05 Técnico/InstallDecorationAnimation_v01.lua",
-    "05 Técnico/BuildLevel1Decoration_v01.lua",
     "03 Decisiones/D-006 Decoración festiva del nivel 1.md",
     "03 Decisiones/D-005 Nivel 4 en Studio.md",
-    "05 Técnico/BuildLevel4_v01.lua",
     "02 Diseño/Nivel 4 - Valle del Avión.md",
     "_Plantillas/Plantilla Decisión.md",
     "01 Visión/Concepto.md",
     "03 Decisiones/D-004 Nivel 3 en Studio.md",
-    "05 Técnico/BuildLevel3_v01.lua",
     "06 Bitácora/2026-11-12.md",
-    "02 Diseño/Nivel 3 - Ciudad Nevada.md",
-    "Sin título 1.canvas",
-    "03 Decisiones/Registro de decisiones.md",
-    "Sin título.canvas",
-    "04 Planeación/Preguntas abiertas.md",
-    "_Plantillas/Plantilla Mecánica.md",
-    "05 Técnico/UpdateScripts_Levels.lua",
-    "03 Decisiones/D-003 Nivel 2 y portal entre niveles.md",
-    "02 Diseño/Nivel 2 - Aldea Nevada.md",
-    "02 Diseño/Mapa.md",
-    "03 Decisiones/D-002 Mapa base y controles.md",
-    "CLAUDE.md",
-    "Sin título.md",
-    "00 Índice.md",
-    "Bienvenido.md",
-    "_Plantillas/Plantilla Sesión.md"
+    "02 Diseño/Nivel 3 - Ciudad Nevada.md"
   ]
 }
