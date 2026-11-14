@@ -7,8 +7,8 @@ generado: sí (ServerStorage.DevTools.PlaceMap, sección valores; no editar a ma
 Copia de los módulos de configuración. El código manda: para cambiar un valor se edita el módulo en Studio y se regenera esta nota. Tiempos en segundos, velocidades en studs/s.
 
 # huella
-place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-14 06:52
-huella: scripts=144 lineas=22092 codigo=cfc6ac8f instancias=90545 mundo=e7464201
+place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-14 08:41
+huella: scripts=156 lineas=25168 codigo=56faf210 instancias=106991 mundo=bb4cc67b
 # valores
 GameConfig.Boost.CapRecoverySeconds=0.8
 GameConfig.Boost.DragMultiplier=0.25
@@ -56,6 +56,10 @@ GameConfig.Slide.LevelTuning.1.DownhillBoost=2.3
 GameConfig.Slide.LevelTuning.1.MaxSpeed=165
 GameConfig.Slide.LevelTuning.1.QuadraticDrag=0.0034
 GameConfig.Slide.LevelTuning.1.SteerAcceleration=215
+GameConfig.Slide.LevelTuning.2.DownhillBoost=4
+GameConfig.Slide.LevelTuning.2.MaxSpeed=360
+GameConfig.Slide.LevelTuning.2.QuadraticDrag=0.0009
+GameConfig.Slide.LevelTuning.2.SteerAcceleration=260
 GameConfig.Slide.LevelTuning.5.DownhillBoost=2.2
 GameConfig.Slide.LevelTuning.5.MaxSpeed=165
 GameConfig.Slide.LevelTuning.5.QuadraticDrag=0.0035
@@ -93,6 +97,11 @@ EconomyConfig.Fish.FishSpacing=7
 EconomyConfig.Fish.GroupSpacing=70
 EconomyConfig.Fish.HoverHeight=4
 EconomyConfig.Fish.Lanes={-18,-9,0,9,18}
+EconomyConfig.Fish.LevelOverrides.2.FishPerGroup=8
+EconomyConfig.Fish.LevelOverrides.2.FishSpacing=9
+EconomyConfig.Fish.LevelOverrides.2.GroupSpacing=300
+EconomyConfig.Fish.LevelOverrides.2.Lanes={-24,-12,0,12,24}
+EconomyConfig.Fish.LevelOverrides.2.ValuePerPickup=2
 EconomyConfig.Fish.StartAhead=90
 EconomyConfig.Fish.ValidationRadius=40
 EconomyConfig.Fish.ValuePerPickup=5
@@ -142,6 +151,7 @@ PlayerProfile.Template.extraSpins=0
 PlayerProfile.Template.finishes={}
 PlayerProfile.Template.fish=0
 PlayerProfile.Template.giftStreak=0
+PlayerProfile.Template.lastAvalancheMode=0
 PlayerProfile.Template.lastFreeSpin=0
 PlayerProfile.Template.lastGift=0
 PlayerProfile.Template.ownedSkins: classic=true

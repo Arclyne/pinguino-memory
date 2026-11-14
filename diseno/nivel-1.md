@@ -30,10 +30,38 @@ Desde el 2026-11-14 el N1 es una sola bajada larga, `ChristmasRun` (D-027c). La 
 | 8 Puente del Puerto | 14250 | 0.16 | 60 |
 | Meta Aldea de Santa | 16350 | 0.07 | 200 + vida/2 |
 
-- Cada zona tiene carpeta `Zona<N>_<Nombre>` con edificios, faroles, pinos, puestos, `Obstaculos` y `Gameplay` (pads de turbo `BoostRamp`). 4,527 partes con atributo `Bumper` (rebotan sin chocar).
+- Cada zona tiene carpeta `Zona<N>_<Nombre>` con edificios, faroles, pinos, puestos, `Obstaculos` (9 pilas de regalos en total) y `Gameplay` (pads de turbo `BoostRamp`). 4,527 partes con atributo `Bumper` (rebotan sin chocar).
 - `Atajos`: 10 caminos rectos de 22 de ancho que cortan por dentro de las curvas (pinos, hielo, callejón, parque, juguetes, salto), algunos con turbo y rampas de salto. Ninguno en el Garaje ni en el Puente.
 - Vida: 100; choque −25, caída −20 (te rescata sobre la pista), +35 al entrar a cada zona. Sin vida, eliminado.
 - Peces en 5 carriles (`EconomyConfig.Fish.Lanes`) que siguen las curvas, y una fila de peces a lo largo de cada atajo como premio.
+
+## Obstáculos de la pista (D-031c)
+En `ObstaculosPista`, una carpeta por zona; cada obstáculo lleva `TrackDistance` (studs desde el inicio). Chocar con su caja invisible quita vida. Siempre queda un paso libre de ≥ 18 y entre uno y otro hay al menos 150 studs (115 en la recta final).
+
+| Zona | Cuántos | Qué |
+|---|---|---|
+| 1 Colina | 4 | montículos para saltar, muñecos de nieve |
+| 2 Bosque | 8 | bastones caídos a media calle, esferas gigantes, un montículo |
+| 3 Pueblo | 8 | puestos en la calle, trineos estacionados, pilas de cajas |
+| 4 Centro | 9 | vallas de obra, árboles de glorieta al centro, bancas |
+| 5 Garaje | 5 | trineos en fila, conos, rampa de salto |
+| 6 Taller | 8 | soldados de juguete, cubos, bandas cruzadas |
+| 7 Autopista | 11 | quitanieves, trineos descompuestos, cajas, conos |
+| 8 Puente (recta final) | 13 | slalom de filas de cajas de carga alternando lado, postes en las orillas, vallas, quitanieves |
+
+Posiciones exactas: `TrackDistance` de cada modelo en Studio.
+
+## Eventos en la bajada (D-032c)
+| Dónde | Evento | Qué pasa |
+|---|---|---|
+| 2 Bosque | Tormenta de nieve | casi no se ve unos 700 studs; los obstáculos de la zona brillan |
+| 2, 3, 4, 6 o 7 (a veces) | Trineo dorado | baja más lento que tú; si lo tocas, turbo y peces |
+| 5 Garaje | Duendes | te persiguen; si vas lento te alcanzan (máx. 3 veces) y te quitan pocos peces |
+| 6 Taller | Desfile de juguetes | 2 filas de 3 soldados cruzan la calle de lado a lado; chocar quita vida |
+| 8 Puente | Santa | pasa volando y suelta 6 regalos con sombra; agarrarlos da peces |
+| toda la pista | Avalancha del evento | si te lanzas durante el evento, la ola te persigue toda la bajada (x2 peces) |
+| toda la pista | Nevada de peces | durante el evento, lluvia de peces y todos valen x2 |
+| salida | Carrera programada | los inscritos salen juntos; premio a los 3 primeros |
 
 ## Suelo
 Sin `GroundTexture`: la ladera `Ground` y la calle son lisas → T-13c (D-025c).
@@ -54,8 +82,8 @@ Todo: no hay una bajada registrada → T-14c.
 ## Portal
 - Estilo Hielo: https://claude.ai/artifact/N9dQzZxestQoVsSauFWXXW · `ReturnPortalGate`. Ahora está al final de la pista navideña y lleva al mismo N1.
 
-## Avalancha
-- Descartada (D-027c): la montaña, la sirena y la cinemática siguen guardadas en `ServerStorage.Respaldo_MapaViejo.Avalancha` y no corren.
+## Avalancha (D-029c)
+- `AvalancheMountain` volvió detrás de la meseta (montaña, cornisa, torre con sirena). Al subirse a la resortera, cinemática; al lanzarse, la ola persigue ~11 s siguiendo la pista, luego se queda atrás y desaparece; en la meta, cierre "¡SOBREVIVISTE!". Es visual: no quita vida. Detalle: [[sistemas]] § Avalancha.
 
 ## Lobby
 Objetos y paneles: [[lobby-economia]].

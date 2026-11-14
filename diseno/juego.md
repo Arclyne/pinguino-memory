@@ -53,7 +53,7 @@ Lobby (Idle) --E o ¡LANZAR!--> Aiming --soltar--> Racing --meta--> Finished --a
 
 ## Obstáculos y eliminación
 - Angel decidió: tipos iniciales (D-003); chocar = ragdoll y muerte sin la muerte de Roblox (D-008); las rampas impulsan (D-017).
-- Regla de alturas (Claude eligió, la usan los niveles 1 a 4; N5 sin comprobar): lo que mide ≤ 4 studs se salta; lo que mide ≥ 9 se esquiva.
+- Regla de alturas (Claude eligió; la usan los obstáculos de la pista navideña, D-031c): lo que mide ≤ 4 studs se salta; lo que mide ≥ 9 se esquiva.
 - Tres formas de ser eliminado: choque de frente (lo detecta el cliente, `CrashSensor`, umbrales en `GameConfig.Crash`), pisar una parte con etiqueta `Hazard` (servidor) y caer bajo `GameConfig.Race.KillHeight` (servidor).
 - En la pista navideña (D-027c; los valores los eligió Claude, sin aprobar) los dos primeros solo restan vida: el choque te tumba y te endereza en ~1 s, la caída te rescata sobre la pista; solo eliminan cuando la vida llega a 0. Las partes con atributo `Bumper` (barandales, bordes) rebotan sin chocar, y una ayuda de dirección gira sola con las curvas.
 - Una carrera más corta que `GameConfig.Race.MinimumPlausibleSeconds` no cuenta: el servidor reinicia al jugador.

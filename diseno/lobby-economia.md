@@ -1,6 +1,6 @@
 ---
 tipo: diseno
-verificado: 2026-11-13 (reglas leídas del código del servidor en Studio; no se jugó; Angel no ha revisado cómo quedó → Q-01)
+verificado: 2026-11-14 (HUD del lobby y eventos leídos del código y probados en Play; botón del Modo Avalancha probado en Play)
 ---
 # Lobby y economía
 
@@ -26,7 +26,7 @@ Precios, premios y tiempos: `grep -n "EconomyConfig\|SkinCatalog\|WheelCatalog" 
 | `ChevronRoad` | Camino de flechas a la resortera (11 `ChevronArrow` animadas) | — |
 | `LuckyWheel` | Ruleta 3D de 12 gajos (`LobbyWheel`) | panel `wheel` |
 | `HallOfFame` | Tabla y podio con maniquíes (`LobbyLeaderboard`, `PodiumMannequin`) | panel `leaderboard` |
-| `EventPedestal` | Pedestal de la skin del evento Avalancha | panel `event` (fachada) |
+| `EventPedestal` | Pedestal de la skin del evento Avalancha | panel `event` (explica el Modo Avalancha, D-033c) |
 | `MostPopular` | Podio "Más populares" | panel `skins` |
 | `LevelsPortal` | Portal de niveles | panel `levels` |
 | `Shop` | Tienda | panel `shop` |
@@ -50,8 +50,8 @@ Posiciones: `grep -n "Lobby:" place/mapa-place.md`. Construido por `ServerStorag
 | Personalizar | C | `custom` | fachada |
 | Renacer | Z | `rebirth` | fachada |
 | Lanzarse con un amigo · x2 peces | F | `friend` | fachada |
-| Próxima carrera | N | `race` | fachada |
-| Evento Avalancha · pronto | — | `event` | fachada |
+| Próxima carrera | N | — | funciona: inscribe o saca de la carrera programada; muestra cuánto falta e inscritos (D-032c) |
+| Modo Avalancha (arriba) | — | — | funciona: "¡JUGAR!" o cuánto falta; al tocarlo te sube a la resortera del modo (D-033c) |
 Arriba a la derecha: contador de peces y aviso de impulso activo.
 
 ## Reglas de la economía (como están en el servidor)
@@ -71,7 +71,7 @@ Arriba a la derecha: contador de peces y aviso de impulso activo.
 | Glacial | `ice` | todo de hielo con las manchas del pingüino, corona de cristales, fragmentos que orbitan, copos |
 | Santa | `santa` | gorro con estrella, barba, bufanda a rayas, cinturón dorado, regalo, bastón de caramelo |
 | Reno | `reindeer` | diadema de reno, astas con foquitos, nariz roja que brilla, cascabeles |
-El artefacto ponía Glacial como premio del evento Avalancha; el evento no existe todavía.
+El artefacto ponía Glacial como premio del evento Avalancha; ese evento se quitó (D-033c) y el Modo Avalancha premia con peces, no con el Glacial.
 
 ## Sin definir
-Precios en Robux, contenido del Pack inicial y VIP, qué es Renacer, cómo funciona "con un amigo", carreras programadas, evento Avalancha → [[PREGUNTAS]].
+Precios en Robux, contenido del Pack inicial y VIP, qué es Renacer, cómo funciona "con un amigo" → [[PREGUNTAS]]. Eventos y carrera programada: D-032c.

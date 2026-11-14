@@ -7,15 +7,19 @@ generado: sí (ServerStorage.DevTools.PlaceMap; no editar a mano; ver herramient
 Formato. scripts: `Nombre TipoLíneas | api | req | rem | tag | attr | key | svc` (M módulo, S script, L local; `+N` = N más sin listar). etiquetas: `Etiqueta total | por nivel | clases | atributos{valores}`. niveles: posiciones del mundo redondeadas a studs. Qué hace cada sistema: [[sistemas]].
 
 # huella
-place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-14 06:52
-huella: scripts=144 lineas=22092 codigo=cfc6ac8f instancias=90545 mundo=e7464201
+place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-14 08:41
+huella: scripts=156 lineas=25168 codigo=56faf210 instancias=106991 mundo=bb4cc67b
 # scripts
 ## ReplicatedStorage.Shared
+AvalancheModeConfig M31
+AvalancheTrack M96 | api:distanceOf,fieldEndZ,fieldTopY,forward,frameAtDistance,heightAtDistance,lipPosition,normal,rampBaseZ,widthAtDistance,zAt,zoneIndexAt
 ChristmasTrack M313 | api:centerAt,distanceToRoad,frameAt,guideDirection,heightAt,normalAt,progressAt,rescueFrame,shortcutAt,tangentAt,widthAt,xAt,zoneIndexAt
 Cleaner M44 | api:clean,new
-EconomyConfig M46
+EconomyConfig M55
 EconomyRemotes M22
-GameConfig M96 | tag:BoostRamp | attr:JumpDistance,KeepSpeed
+EventConfig M85 | attr:AvalancheEventRun
+EventRemotes M11
+GameConfig M102 | tag:BoostRamp | attr:JumpDistance,KeepSpeed
 LaunchMath M49 | api:clampAim,direction,flightGravity,positionAt,pullOffset,speed,velocity | req:GameConfig
 LevelRegistry M60 | api:arrivalFrame,firstTagged,levelOf,nextLevel,playerLevel | req:GameConfig | tag:PlateauSpawn,ReturnPortal | attr:DestinationLevel,LevelId
 PenguinOrientation M16 | api:bellyDown
@@ -30,19 +34,21 @@ WheelCatalog M67 | api:chance,count,list,pick,totalWeight
 ## ServerScriptService
 EconomyMain S5 | req:name
 ## ServerScriptService.Server.Data
-PlayerProfile M76 | api:currentWeek,rollWeek,sanitize | req:EconomyConfig,SkinCatalog
+PlayerProfile M78 | api:currentWeek,rollWeek,sanitize | req:EconomyConfig,SkinCatalog
 ## ServerScriptService.Server
-Main S21 | req:ChristmasRunService,LevelFlowService,LevelService,PoseService,RaceService,ReturnService,RunStateService,SlingshotService
+Main S23 | req:AvalancheModeService,ChristmasRunService,LevelFlowService,LevelService,PoseService,RaceService,ReturnService,RunStateService,SlingshotService
 ## ServerScriptService.Server.Services
-ChristmasRunService M199 | api:absorbCrash,absorbHazard,init,isOutOfHealth | req:ChristmasTrack,LevelRegistry,Remotes,RunState,RunStateService | rem:RaceNotice | attr:PenguinHealth,PenguinMaxHealth,RunZone
-FishService M207 | api:init | req:ChristmasTrack,EconomyConfig,EconomyRemotes,LevelRegistry,PlayerDataService,RateLimiter,RunState,RunStateService | rem:FishCollectRequested | tag:FinishLine,FishPickup,Hazard,Slingshot | attr:PickupId
+AvalancheModeService M270 | api:absorbCrash,init | req:AvalancheModeConfig,AvalancheTrack,EventRemotes,LevelRegistry,PlayerDataService,Remotes,ReturnService,RunState,RunStateService,SlingshotGeometry,SlingshotService | rem:AvalancheModeRequested,RaceNotice
+ChristmasRunService M223 | api:absorbCrash,absorbHazard,init,isOutOfHealth | req:ChristmasTrack,LevelRegistry,Remotes,RunState,RunStateService | rem:RaceNotice | attr:PenguinHealth,PenguinMaxHealth,RunZone
+EventService M400 | api:fishMultiplier,init | req:ChristmasTrack,EventConfig,EventRemotes,LaunchMath,LevelRegistry,PlayerDataService,Remotes,RunState,RunStateService,SlingshotGeometry | rem:EventPickupRequested,RaceJoinRequested,RaceNotice
+FishService M221 | api:init | req:AvalancheTrack,ChristmasTrack,EconomyConfig,EconomyRemotes,EventService,LevelRegistry,PlayerDataService,RateLimiter,RunState,RunStateService | rem:FishCollectRequested | tag:FinishLine,FishEnd,FishPickup,Hazard,Slingshot | attr:PickupId
 LeaderboardService M161 | api:init | req:EconomyConfig,EconomyRemotes,PlayerDataService,SkinCatalog | rem:LeaderboardChanged,LeaderboardRequested | svc:DataStore
 LevelFlowService M70 | api:init | req:GameConfig,LevelRegistry,ReturnService,RunState,RunStateService,SlingshotGeometry,SlingshotService
 LevelService M46 | api:init | req:LevelRegistry
 PlayerDataService M205 | api:addFish,currentWeek,get,init,snapshot,spendFish,update | req:DataKit,EconomyConfig,EconomyRemotes,PlayerProfile,Signal | rem:ProfileChanged,ProfileRequested
 PoseService M48 | api:init | req:Pose,RateLimiter,Remotes,RunState,RunStateService | rem:PoseChanged | attr:Pose
-ProgressService M95 | api:init,isUnlocked | req:EconomyRemotes,GameConfig,LevelRegistry,PlayerDataService,RateLimiter,ReturnService,RunState,RunStateService,SlingshotService | rem:LaunchPadRequested,LevelTravelRequested | tag:Slingshot | attr:DismountPosition
-RaceService M174 | api:init | req:ChristmasRunService,GameConfig,LevelRegistry,RateLimiter,Remotes,RunState,RunStateService | rem:CrashReported,RaceNotice | tag:FinishLine,Hazard | attr:HazardKind,KillHeight
+ProgressService M96 | api:init,isUnlocked | req:AvalancheTrack,EconomyRemotes,GameConfig,LevelRegistry,PlayerDataService,RateLimiter,ReturnService,RunState,RunStateService,SlingshotService | rem:LaunchPadRequested,LevelTravelRequested | tag:Slingshot | attr:DismountPosition
+RaceService M175 | api:init | req:AvalancheModeService,ChristmasRunService,GameConfig,LevelRegistry,RateLimiter,Remotes,RunState,RunStateService | rem:CrashReported,RaceNotice | tag:FinishLine,Hazard | attr:HazardKind,KillHeight
 ReturnService M81 | api:init | req:LevelRegistry,RateLimiter,RunState,RunStateService,Signal | tag:ReturnPortal | attr:DestinationLevel
 RewardService M58 | api:init | req:EconomyConfig,EconomyRemotes,PlayerDataService,RateLimiter | rem:BoostPurchaseRequested,DailyGiftClaimRequested
 RunStateService M72 | api:get,init,reset,transition | req:Remotes,RunState,Signal | rem:RunStateChanged | attr:RunState
@@ -55,19 +61,19 @@ RateLimiter M42 | api:allow,new
 BuildAvalancheMountains M237 | req:SlingshotGeometry | tag:AvalancheMountain,AvalancheSiren,CheeringPenguin | attr:CheerMode,Cheers,ChunkIndex,LevelId,PlateauEdge
 BuildStalls M532 | req:SkinAppearance | tag:ChaseBulb,PulseGlow,SpinningDecor,SwingingDecor | attr:ChaseIndex,OpensPanel,SpinSpeed,SwingAmplitude | key:E
 ## ServerStorage.ClaudeBuild
+AvalancheModeBuild M439 | api:run | req:Clone | tag:AvalancheMountain,FinishLine,FishEnd,PlateauSpawn,ReturnPortal,Slingshot | attr:Bumper,DestinationLevel,DismountPosition,KeepSpeed,KillHeight,LevelId,PlateauEdge,SeatPosition,Side,TrackDistance
 BuildLevel2Festival M524 | tag:ChaseBulb,CheeringPenguin,DragonParade,SkyLantern,SpinningDecor,SwingingDecor | attr:ChaseIndex,CheerMode,CheerPhase,Cheers,PathCenter,PathRadiusX,PathRadiusZ,PathSpeed,RiseHeight,RiseSpeed,SegmentIndex,SpinAxis,SpinSpeed,SwingAmplitude
 BuildLobby M485 | req:SkinAppearance,WheelCatalog | tag:ChaseBulb,ChevronArrow,LobbyLeaderboard,LobbyWheel,PodiumMannequin,PulseGlow,SpinningDecor | attr:ChaseIndex,ChevronIndex,OpensPanel,Rank,SegmentCount,SpinSpeed | key:E
 ChristmasBuild M706 | api:finishArea,zone1,zone2,zone3,zone4,zone5,zone6,zone7,zone8 | req:Clone | tag:FinishLine | attr:Bumper
 ChristmasBuild2 M460 | api:clean,flyers,ground,shortcuts,track,world | req:Clone | tag:BoostRamp,FinishLine | attr:JumpDistance,JumpRamp,KeepSpeed
 ChristmasKit M862 | api:ball,boostPad,buildRail,building,candyCane,car,conveyor,cyl,factory,fillSides,folder,gift,gingerHouse,house,+27 | req:Clone | tag:BoostRamp | attr:Bumper,JumpDistance,JumpRamp,KeepSpeed
+ChristmasObstacles M465 | api:build | req:Clone | attr:Bumper,TrackDistance
 ## ServerStorage
 ClaudeScriptDump M1270 | api:_crashInto,_holdFrame,_onRaceNotice,_playStretchFeedback,_setPhase,_step,_stepFlight,_stepSlide,_switchTo,_tumble,_updateHeading,clearFinish,detect,elapsedSeconds,+14 | req:AimCamera,AimHudPresenter,AimHudView,AimInput,AimModel,AimingMode,BodyMover,ChaseCamera,Cleaner,CrashSensor,DecorationController,DefaultCamera,FeedbackSounds,FinishPresenter,FinishView,FinishedMode,+26 | rem:AimChanged,CrashReported,DismountRequested,LaunchRequested,RaceNotice,RunStateChanged | tag:FinishLine,Hazard | attr:HazardKind
-## ServerStorage.Respaldo_MapaViejo.Avalancha
-AvalancheCinematic M981 | api:init | req:LevelRegistry,RunState,SlingshotGeometry | tag:AvalancheMountain,AvalancheSiren | attr:BaseRate,RunState
 ## ServerStorage.Respaldo_MapaViejo
 ChristmasTrack_v1_old M169 | api:centerAt,frameAt,heightAt,progressAt,rescueFrame,tangentAt,widthAt,xAt,zoneIndexAt
 ## StarterPlayer.StarterPlayerScripts
-ChristmasRunClient L490 | req:Audio,ChristmasTrack,Feedback,Remotes | rem:RaceNotice | tag:BoostRamp | attr:JumpRamp,Offset,RunState
+ChristmasRunClient L491 | req:Audio,AvalancheTrack,ChristmasTrack,Feedback,Remotes | rem:RaceNotice | tag:BoostRamp | attr:JumpRamp,LevelId,Offset,RunState
 ## StarterPlayer.StarterPlayerScripts.Client.Aim
 AimCamera M62 | api:new,start,stop | req:AimModel,LaunchMath
 AimInput M141 | api:_beginCharge,_drag,_endCharge,_pointAt,new,start,stop | req:AimModel,Cleaner,GameConfig,Signal | key:X
@@ -78,6 +84,13 @@ TrajectoryPreview M64 | api:hide,new,render | req:LaunchMath
 ## StarterPlayer.StarterPlayerScripts.Client.Audio
 FeedbackSounds M38 | api:play | req:SoundCatalog
 SoundCatalog M22
+## StarterPlayer.StarterPlayerScripts.Client
+AvalancheCinematic M1028 | api:init | req:AvalancheModeConfig,AvalancheTrack,ChristmasTrack,LevelRegistry,RunState,SlingshotGeometry | tag:AvalancheMountain,AvalancheSiren | attr:AvalancheEventRun,BaseRate,BaseTransparency,RunState
+## StarterPlayer.StarterPlayerScripts.Client.AvalancheMode
+AvalancheModeModel M44 | api:new | req:AvalancheModeConfig,AvalancheTrack
+AvalancheModeView M102 | api:new | req:UiKit
+## StarterPlayer.StarterPlayerScripts.Client
+AvalancheModeClient M214 | api:init | req:AvalancheModeConfig,AvalancheModeModel,AvalancheModeView,AvalancheTrack,LevelRegistry,ProfileStore,Remotes,RunState,UiKit | rem:RaceNotice | attr:RunState,TrackDistance
 ## StarterPlayer.StarterPlayerScripts.Client.Character
 BodyMover M153 | api:destroy,face,holdAt,new,ragdoll,recover,releaseControl,setLiftEnabled,stopHolding,takeControl,teleport | req:GameConfig
 DefaultCamera M19 | api:restore
@@ -113,7 +126,7 @@ IconText M194 | api:init | req:HudIcons | attr:EmojiPure
 MoveInput M40 | api:steer | key:A,D,Left,Right,Thumbstick1
 ## StarterPlayer.StarterPlayerScripts.Client
 LeaderboardStore M70 | api:init,rows,secondsUntilReset | req:EconomyRemotes,Signal | rem:LeaderboardChanged,LeaderboardRequested
-LobbyHud M323 | api:init,open | req:EconomyConfig,EconomyRemotes,Feedback,HudIcons,HudLife,InfoPanel,LeaderboardPanel,LevelsPanel,PanelHost,ProfileStore,RunState,ShopPanel,SkinsPanel,UiKit,WheelPanel | rem:LaunchPadRequested | attr:OpensPanel,RunState | key:B,C,Escape,F,G,H,K,L,N,P,Q,R,U,X,Y,Z | svc:ProximityPrompt
+LobbyHud M381 | api:init,open | req:AvalancheModeConfig,EconomyConfig,EconomyRemotes,EventConfig,EventRemotes,Feedback,HudIcons,HudLife,InfoPanel,LeaderboardPanel,LevelsPanel,PanelHost,ProfileStore,RunState,ShopPanel,SkinsPanel,+2 | rem:AvalancheModeRequested,LaunchPadRequested,RaceJoinRequested | attr:OpensPanel,RunState | key:B,C,Escape,F,G,H,K,L,N,P,Q,R,U,X,Y,Z | svc:ProximityPrompt
 LobbyLighting M73 | api:init
 Main L65 | req:AimCamera,AimHudPresenter,AimHudView,AimInput,AimModel,AimingMode,CameraFeel,ChaseCamera,DecorationController,FinishPresenter,FinishView,FinishedMode,IdleMode,LocalCharacter,PresentationController,RaceHudPresenter,+7
 PanelHost M125 | api:close,isOpen,new,open | req:HudIcons,ProfileStore,UiKit
@@ -157,10 +170,11 @@ SpeedEffects M223 | api:setBoost,start,stop | req:GameConfig
 AimingMode M142 | api:_holdFrame,_playStretchFeedback,_step,enter,exit,new | req:AimCamera,AimInput,AimModel,Cleaner,FeedbackSounds,LaunchMath,LevelRegistry,LocalCharacter,LocalPose,PenguinOrientation,Pose,Remotes,SlingshotBandController,SlingshotGeometry,TrajectoryPreview | rem:AimChanged,DismountRequested,LaunchRequested
 FinishedMode M59 | api:enter,exit,new | req:DefaultCamera,FeedbackSounds,GameConfig,LocalCharacter,LocalPose,Pose,RaceModel
 IdleMode M36 | api:enter,exit,new | req:DefaultCamera,LocalCharacter,LocalPose,Pose
-RacingMode M429 | api:_assistSteer,_bounceOff,_crashInto,_onRaceNotice,_recoverAt,_scheduleRecover,_setPhase,_step,_stepFlight,_stepSlide,_tumble,_updateFeel,enter,exit,+1 | req:BoostRampSensor,CameraFeel,ChaseCamera,ChristmasTrack,Cleaner,CrashSensor,FeedbackSounds,GameConfig,GroundProbe,LevelRegistry,LocalCharacter,LocalPose,MoveInput,PenguinOrientation,Pose,RaceFeel,+5 | rem:CrashReported,RaceNotice | attr:Bumper
+RacingMode M471 | api:_absorbHit,_assistSteer,_bounceOff,_crashInto,_onRaceNotice,_recoverAt,_scheduleRecover,_setPhase,_step,_stepFlight,_stepSlide,_tumble,_updateFeel,enter,+2 | req:AvalancheModeConfig,AvalancheTrack,BoostRampSensor,CameraFeel,ChaseCamera,ChristmasTrack,Cleaner,CrashSensor,FeedbackSounds,GameConfig,GroundProbe,LevelRegistry,LocalCharacter,LocalPose,MoveInput,PenguinOrientation,+7 | rem:CrashReported,RaceNotice | attr:Bumper
 ## StarterPlayer.StarterPlayerScripts.Client.Run
 RunController M54 | api:_switchTo,new,start | req:LocalCharacter,Remotes,RunState | rem:RunStateChanged
 ## StarterPlayer.StarterPlayerScripts.Client
+RunEvents M712 | api:init | req:ChristmasTrack,EventConfig,EventRemotes,LevelRegistry,Remotes,RunState | rem:EventPickupRequested,RaceNotice | attr:RunState,TrackDistance
 StepAssist M111 | api:init | attr:RunState
 UiKit M270 | api:badge,border,button,corner,cornerScale,formatClock,formatNumber,gradient,label,new,padding,pulse,ribbon,textStroke
 WindowBreaker M477 | api:init | req:LevelRegistry,RunState | tag:BreakableWindow,HouseShell | attr:DisplayName,HouseIndex,LevelId,RunState,WindowCount,WorldZMax,WorldZMin
@@ -174,35 +188,36 @@ ServerStorage.DevTools.GroundTexturer scripts=1 lineas=157
 ServerStorage.DevTools.PlaceMap scripts=1 lineas=659
 ServerStorage.Packages.DataKit scripts=16 lineas=2560
 # etiquetas
-AvalancheMountain 0 | solo en ejecucion o sin usar
-AvalancheSiren 0 | solo en ejecucion o sin usar
+AvalancheMountain 2 | N1=1 N2=1 | Folder | PlateauEdge{140/38160}
+AvalancheSiren 2 | N1=1 N2=1 | Part |
 BoostRamp 46 | N1=46 | Part |
 BreakableWindow 0 | solo en ejecucion o sin usar
 ChaseBulb 243 | N1=243 | Part | ChaseIndex{47 valores}
-CheeringPenguin 15 | N1=15 | Model | CheerPhase{15 valores} Cheers{true}
+CheeringPenguin 17 | N1=16 N2=1 | Model | CheerMode{wave} CheerPhase{16 valores} Cheers{true}
 ChevronArrow 11 | N1=11 | Model | ChevronIndex{11 valores}
 CuteArch 1 | N1=1 | Model |
 CuteIgloo 1 | N1=1 | Model |
 CutePenguin 8 | N1=8 | Model |
 DragonParade 0 | solo en ejecucion o sin usar
-FinishLine 1 | N1=1 | Part |
+FinishLine 2 | N1=1 N2=1 | Part |
+FishEnd 1 | N2=1 | Part |
 FishPickup 0 | solo en ejecucion o sin usar
 FlickeringFlame 38 | N1=38 | Part |
 Hazard 0 | solo en ejecucion o sin usar
 HouseShell 0 | solo en ejecucion o sin usar
 LobbyLeaderboard 1 | N1=1 | Model |
 LobbyWheel 1 | N1=1 | Model | SegmentCount{12}
-PlateauSpawn 1 | N1=1 | SpawnLocation |
+PlateauSpawn 2 | N1=1 N2=1 | Part,SpawnLocation |
 PodiumMannequin 3 | N1=3 | Model | Rank{1/2/3} SkinId{classic}
 PulseGlow 36 | N1=36 | Part |
-ReturnPortal 1 | N1=1 | Part | DestinationLevel{1}
+ReturnPortal 2 | N1=1 N2=1 | Part | DestinationLevel{1}
 SkyLantern 0 | solo en ejecucion o sin usar
-Slingshot 1 | N1=1 | Model | AimPitch{0} AimPull{0} AimYaw{0} DismountPosition{(0,608.5,26)} LaunchForward{(0,0,-1)} SeatPosition{(0,638.8,20)}
+Slingshot 2 | N1=1 N2=1 | Model | AimPitch{0} AimPull{0} AimYaw{0} DismountPosition{(-20000,6552,38046)/(0,608.5,26)} LaunchForward{(0,0,-1)} SeatPosition{(-20000,6583,38040)/(0,638.8,20)}
 SpinningDecor 16 | N1=16 | Model | SpinSpeed{13 valores}
 SwingingDecor 3 | N1=3 | Model | SwingAmplitude{0.08/0.12}
 # niveles
-## N1 PenguinSlingshotMap_v01 | instancias=90538 partes=84912 conColision=14900 | min(-2253,-4229,-20500) max(4000,1691,315)
-hijos: ChristmasRun[Folder]85135 · FestiveDecoration[Folder]1027 · Lobby[Folder]3674 · PlateauFence[Part]0 · PlateauFence[Part]0 · PlateauFence[Part]0 · ReturnPortalGate[Model]574 · SlingshotDecor[Model]52 · Slingshot[Model]61 · Terrain[Folder]4 · WaitingPenguins[Folder]0
+## N1 PenguinSlingshotMap_v01 | instancias=92257 partes=86362 conColision=15158 | min(-2253,-4229,-20500) max(4000,1691,416)
+hijos: AvalancheMountain[Folder]226 · ChristmasRun[Folder]86627 · FestiveDecoration[Folder]1027 · Lobby[Folder]3674 · PlateauFence[Part]0 · PlateauFence[Part]0 · PlateauFence[Part]0 · ReturnPortalGate[Model]574 · SlingshotDecor[Model]52 · Slingshot[Model]61 · Terrain[Folder]4 · WaitingPenguins[Folder]0
 PlateauSpawn: Lobby.PlateauSpawn [SpawnLocation] pos(0,601,110) size(30,1,30)
 Slingshot: Slingshot [Model] pos(0,614,20) AimPitch=0,AimPull=0,AimYaw=0,DismountPosition=(0,608.5,26),LaunchForward=(0,0,-1),SeatPosition=(0,638.8,20)
 FinishLine: ChristmasRun.Meta_AldeaDeSanta.FinishLine [Part] pos(0,-3569,-16370) size(128,0,4)
@@ -257,6 +272,13 @@ LobbyWheel: Lobby.LuckyWheel.LobbyWheel [Model] pos(-92,625,72) SegmentCount=12
 LobbyLeaderboard: Lobby.HallOfFame.LobbyLeaderboard [Model] pos(101,626,62)
 Hazard: ninguno
 Lobby: ChevronRoad(5,600,66) · EventPedestal(-50,603,126) · HallOfFame(100,611,42) · LevelsPortal(-10,620,150) · LobbyDecor(-119,607,80) · LuckyWheel(-80,603,74) · MostPopular(44,602,32) · PenguinCampfire(-33,603,101) · PenguinCampfire2(35,603,99) · PlateauSpawn(0,601,110) · Shop(70,606,130)
+## N2 AvalancheMode | instancias=14726 partes=14468 conColision=633 | min(-21080,-6437,-39376) max(-18911,6765,38436)
+hijos: AvalancheMountain[Folder]226 · Finale[Model]127 · GroundTexture[Folder]9563 · Obstacles[Folder]1000 · Plateau[Folder]12 · ReturnPortalGate[Model]574 · Scenery[Folder]2636 · SlingshotDecor[Model]52 · Slingshot[Model]61 · Track[Folder]465
+PlateauSpawn: Plateau.PlateauSpawn [Part] pos(-20000,6545,38120) size(30,1,30)
+Slingshot: Slingshot [Model] pos(-20000,6558,38040) AimPitch=0,AimPull=0,AimYaw=0,DismountPosition=(-20000,6552,38046),LaunchForward=(0,0,-1),SeatPosition=(-20000,6583,38040)
+FinishLine: Finale.FinishLine [Part] pos(-20000,-6430,-39376) size(220,1,2)
+ReturnPortal: ReturnPortalGate.ReturnPortalTrigger [Part] pos(-20000,-6419,-38935) size(11,22,2) DestinationLevel=1
+Hazard: ninguno
 # mundo
 workspace: StreamingEnabled=true MinRadius=64 TargetRadius=768 IntegrityMode=PauseOutsideLoadedArea Gravity=196.2 FallenPartsDestroyHeight=-9000
 fuera de niveles: Baseplate[Part](0,-8,0) · SpawnLocation[SpawnLocation](0,1,0)
@@ -268,6 +290,7 @@ N1 PenguinSlingshotMap_v01.Lobby.MostPopular.PromptAnchor | Ver skins · Más po
 N1 PenguinSlingshotMap_v01.Lobby.LevelsPortal.Swirl | Elegir nivel · Portal de niveles | tecla=E dist=18 OpensPanel=levels
 N1 PenguinSlingshotMap_v01.Lobby.Shop.PromptAnchor | Abrir · Tienda | tecla=E dist=16 OpensPanel=shop
 N1 PenguinSlingshotMap_v01.Slingshot.Frame.Trunk.MountPromptAttachment | Subirse · Resortera | tecla=E dist=24
+N2 AvalancheMode.Slingshot.Frame.Trunk.MountPromptAttachment | Subirse · Resortera | tecla=E dist=24
 ## StarterGui
 GameHud[ScreenGui] hijos: AimBar,RaceReadout,FinishReadout
 ## StarterCharacter
@@ -283,7 +306,7 @@ ClaudeScriptDump[ModuleScript]
 BuildAvalancheMountains[ModuleScript]
 BuildStalls[ModuleScript]
 PluginCurves[Folder]
-ClaudeBuild[Folder] BuildLevel2Festival,BuildLobby,ChristmasKit,ChristmasBuild,ChristmasBuild2
+ClaudeBuild[Folder] BuildLevel2Festival,BuildLobby,ChristmasKit,ChristmasBuild,ChristmasBuild2,ChristmasObstacles,+1
 Packages[Folder] DataKit
 DevTools[Folder] PlaceMap,GroundTexturer
 MountainLookBackup[Folder] Workspace.PenguinSlingshotMap_v01.AvalancheMountain.PeakFront,Workspace.PenguinSlingshotMap_v01.AvalancheMountain.PeakBack,Workspace.PenguinSlingshotMap_v01.AvalancheMountain.PeakFront,Workspace.PenguinSlingshotMap_v01.AvalancheMountain.PeakBack,Workspace.PenguinSlingshotMap_v01.AvalancheMountain.Flank,Workspace.PenguinSlingshotMap_v01.AvalancheMountain.PeakBack,+17
