@@ -2,12 +2,14 @@
 tipo: nivel
 nivel: 4
 nombre: Valle del Avión
-folder: Workspace.PenguinSlingshotMap_Level4
+folder: ServerStorage.Respaldo_MapaViejo.Niveles2a5
 origen_x: 18000
 base_y: 1200
-verificado: 2026-11-13 (existencia y coordenadas en Studio; la pista completa no se ha jugado)
+verificado: 2026-11-14 (el folder del nivel está en ServerStorage.Respaldo_MapaViejo.Niveles2a5; lo demás es como estaba en el juego)
 ---
 # Nivel 4 · Valle del Avión
+
+**Fuera del juego desde el 2026-11-14:** el folder se movió a `ServerStorage.Respaldo_MapaViejo.Niveles2a5` cuando la pista navideña reemplazó a N1–N5 (Q-26c). Esta ficha describe cómo era.
 
 Coordenadas reales: `grep -n "N4" place/mapa-place.md`. Prototipo v0.1: https://claude.ai/artifact/Bxwqqn5e8k3QCZm88kLtTZ · ciervos: https://claude.ai/artifact/2L3DA96QXd9at5psH9EU9n
 

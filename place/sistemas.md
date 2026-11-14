@@ -1,6 +1,6 @@
 ---
 tipo: sistemas
-verificado: 2026-11-13 (Studio; ProgressService y RaceService releídos enteros el 13 por ciervo; cada sistema dice si su código se leyó entero, por encima, o si viene del vault v1)
+verificado: 2026-11-14 (Studio; ChristmasTrack y ChristmasRunService leídos enteros y RacingMode por encima el 14 por ciervo; ProgressService y RaceService releídos el 13; cada sistema dice si su código se leyó entero, por encima, o si viene del vault v1)
 ---
 # Sistemas de la place
 
@@ -9,8 +9,8 @@ Qué hace cada sistema y qué scripts lo forman. Firmas, dependencias, etiquetas
 Rutas base: `Shared` = `ReplicatedStorage.Shared` · `Services` = `ServerScriptService.Server.Services` · `Client` = `StarterPlayer.StarterPlayerScripts.Client`.
 
 ## Arranque
-- Servidor: `Server.Main` inicia en orden LevelService, RunStateService, SlingshotService, RaceService, PoseService, ReturnService, LevelFlowService. `EconomyMain` (script aparte) inicia PlayerDataService, SkinService, FishService, WheelService, RewardService, ProgressService, LeaderboardService.
-- Cliente: `Client.Main` arma el HUD de carrera, la presentación, la decoración y el `RunController` con sus 4 modos. `LobbyMain` (script aparte) inicia ProfileStore, LeaderboardStore, Feedback, LobbyHud, FishPickupController, WorldWheelController, WorldBoardController, StepAssist, AvalancheCinematic, IconText, WindowBreaker, LobbyLighting. `CuteDecorIdle` es un LocalScript suelto que arranca solo.
+- Servidor: `Server.Main` inicia LevelService, RunStateService, SlingshotService, RaceService, PoseService, ReturnService, LevelFlowService y ChristmasRunService. `EconomyMain` (script aparte) inicia PlayerDataService, SkinService, FishService, WheelService, RewardService, ProgressService, LeaderboardService.
+- Cliente: `Client.Main` arma el HUD de carrera, la presentación, la decoración y el `RunController` con sus 4 modos. `LobbyMain` (script aparte) inicia ProfileStore, LeaderboardStore, Feedback, LobbyHud, FishPickupController, WorldWheelController, WorldBoardController, StepAssist, IconText, WindowBreaker, LobbyLighting (AvalancheCinematic se movió al respaldo el 14). `CuteDecorIdle` y `ChristmasRunClient` son LocalScripts sueltos que arrancan solos.
 - Dos puntos de entrada por lado: lo de carrera y lo de economía/lobby se inician por separado. Un servicio nuevo hay que agregarlo a la lista correcta.
 - Utilidades compartidas: `Signal`, `Cleaner`.
 
@@ -24,7 +24,7 @@ Rutas base: `Shared` = `ReplicatedStorage.Shared` · `Services` = `ServerScriptS
 - Un nivel = Folder en Workspace con atributo `LevelId`. El jugador lleva su nivel en el atributo `LevelId`. `Shared.LevelRegistry` resuelve: nivel de una instancia (sube por los ancestros), primer objeto con una etiqueta en un nivel, punto de llegada (5 studs sobre `PlateauSpawn`) y siguiente nivel (`DestinationLevel` del `ReturnPortal`, o el mismo).
 - `LevelService`: pone `LevelId = 1` al entrar; al reaparecer en otro nivel pide streaming y mueve al personaje a su meseta.
 - `ReturnService`: al tocar un `ReturnPortal`, si el jugador está en Finished dispara `PortalEnteredAfterFinish`; si no, lo manda al destino del portal. `sendToLevel` solo actúa en Idle o Finished.
-- `LevelFlowService`: al entrar a Finished espera `GameConfig.Race.AutoAdvanceSeconds` y monta al jugador en la resortera del siguiente nivel (`SlingshotService.mountAtLevel`); si no puede, lo manda a la meseta. El portal adelanta el avance (D-016).
+- `LevelFlowService`: al entrar a Finished espera `GameConfig.Race.AutoAdvanceSeconds` y monta al jugador en la resortera del siguiente nivel (`SlingshotService.mountAtLevel`); si no puede, lo manda a la meseta. El portal adelanta el avance (D-016). Desde el 14 solo existe N1 (su portal lleva a N1): se vuelve a montar en la misma resortera, y `LevelsPanel` solo lista "GRAN BAJADA NAVIDEÑA".
 - `ProgressService`: al terminar guarda `finishes` y `bestTimes` del nivel y suma `weekRuns`. `isUnlocked`: el nivel 1 siempre; el N si terminó el N-1. Atiende `LevelTravelRequested` (panel de niveles) y `LaunchPadRequested` (botón ¡LANZAR!: monta al jugador en la resortera de su nivel con `SlingshotService.mountAtLevel`; si está ocupada lo deja al lado en Idle) (D-021c).
 - Para agregar un nivel: Folder con `LevelId`, y dentro `PlateauSpawn`, `Slingshot` (con `SeatPosition`, `DismountPosition`, `LaunchForward`), `FinishLine` y `ReturnPortal`; poner `DestinationLevel` en el portal del nivel anterior; agregarlo a `LEVELS` en `LevelsPanel`; al final, texturizar el suelo con `require(ServerStorage.DevTools.GroundTexturer:Clone())(nivel, semilla)` (obligatorio, D-025c).
 
@@ -38,7 +38,8 @@ Rutas base: `Shared` = `ReplicatedStorage.Shared` · `Services` = `ServerScriptS
 - `RaceService` (servidor): al entrar a Racing guarda la hora y el avance de meta del nivel. Cada `TrackerIntervalSeconds` revisa a cada corredor: si su avance sobre `TrackForward` pasa el de la `FinishLine` → Finished con el tiempo (o reinicio si tardó menos de `MinimumPlausibleSeconds`); si está bajo la altura mínima o sobre una parte `Hazard` → eliminado. La altura mínima es el atributo `KillHeight` del folder del nivel si lo tiene (N1: -220, D-023c), o `GameConfig.Race.KillHeight`.
 - Eliminación: avisa por `RaceNotice` ("Eliminated", con `hazardKind`) y, tras `Crash.RagdollSeconds`, hace `LoadCharacter`. Tipos: `Fall`, `Crash`, o el `HazardKind` de la parte (`Pit`, `Water`).
 - Choques: los detecta el cliente y los reporta por `CrashReported`; el servidor no valida el choque, solo limita la frecuencia.
-- Ajustes por nivel y rampas (D-026c): `SlideMotor` toma `Slide.LevelTuning[nivel]` si existe (N5). Una cuña con atributo `KeepSpeed` no frena (sin arrastre; conserva y repone la velocidad al aterrizar); con `JumpDistance` además calcula el salto para caer a esa distancia.
+- En la pista navideña (desde el 14, `RacingMode` leído por encima): un choque no elimina; el cliente tumba al pingüino y lo endereza sobre la pista tras ~1 s (`_recoverAt`, se hace a un lado si hay algo enfrente), con invulnerabilidad breve. Las partes con atributo `Bumper` lo hacen rebotar (`_bounceOff`). `_assistSteer` gira la velocidad hacia `ChristmasTrack.guideDirection` (calle o atajo), más débil si el jugador está girando. Si se queda casi quieto más de ~1.3 s, lo endereza. `RaceService` pregunta a `ChristmasRunService` antes de eliminar por choque o `Hazard`.
+- Ajustes por nivel y rampas (D-026c): `SlideMotor` toma `Slide.LevelTuning[nivel]` si existe. Hay valores para N1 (pista navideña, puestos el 14 sin registro) y para N5 (en respaldo, sin uso). Una cuña con atributo `KeepSpeed` no frena (sin arrastre; conserva y repone la velocidad al aterrizar); con `JumpDistance` además calcula el salto para caer a esa distancia.
 - Rampas de impulso: `BoostRampSensor` lanza un rayo hacia abajo; si pisa una parte `BoostRamp`, `SlideMotor.boost()` sube velocidad y tope según `GameConfig.Boost` (D-017).
 - La etiqueta `LandingZone` existe en N1 pero ningún script la lee.
 
@@ -101,18 +102,26 @@ Solo cliente. `DecorationController` inicia un módulo por etiqueta; para animar
 | `ChaseBulb` | `ChaseLights` | foquitos que corren | `ChaseIndex` |
 | `ChevronArrow`, `DragonParade` | `ParadeMotion` | flechas del camino en ola; dragón que recorre una elipse | `ChevronIndex`, `PathCenter`, `PathRadiusX`, `PathRadiusZ`, `PathSpeed`, `SegmentIndex` |
 
-## Avalancha (por encima; sin decisión de Angel → Q-02)
-- `AvalancheCinematic` (cliente): solo en el nivel 1. Al entrar a Aiming reproduce una cinemática (se rompe la cornisa, cámara desde `ShotCamera`, letrero); en Racing una ola de nieve persigue al jugador; en Finished un cierre; en Idle limpia todo. Es visual: no elimina ni cambia la carrera.
+## Pista navideña (ChristmasTrack y ChristmasRunService leídos enteros; ChristmasRunClient por encima; sin aprobar → Q-26c)
+- `Shared.ChristmasTrack`: una sola definición de la pista que usan el constructor, el servidor y el cliente. Zonas (`Zones`: nombre, ícono, inicio, pendiente, color, premio), caídas (`Drops`), curvas (`xAt`), altura (`heightAt`), ancho (`widthAt`), marco y normal, progreso, zona en una Z, punto de rescate (`rescueFrame`) y atajos (`Shortcuts`, calculados al cargar el módulo donde cortan curva y ahorran distancia). Vida y daños: `MaxHealth`, `CrashDamage`, `FallDamage`, `ZoneHeal`, `FinishReward`.
+- `ChristmasRunService` (servidor): al entrar a Racing crea la carrera con vida llena; cada 0.1 s mira la Z del jugador para dar premio de peces y curar al entrar a una zona, y si cae más de 45 studs bajo la pista lo rescata (resta vida y manda `RaceNotice` "Rescue" con el punto). Publica `PenguinHealth`, `PenguinMaxHealth` y `RunZone` en el jugador. Al terminar da `FinishReward` más la mitad de la vida. `absorbCrash` y `absorbHazard` los llama `RaceService`.
+- `ChristmasRunClient` (LocalScript suelto): HUD de la pista (zona, tiempo, progreso, velocidad, vida, avisos de premio) y efectos de tráfico y patrulla. Escucha `RaceNotice` (Zone, Damage, Rescue, FinishReward, OutOfHealth).
+- `FishService` ahora usa `ChristmasTrack` para colocar los peces en los carriles de `EconomyConfig.Fish.Lanes` (cambio no releído).
+- Constructores (no corren): `ServerStorage.ClaudeBuild.ChristmasKit`, `ChristmasBuild`, `ChristmasBuild2`.
+
+## Avalancha (en respaldo desde el 2026-11-14; sin decisión de Angel → Q-02)
+- Todo está en `ServerStorage.Respaldo_MapaViejo.Avalancha` y no corre. Cómo funcionaba: `AvalancheCinematic` (cliente), solo en el nivel 1. Al entrar a Aiming reproduce una cinemática (se rompe la cornisa, cámara desde `ShotCamera`, letrero); en Racing una ola de nieve persigue al jugador; en Finished un cierre; en Idle limpia todo. Es visual: no elimina ni cambia la carrera.
 - Mundo: `AvalancheMountain` (Folder con etiqueta, marcadores `WaveStart`, `WaveEnd`, `ShotCamera`, `Cornice`, `WatchTower`) y `AvalancheSiren`.
 
 ## Ventanas de N5 (por encima; sin decisión de Angel → Q-25)
-- `WindowBreaker` (cliente, solo nivel 5): durante Racing rompe los modelos `BreakableWindow` que el pingüino atraviesa (astillas, sonido, letrero "¡CRASH!"), lleva un contador contra el atributo `WindowCount` del nivel y vuelve casi transparentes las partes `HouseShell` de la casa que se está cruzando (cada casa tiene `HouseIndex`, `DisplayName`, `WorldZMin`, `WorldZMax`). Al volver a Idle o Aiming restaura las ventanas. No usa remotes: no da peces ni cuenta en el servidor.
+- N5 está en respaldo desde el 2026-11-14: `WindowBreaker` sigue en el cliente pero no encuentra ventanas. `WindowBreaker` (cliente, solo nivel 5): durante Racing rompe los modelos `BreakableWindow` que el pingüino atraviesa (astillas, sonido, letrero "¡CRASH!"), lleva un contador contra el atributo `WindowCount` del nivel y vuelve casi transparentes las partes `HouseShell` de la casa que se está cruzando (cada casa tiene `HouseIndex`, `DisplayName`, `WorldZMin`, `WorldZMax`). Al volver a Idle o Aiming restaura las ventanas. No usa remotes: no da peces ni cuenta en el servidor.
 
 ## Ayudas
 - `StepAssist` (leído entero): mientras camina (Idle o Finished) levanta al pingüino en escalones bajos, porque sus patas cortas no los suben.
 
 ## Restos en ServerStorage (no corren en el juego → Q-14)
-- `ClaudeBuild.BuildLobby`, `ClaudeBuild.BuildLevel2Festival`, `BuildStalls`, `BuildAvalancheMountains`: constructores de mapa de un solo uso.
+- `ClaudeBuild.BuildLobby`, `ClaudeBuild.BuildLevel2Festival`, `BuildStalls`, `BuildAvalancheMountains`: constructores de mapa de un solo uso. `ClaudeBuild.ChristmasKit`, `ChristmasBuild` y `ChristmasBuild2` construyeron la pista navideña (§ Pista navideña).
+- `Respaldo_MapaViejo` (desde el 2026-11-14): N2–N5 (`Niveles2a5`), la pista vieja de N1 (`Nivel1_Bajada`, `Nivel1_Bajada_Terrain`), la decoración festiva quitada (`Nivel1_Festive_*`), `Avalancha` y `ChristmasTrack_v1_old` (primera versión del módulo de la pista). Q-26c.
 - `ClaudeScriptDump`: volcado de texto de scripts del cliente, de una versión anterior.
 - `PluginCurves`: carpeta vacía.
 - `MountainLookBackup`, `CuteReplacedBackup`, `LobbyDecorBackup`, `LobbyQuitado`: respaldos de piezas reemplazadas o quitadas del lobby el 2026-11-13 (Q-14). `CuteModels`: modelos fuente de la decoración "cute" y de Blender.

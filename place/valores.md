@@ -7,8 +7,8 @@ generado: sí (ServerStorage.DevTools.PlaceMap, sección valores; no editar a ma
 Copia de los módulos de configuración. El código manda: para cambiar un valor se edita el módulo en Studio y se regenera esta nota. Tiempos en segundos, velocidades en studs/s.
 
 # huella
-place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-13 19:08
-huella: scripts=137 lineas=18693 codigo=84963883 instancias=68418 mundo=ff604c2e
+place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-14 06:41
+huella: scripts=144 lineas=22294 codigo=69f5fafc instancias=90545 mundo=e7464201
 # valores
 GameConfig.Boost.CapRecoverySeconds=0.8
 GameConfig.Boost.DragMultiplier=0.25
@@ -20,7 +20,7 @@ GameConfig.Boost.RetriggerSeconds=1.2
 GameConfig.Boost.Seconds=1.8
 GameConfig.Crash.LookAheadStuds=0.6
 GameConfig.Crash.MaximumFloorAlignment=0.55
-GameConfig.Crash.MinimumApproachSpeed=28
+GameConfig.Crash.MinimumApproachSpeed=40
 GameConfig.Crash.PopSpeed=16
 GameConfig.Crash.RagdollSeconds=1.2
 GameConfig.Crash.Restitution=0.5
@@ -52,6 +52,10 @@ GameConfig.Slide.JumpDistanceAttribute=JumpDistance
 GameConfig.Slide.JumpSpeed=50
 GameConfig.Slide.KeepSpeedAttribute=KeepSpeed
 GameConfig.Slide.LandingPoseSeconds=0.35
+GameConfig.Slide.LevelTuning.1.DownhillBoost=2.3
+GameConfig.Slide.LevelTuning.1.MaxSpeed=165
+GameConfig.Slide.LevelTuning.1.QuadraticDrag=0.0034
+GameConfig.Slide.LevelTuning.1.SteerAcceleration=215
 GameConfig.Slide.LevelTuning.5.DownhillBoost=2.2
 GameConfig.Slide.LevelTuning.5.MaxSpeed=165
 GameConfig.Slide.LevelTuning.5.QuadraticDrag=0.0035
@@ -88,7 +92,7 @@ EconomyConfig.Fish.FishPerGroup=5
 EconomyConfig.Fish.FishSpacing=7
 EconomyConfig.Fish.GroupSpacing=70
 EconomyConfig.Fish.HoverHeight=4
-EconomyConfig.Fish.Lanes={-36,-18,0,18,36}
+EconomyConfig.Fish.Lanes={-18,-9,0,9,18}
 EconomyConfig.Fish.StartAhead=90
 EconomyConfig.Fish.ValidationRadius=40
 EconomyConfig.Fish.ValuePerPickup=5

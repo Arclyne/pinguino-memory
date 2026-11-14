@@ -1,45 +1,45 @@
 ---
 tipo: nivel
 nivel: 1
-nombre: Pico Pingüino
+nombre: Pista navideña
 folder: Workspace.PenguinSlingshotMap_v01
 origen_x: 0
 base_y: 600
-verificado: 2026-11-13 (existencia y coordenadas en Studio; zonas nuevas vistas en Studio; no se jugó completo)
+verificado: 2026-11-14 (leído en Studio en modo edición: ChristmasTrack, ChristmasRunService y carpetas; no se jugó)
 ---
-# Nivel 1 · Pico Pingüino
+# Nivel 1 · Pista navideña
 
 Coordenadas reales, etiquetas y carpetas: `grep -n "N1" place/mapa-place.md`. Z del plano = -Z del mundo.
 
-## Angel decidió (D-009)
-Meseta de spawn plana y amplia; abajo la pendiente. Piedras, troncos tirados y árboles. Un río con bloques de hielo que sobresalen. La meseta es además el lobby (D-014).
+Desde el 2026-11-14 el N1 es una sola bajada larga, `ChristmasRun`, hecha sin registro en el vault (Q-26c). La pista anterior "Pico Pingüino" (D-009, D-023c) está en `ServerStorage.Respaldo_MapaViejo.Nivel1_Bajada`. Nada de esta ficha está aprobado todavía.
 
-## Zonas (Claude eligió; plano v0.1)
-Plano: https://claude.ai/artifact/SGTq2gWD7CCYxDYdQzFZW3 · medidas en studs · X negativa = A, X positiva = D.
+## Lo que hay en Studio
+- La meseta de spawn, el lobby (D-014), la resortera y el portal no cambiaron. La bajada empieza en Z -20 (Y 556) y la meta está en Z -16370 (Y ≈ -3569): ~16,350 studs de largo y ~4,100 de desnivel. Portal en Z -16648; lleva al mismo N1.
+- La forma la define `Shared.ChristmasTrack`: pendiente por zona más 16 "caídas" más empinadas (`Drops`), curvas de dos ondas de hasta ±230 en X, calle de `ChristmasTrack.RoadWidth` con barandales suaves (la Autopista es más ancha). Detalle técnico → [[sistemas]] § Pista navideña.
+- `KillHeight` del folder: -7000.
 
-| Zona | Z | Pendiente | Ancho | Obstáculos |
-|---|---|---|---|---|
-| Meseta de spawn | -160–0 | 0° | 240 | spawn, fila, resortera al borde, lobby |
-| Acantilado | 0–20 | caída de 40 | — | — |
-| Aterrizaje | 20–200 | 15° | 120 | ninguno |
-| Ladera de piedras | 200–520 | 18° | 120 | piedras, troncos, pinos en los bordes |
-| Bosque nevado | 520–900 | 20° | 120 | pinos, troncos, tocones, arbusto, montículo (rampa de impulso) |
-| Río de témpanos | 900–1000 | plano | 120 | río de 70, 3 filas de témpanos 10 × 10 |
-| Cañón de hielo | 1000–1400 | 22° | 80 | rocas grandes, picos de hielo, grietas |
-| Campamento abandonado | 1400–1650 | 15° | 120 | cercas rotas, barriles, trineo, muñecos de nieve |
-| Pinar (D-023c) | 1650–1910 | 16° | 120 | 7 pinos, 4 tocones, arbusto, tronco a lo ancho al final |
-| Lago congelado (D-023c) | 1910–2050 | 3° | 120 | 3 filas de témpanos (3, 4 y 3) |
-| Paso de rocas (D-023c) | 2050–2280 | 15° | 120 | 3 peñascos, 3 rocas, 4 picos de hielo |
-| Meta y frenado | 2280–2430 | 5° | 120 | arco de meta en Z 2330 |
-| Zona plana final (Angel decidió) | 2430–2500 | plano | 120 | portal en Z 2479; muro y cerca al final |
+| Zona | Empieza a (studs) | Pendiente | Premio (peces) |
+|---|---|---|---|
+| 1 Colina Nevada | 0 | 0.22 | — |
+| 2 Bosque de Bastones | 1950 | 0.26 | 20 |
+| 3 Pueblo Navideño | 3750 | 0.22 | 25 |
+| 4 Centro de la Ciudad | 5850 | 0.22 | 30 |
+| 5 Garaje de Santa | 7950 | 0.28 | 35 |
+| 6 Taller de Juguetes | 9300 | 0.24 | 40 |
+| 7 Autopista Polar | 11400 | 0.24 | 45 |
+| 8 Puente del Puerto | 14250 | 0.16 | 60 |
+| Meta Aldea de Santa | 16350 | 0.07 | 200 + vida/2 |
 
-- Pista de ~2,410 studs en horizontal, ~676 de desnivel. La meta quedó en Y ≈ -108: N1 tiene `KillHeight = -220` (D-023c).
-- Ciervo pidió alargarlo un 35 % (D-023c): se agregaron 630 studs; la meta, la plaza, el portal, la fiesta de meta, 22 pinos de borde y el castillo de hielo se movieron con ella. Las cordilleras del fondo (`Landscape`) no se movieron.
-- Los checkpoints del plano v0.1 se quitaron (D-008).
-- Peligros: el río (`HazardKind = Water`) y 2 grietas (`Pit`).
+- Cada zona tiene carpeta `Zona<N>_<Nombre>` con edificios, faroles, pinos, puestos, `Obstaculos` y `Gameplay` (pads de turbo `BoostRamp`). 4,527 partes con atributo `Bumper` (rebotan sin chocar).
+- `Atajos`: 10 caminos rectos de 22 de ancho que cortan por dentro de las curvas (pinos, hielo, callejón, parque, juguetes, salto), algunos con turbo y rampas de salto. Ninguno en el Garaje ni en el Puente.
+- Vida: 100; choque −25, caída −20 (te rescata sobre la pista), +35 al entrar a cada zona. Sin vida, eliminado.
+- Peces en 5 carriles (`EconomyConfig.Fish.Lanes`).
 
-## Suelo (D-024c)
-`GroundTexture`: parches sin colisión en tonos de blanco (azul hielo en el Lago congelado) sobre cada pendiente de la pista. Para quitarlo basta borrar el folder.
+## Suelo
+Sin `GroundTexture`: la ladera `Ground` y la calle son lisas → T-13c (D-025c).
+
+## Sin probar
+Todo: no hay una bajada registrada → T-14c.
 
 ## Resortera (modelo v0.2, se clona a los demás niveles)
 - Prototipo: https://claude.ai/artifact/DZuHEQHahKa4aUhb15QQTH
@@ -49,17 +49,17 @@ Plano: https://claude.ai/artifact/SGTq2gWD7CCYxDYdQzFZW3 · medidas en studs · 
 
 ## Decoración festiva (D-013)
 - Artefacto: https://claude.ai/artifact/YGbXEhC78CCans6p68xAeE
-- `FestiveDecoration`: Entrance, Crowd, Lights, Crystals, WildlifeAndWaterfall, LivelyCamp, FinishParty, Landscape. Todo fuera de la pista o sin colisión.
-- Contenido: arco "PICO PINGÜINO", iglús, puesto de chocolate, gradas con pingüinos, diana de aterrizaje, faroles, guirnaldas, pinos con foquitos, cristales, cascada congelada, focas, fogata, arco de globos, podio, fuegos artificiales, montañas, castillo de hielo, aurora.
+- En `FestiveDecoration` quedan solo restos (~1,000 instancias, sobre todo en la meseta); casi todo se movió a `ServerStorage.Respaldo_MapaViejo` (`Nivel1_Festive_*`) junto con la pista vieja.
 
 ## Portal
-- Estilo Hielo: https://claude.ai/artifact/N9dQzZxestQoVsSauFWXXW · `ReturnPortalGate`, se clona a los demás niveles. Lleva a N2.
+- Estilo Hielo: https://claude.ai/artifact/N9dQzZxestQoVsSauFWXXW · `ReturnPortalGate`. Ahora está al final de la pista navideña y lleva al mismo N1.
 
 ## Avalancha
-- `AvalancheMountain` (montaña detrás de la meseta, con cornisa, torre y sirena) y una cinemática al subirse a la resortera. Sin decisión ni diseño en el vault → Q-02. Detalle técnico: [[sistemas]] § Avalancha.
+- La montaña, la sirena y la cinemática están en `ServerStorage.Respaldo_MapaViejo.Avalancha`: ya no corren (Q-02, Q-26c).
 
 ## Lobby
 Objetos y paneles: [[lobby-economia]].
 
 ## Reconstrucción
-`archivo/construccion/`: `BuildMap_v01.lua` → `BuildSlingshot_v02.lua` → `BuildFinishPlaza_v01.lua` → `BuildReturnPortal_v01.lua` → `BuildLevel1Decoration_v01.lua` → `InstallBoostRamps_v01.lua`. `BuildMap` borra y reconstruye el folder: se pierden lobby, avalancha y etiquetas puestas después.
+- Pista navideña: `ServerStorage.ClaudeBuild.ChristmasKit` (piezas), `ChristmasBuild` (zonas 1–8 y meta) y `ChristmasBuild2` (suelo, calle, atajos, mundo). No están en el vault.
+- Pista vieja: `archivo/construccion/` (`BuildMap_v01.lua` y siguientes) o el respaldo en ServerStorage.

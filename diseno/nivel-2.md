@@ -2,12 +2,14 @@
 tipo: nivel
 nivel: 2
 nombre: Aldea Nevada
-folder: Workspace.PenguinSlingshotMap_Level2
+folder: ServerStorage.Respaldo_MapaViejo.Niveles2a5
 origen_x: 6000
 base_y: 600
-verificado: 2026-11-13 (existencia y coordenadas en Studio; no se jugó completo)
+verificado: 2026-11-14 (el folder del nivel está en ServerStorage.Respaldo_MapaViejo.Niveles2a5; lo demás es como estaba en el juego)
 ---
 # Nivel 2 · Aldea Nevada
+
+**Fuera del juego desde el 2026-11-14:** el folder se movió a `ServerStorage.Respaldo_MapaViejo.Niveles2a5` cuando la pista navideña reemplazó a N1–N5 (Q-26c). Esta ficha describe cómo era.
 
 Coordenadas reales: `grep -n "N2" place/mapa-place.md`. Las X del diseño son relativas al nivel (sumar 6000).
 

@@ -2,12 +2,14 @@
 tipo: nivel
 nivel: 5
 nombre: Vecindario Navideño
-folder: Workspace.PenguinSlingshotMap_Level5
+folder: ServerStorage.Respaldo_MapaViejo.Niveles2a5
 origen_x: 24000
 base_y: 1200
-verificado: 2026-11-13 (solo lo que se ve en Studio en modo edición; sin diseño ni decisión en el vault; no se jugó)
+verificado: 2026-11-14 (el folder del nivel está en ServerStorage.Respaldo_MapaViejo.Niveles2a5; lo demás es como estaba en el juego)
 ---
 # Nivel 5 · Vecindario Navideño
+
+**Fuera del juego desde el 2026-11-14:** el folder se movió a `ServerStorage.Respaldo_MapaViejo.Niveles2a5` cuando la pista navideña reemplazó a N1–N5 (Q-26c). Esta ficha describe cómo era.
 
 Apareció en la place el 2026-11-13 entre las 02:25 y las 06:50, sin bitácora, decisión ni artefacto en el vault → Q-25. Todo lo de abajo sale de leer la place; falta lo que Angel pidió y aprobó.
 

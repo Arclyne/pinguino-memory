@@ -1,6 +1,6 @@
 ---
 tipo: diseno
-verificado: 2026-11-13 (controles y reglas leídos del código en Studio; sensación de juego sin probar)
+verificado: 2026-11-14 (controles y reglas leídos del código en Studio; la vida, el rescate y la ayuda de dirección leídos del código el 14; sensación de juego sin probar)
 ---
 # Juego: reglas, ciclo y controles
 
@@ -11,19 +11,21 @@ Un pingüino es lanzado con una resortera: el jugador elige dirección y fuerza,
 
 ## Ciclo
 ```
-Lobby (Idle) --E en la resortera--> Aiming --soltar--> Racing --meta--> Finished --auto--> Aiming del nivel siguiente
-                                      |                   |
-                                      X: bajarse          choque / Hazard / caída: ragdoll, LoadCharacter, vuelve a Idle en la meseta del mismo nivel
+Lobby (Idle) --E o ¡LANZAR!--> Aiming --soltar--> Racing --meta--> Finished --auto--> Aiming en la misma resortera
+                                  |                 |
+                                  X: bajarse        choque: tumbo y te endereza (−vida) · caída: rescate sobre la pista (−vida)
+                                                    sin vida: ragdoll, LoadCharacter, vuelve a Idle en la meseta
 ```
 - Estados y transiciones exactas: [[sistemas]] § Estados.
-- Al llegar a la meta: se muestra el tiempo y, tras `GameConfig.Race.AutoAdvanceSeconds`, empieza el siguiente nivel ya montado (D-016).
+- Desde el 2026-11-14 hay un solo nivel (la pista navideña, Q-26c): al terminar, el avance automático (D-016) vuelve a montar en la misma resortera.
+- Vida, zonas y premios de la pista: [[nivel-1]].
 - Sin puntos de control (D-008).
 
 ## Controles (leídos del código)
 | Fase | Entrada | Acción | Script |
 |---|---|---|---|
 | Lobby | E cerca de un objeto | Subirse a la resortera o abrir el panel del objeto | ProximityPrompt (`OpensPanel`) |
-| Lobby | R o botón ¡LANZAR! | Teletransporta junto a la resortera del nivel actual; luego E | `LobbyHud` → `LaunchPadRequested` |
+| Lobby | R o botón ¡LANZAR! | Monta directo en la resortera del nivel actual (D-021c) | `LobbyHud` → `LaunchPadRequested` |
 | Lobby | P G K Y Q B L H X C Z U F N | Paneles (tabla en [[lobby-economia]]) | `LobbyHud` |
 | Lobby | Esc | Cierra el panel abierto | `LobbyHud` |
 | Resortera | Mover mouse | Dirección: izquierda/derecha gira, arriba/abajo cambia la elevación (D-005) | `AimInput` |
@@ -53,13 +55,14 @@ Lobby (Idle) --E en la resortera--> Aiming --soltar--> Racing --meta--> Finished
 - Angel decidió: tipos iniciales (D-003); chocar = ragdoll y muerte sin la muerte de Roblox (D-008); las rampas impulsan (D-017).
 - Regla de alturas (Claude eligió, la usan los niveles 1 a 4; N5 sin comprobar): lo que mide ≤ 4 studs se salta; lo que mide ≥ 9 se esquiva.
 - Tres formas de ser eliminado: choque de frente (lo detecta el cliente, `CrashSensor`, umbrales en `GameConfig.Crash`), pisar una parte con etiqueta `Hazard` (servidor) y caer bajo `GameConfig.Race.KillHeight` (servidor).
+- En la pista navideña (desde el 2026-11-14, sin aprobar → Q-26c) los dos primeros solo restan vida: el choque te tumba y te endereza en ~1 s, la caída te rescata sobre la pista; solo eliminan cuando la vida llega a 0. Las partes con atributo `Bumper` (barandales, bordes) rebotan sin chocar, y una ayuda de dirección gira sola con las curvas.
 - Una carrera más corta que `GameConfig.Race.MinimumPlausibleSeconds` no cuenta: el servidor reinicia al jugador.
 
 ## Niveles
 - Regla de Angel: cada nivel es más largo y complejo que el anterior, pero pasable.
-- Orden 1 → 2 → 3 → 4 → 5 por los portales; el último (N5) se repite (Q-03).
+- Hasta el 2026-11-13: orden 1 → 2 → 3 → 4 → 5 por los portales, el último se repetía (Q-03). Desde el 14 solo existe N1 y se repite.
 - En el código los niveles se desbloquean en orden: para viajar al nivel N hay que haber terminado el N-1 (`ProgressService.isUnlocked`). Angel no lo ha decidido → Q-05.
-- Fichas: [[nivel-1]] · [[nivel-2]] · [[nivel-3]] · [[nivel-4]] · [[nivel-5]].
+- Fichas: [[nivel-1]] (en el juego) · [[nivel-2]] · [[nivel-3]] · [[nivel-4]] · [[nivel-5]] (en respaldo).
 
 ## Sin definir
 Objetivo final, multijugador, alcance del MVP y monetización → [[PREGUNTAS]].
