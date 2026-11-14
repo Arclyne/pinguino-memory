@@ -14,12 +14,13 @@ Un pingüino es lanzado con una resortera: el jugador elige dirección y fuerza,
 Lobby (Idle) --E o ¡LANZAR!--> Aiming --soltar--> Racing --meta--> Finished --auto--> Aiming en la misma resortera
                                   |                 |
                                   X: bajarse        choque: tumbo y te endereza (−vida) · caída: rescate sobre la pista (−vida)
-                                                    sin vida: ragdoll, LoadCharacter, vuelve a Idle en la meseta
+                                                    sin vida: ragdoll y pantalla de muerte con resumen (D-037a) → REINTENTAR (resortera) o LOBBY
 ```
 - Estados y transiciones exactas: [[sistemas]] § Estados.
 - Desde el 2026-11-14 hay un solo nivel (la pista navideña, D-027c): al terminar, el avance automático (D-016) vuelve a montar en la misma resortera.
 - Vida, zonas y premios de la pista: [[nivel-1]].
 - Sin puntos de control (D-008).
+- Al morir en la pista sale la pantalla de muerte con el resumen de la bajada (D-037a); detalle en [[sistemas]] § Pantalla de muerte.
 
 ## Controles (leídos del código)
 | Fase | Entrada | Acción | Script |

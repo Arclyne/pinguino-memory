@@ -7,8 +7,8 @@ generado: sí (ServerStorage.DevTools.PlaceMap; no editar a mano; ver herramient
 Formato. scripts: `Nombre TipoLíneas | api | req | rem | tag | attr | key | svc` (M módulo, S script, L local; `+N` = N más sin listar). etiquetas: `Etiqueta total | por nivel | clases | atributos{valores}`. niveles: posiciones del mundo redondeadas a studs. Qué hace cada sistema: [[sistemas]].
 
 # huella
-place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-14 08:41
-huella: scripts=156 lineas=25168 codigo=56faf210 instancias=106991 mundo=bb4cc67b
+place=PINGUINO TEST placeId=76340917059535 universeId=10776032682 generado=2026-11-14 14:50
+huella: scripts=161 lineas=25869 codigo=c2ee0efa instancias=106991 mundo=bb4cc67b
 # scripts
 ## ReplicatedStorage.Shared
 AvalancheModeConfig M31
@@ -19,12 +19,12 @@ EconomyConfig M55
 EconomyRemotes M22
 EventConfig M85 | attr:AvalancheEventRun
 EventRemotes M11
-GameConfig M102 | tag:BoostRamp | attr:JumpDistance,KeepSpeed
+GameConfig M107 | tag:BoostRamp | attr:JumpDistance,KeepSpeed
 LaunchMath M49 | api:clampAim,direction,flightGravity,positionAt,pullOffset,speed,velocity | req:GameConfig
 LevelRegistry M60 | api:arrivalFrame,firstTagged,levelOf,nextLevel,playerLevel | req:GameConfig | tag:PlateauSpawn,ReturnPortal | attr:DestinationLevel,LevelId
 PenguinOrientation M16 | api:bellyDown
 Pose M36 | api:isValid
-Remotes M15
+Remotes M16
 RunState M8
 Signal M42 | api:Connect,Disconnect,Fire,new
 SkinAppearance M352 | api:apply,clear | tag:ChaseBulb,FlickeringFlame,PulseGlow | attr:ChaseIndex,SkinBaseColor,SkinBaseMaterial,SkinBaseTransparency,SkinId
@@ -36,10 +36,11 @@ EconomyMain S5 | req:name
 ## ServerScriptService.Server.Data
 PlayerProfile M78 | api:currentWeek,rollWeek,sanitize | req:EconomyConfig,SkinCatalog
 ## ServerScriptService.Server
-Main S23 | req:AvalancheModeService,ChristmasRunService,LevelFlowService,LevelService,PoseService,RaceService,ReturnService,RunStateService,SlingshotService
+Main S27 | req:AvalancheModeService,ChristmasRunService,DeathService,LevelFlowService,LevelService,PoseService,RaceService,ReturnService,RunStateService,RunStatsService,SlingshotService
 ## ServerScriptService.Server.Services
 AvalancheModeService M270 | api:absorbCrash,init | req:AvalancheModeConfig,AvalancheTrack,EventRemotes,LevelRegistry,PlayerDataService,Remotes,ReturnService,RunState,RunStateService,SlingshotGeometry,SlingshotService | rem:AvalancheModeRequested,RaceNotice
-ChristmasRunService M223 | api:absorbCrash,absorbHazard,init,isOutOfHealth | req:ChristmasTrack,LevelRegistry,Remotes,RunState,RunStateService | rem:RaceNotice | attr:PenguinHealth,PenguinMaxHealth,RunZone
+ChristmasRunService M264 | api:absorbCrash,absorbHazard,closeRun,init,isOutOfHealth | req:ChristmasTrack,LevelRegistry,Remotes,RunState,RunStateService | rem:RaceNotice | attr:PenguinHealth,PenguinMaxHealth,RunZone
+DeathService M101 | api:handleElimination,init | req:ChristmasRunService,GameConfig,RateLimiter,Remotes,RunStatsService | rem:DeathRespawnRequested,RaceNotice
 EventService M400 | api:fishMultiplier,init | req:ChristmasTrack,EventConfig,EventRemotes,LaunchMath,LevelRegistry,PlayerDataService,Remotes,RunState,RunStateService,SlingshotGeometry | rem:EventPickupRequested,RaceJoinRequested,RaceNotice
 FishService M221 | api:init | req:AvalancheTrack,ChristmasTrack,EconomyConfig,EconomyRemotes,EventService,LevelRegistry,PlayerDataService,RateLimiter,RunState,RunStateService | rem:FishCollectRequested | tag:FinishLine,FishEnd,FishPickup,Hazard,Slingshot | attr:PickupId
 LeaderboardService M161 | api:init | req:EconomyConfig,EconomyRemotes,PlayerDataService,SkinCatalog | rem:LeaderboardChanged,LeaderboardRequested | svc:DataStore
@@ -48,10 +49,11 @@ LevelService M46 | api:init | req:LevelRegistry
 PlayerDataService M205 | api:addFish,currentWeek,get,init,snapshot,spendFish,update | req:DataKit,EconomyConfig,EconomyRemotes,PlayerProfile,Signal | rem:ProfileChanged,ProfileRequested
 PoseService M48 | api:init | req:Pose,RateLimiter,Remotes,RunState,RunStateService | rem:PoseChanged | attr:Pose
 ProgressService M96 | api:init,isUnlocked | req:AvalancheTrack,EconomyRemotes,GameConfig,LevelRegistry,PlayerDataService,RateLimiter,ReturnService,RunState,RunStateService,SlingshotService | rem:LaunchPadRequested,LevelTravelRequested | tag:Slingshot | attr:DismountPosition
-RaceService M175 | api:init | req:AvalancheModeService,ChristmasRunService,GameConfig,LevelRegistry,RateLimiter,Remotes,RunState,RunStateService | rem:CrashReported,RaceNotice | tag:FinishLine,Hazard | attr:HazardKind,KillHeight
+RaceService M170 | api:init | req:AvalancheModeService,ChristmasRunService,DeathService,GameConfig,LevelRegistry,RateLimiter,Remotes,RunState,RunStateService | rem:CrashReported,RaceNotice | tag:FinishLine,Hazard | attr:HazardKind,KillHeight
 ReturnService M81 | api:init | req:LevelRegistry,RateLimiter,RunState,RunStateService,Signal | tag:ReturnPortal | attr:DestinationLevel
 RewardService M58 | api:init | req:EconomyConfig,EconomyRemotes,PlayerDataService,RateLimiter | rem:BoostPurchaseRequested,DailyGiftClaimRequested
 RunStateService M72 | api:get,init,reset,transition | req:Remotes,RunState,Signal | rem:RunStateChanged | attr:RunState
+RunStatsService M78 | api:init,snapshot | req:GameConfig,PlayerDataService,RunState,RunStateService
 SkinService M97 | api:grant,init,owns | req:EconomyRemotes,PlayerDataService,RateLimiter,SkinAppearance,SkinCatalog | rem:SkinEquipRequested,SkinPurchaseRequested
 SlingshotService M202 | api:init,mountAtLevel | req:GameConfig,LaunchMath,LevelRegistry,RateLimiter,Remotes,RunState,RunStateService,SlingshotGeometry | rem:AimChanged,DismountRequested,LaunchRequested | attr:AimPitch,AimPull,AimYaw,DismountPosition
 WheelService M102 | api:init | req:EconomyConfig,EconomyRemotes,PlayerDataService,RateLimiter,SkinService,WheelCatalog | rem:WheelSpinPurchaseRequested,WheelSpinRequested,WheelSpun
@@ -73,7 +75,7 @@ ClaudeScriptDump M1270 | api:_crashInto,_holdFrame,_onRaceNotice,_playStretchFee
 ## ServerStorage.Respaldo_MapaViejo
 ChristmasTrack_v1_old M169 | api:centerAt,frameAt,heightAt,progressAt,rescueFrame,tangentAt,widthAt,xAt,zoneIndexAt
 ## StarterPlayer.StarterPlayerScripts
-ChristmasRunClient L491 | req:Audio,AvalancheTrack,ChristmasTrack,Feedback,Remotes | rem:RaceNotice | tag:BoostRamp | attr:JumpRamp,LevelId,Offset,RunState
+ChristmasRunClient L494 | req:Audio,AvalancheTrack,ChristmasTrack,Feedback,Remotes | rem:RaceNotice | tag:BoostRamp | attr:JumpRamp,LevelId,Offset,RunState
 ## StarterPlayer.StarterPlayerScripts.Client.Aim
 AimCamera M62 | api:new,start,stop | req:AimModel,LaunchMath
 AimInput M141 | api:_beginCharge,_drag,_endCharge,_pointAt,new,start,stop | req:AimModel,Cleaner,GameConfig,Signal | key:X
@@ -85,7 +87,7 @@ TrajectoryPreview M64 | api:hide,new,render | req:LaunchMath
 FeedbackSounds M38 | api:play | req:SoundCatalog
 SoundCatalog M22
 ## StarterPlayer.StarterPlayerScripts.Client
-AvalancheCinematic M1028 | api:init | req:AvalancheModeConfig,AvalancheTrack,ChristmasTrack,LevelRegistry,RunState,SlingshotGeometry | tag:AvalancheMountain,AvalancheSiren | attr:AvalancheEventRun,BaseRate,BaseTransparency,RunState
+AvalancheCinematic M1033 | api:init | req:AvalancheModeConfig,AvalancheTrack,ChristmasTrack,LevelRegistry,RunState,SlingshotGeometry | tag:AvalancheMountain,AvalancheSiren | attr:AvalancheEventRun,BaseRate,BaseTransparency,RunState
 ## StarterPlayer.StarterPlayerScripts.Client.AvalancheMode
 AvalancheModeModel M44 | api:new | req:AvalancheModeConfig,AvalancheTrack
 AvalancheModeView M102 | api:new | req:UiKit
@@ -96,6 +98,11 @@ BodyMover M153 | api:destroy,face,holdAt,new,ragdoll,recover,releaseControl,setL
 DefaultCamera M19 | api:restore
 LocalCharacter M62 | api:get,init | req:BodyMover,Signal
 LocalPose M29 | api:get,set | req:Pose,Remotes,Signal | rem:PoseChanged
+## StarterPlayer.StarterPlayerScripts.Client.DeathScreen
+DeathScreenModel M80 | api:countdownText,fromNotice,secondsUntilReturn | req:TimeFormatter,UiKit
+DeathScreenView M220 | api:new | req:DeathScreenModel,HudIcons,UiKit
+## StarterPlayer.StarterPlayerScripts.Client
+DeathScreenClient M168 | api:init | req:DeathScreenModel,DeathScreenView,EconomyRemotes,Feedback,FeedbackSounds,LocalCharacter,Remotes,RunState | rem:DeathRespawnRequested,LaunchPadRequested,RaceNotice | attr:RunState | key:ButtonA,ButtonB,L,R
 ## StarterPlayer.StarterPlayerScripts.Client.Decoration
 ChaseLights M56 | api:init,update | tag:ChaseBulb | attr:ChaseIndex
 CheeringCrowd M122 | api:init,update | tag:CheeringPenguin | attr:CheerMode,CheerPhase,Cheers
@@ -222,56 +229,56 @@ PlateauSpawn: Lobby.PlateauSpawn [SpawnLocation] pos(0,601,110) size(30,1,30)
 Slingshot: Slingshot [Model] pos(0,614,20) AimPitch=0,AimPull=0,AimYaw=0,DismountPosition=(0,608.5,26),LaunchForward=(0,0,-1),SeatPosition=(0,638.8,20)
 FinishLine: ChristmasRun.Meta_AldeaDeSanta.FinishLine [Part] pos(0,-3569,-16370) size(128,0,4)
 ReturnPortal: ReturnPortalGate.ReturnPortalTrigger [Part] pos(0,-3575,-16648) size(11,22,2) DestinationLevel=1
-BoostRamp: ChristmasRun.Zona1_ColinaNevada.Gameplay.Turbo.BoostPad [Part] pos(164,415,-660) size(30,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo10_salto.BoostPad [Part] pos(-22,-2950,-13281) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo4_callejon.BoostPad [Part] pos(-38,-655,-4721) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo9_salto.BoostPad [Part] pos(-74,-2566,-12008) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo1_pinos.BoostPad [Part] pos(-32,368,-871) size(16,1,22)
-BoostRamp: ChristmasRun.Zona6_TallerDeJuguetes.Gameplay.Turbo.BoostPad [Part] pos(-115,-2023,-10075) size(24,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo6_parque.BoostPad [Part] pos(15,-1153,-6781) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo4_callejon.BoostPad [Part] pos(26,-602,-4478) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo2_hielo.BoostPad [Part] pos(52,10,-2201) size(16,1,22)
-BoostRamp: ChristmasRun.Zona4_Centro.Gameplay.Turbo.BoostPad [Part] pos(-186,-1062,-6369) size(24,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo7_juguetes.BoostPad [Part] pos(-43,-1979,-9891) size(16,1,22)
-BoostRamp: ChristmasRun.Zona5_GarajeDeSanta.Gameplay.Turbo.BoostPad [Part] pos(-212,-1532,-8327) size(24,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo5_callejon.BoostPad [Part] pos(18,-900,-5751) size(16,1,22)
-BoostRamp: ChristmasRun.Zona5_GarajeDeSanta.Gameplay.Turbo.BoostPad [Part] pos(-176,-1457,-8060) size(30,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo5_callejon.BoostPad [Part] pos(34,-846,-5508) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo2_hielo.BoostPad [Part] pos(0,103,-1958) size(16,1,22)
-BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(0,-3376,-15150) size(30,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo3_hielo.BoostPad [Part] pos(-59,-217,-2988) size(16,1,22)
-BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(148,-2645,-12321) size(26,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo9_salto.BoostPad [Part] pos(36,-2624,-12251) size(16,1,22)
-BoostRamp: ChristmasRun.Zona4_Centro.Gameplay.Turbo.BoostPad [Part] pos(32,-1195,-6970) size(30,1,22)
-BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(121,-2789,-12720) size(26,1,22)
-BoostRamp: ChristmasRun.Zona3_PuebloNavideno.Gameplay.Turbo.BoostPad [Part] pos(208,-469,-3892) size(24,1,22)
-BoostRamp: ChristmasRun.Zona2_BosqueDeBastones.Gameplay.Turbo.BoostPad [Part] pos(206,19,-2170) size(30,1,22)
-BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(-16,-3315,-14770) size(24,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo7_juguetes.BoostPad [Part] pos(1,-1920,-9648) size(16,1,22)
 BoostRamp: ChristmasRun.Zona6_TallerDeJuguetes.Gameplay.Turbo.BoostPad [Part] pos(-37,-1884,-9500) size(30,1,22)
-BoostRamp: ChristmasRun.Zona5_GarajeDeSanta.Gameplay.Turbo.BoostPad [Part] pos(21,-1609,-8600) size(30,1,22)
-BoostRamp: ChristmasRun.Zona3_PuebloNavideno.Gameplay.Turbo.BoostPad [Part] pos(-143,-723,-4970) size(30,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo8_juguetes.BoostPad [Part] pos(46,-2215,-10678) size(16,1,22)
-BoostRamp: ChristmasRun.Zona3_PuebloNavideno.Gameplay.Turbo.BoostPad [Part] pos(177,-468,-3888) size(24,1,22)
-BoostRamp: ChristmasRun.Zona5_GarajeDeSanta.Gameplay.Turbo.BoostPad [Part] pos(-183,-1528,-8313) size(24,1,22)
-BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(0,-3424,-15450) size(30,1,22)
-BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(-169,-2450,-11546) size(26,1,22)
-BoostRamp: ChristmasRun.Zona6_TallerDeJuguetes.Gameplay.Turbo.BoostPad [Part] pos(-145,-2025,-10084) size(24,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo6_parque.BoostPad [Part] pos(-77,-1099,-6538) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo8_juguetes.BoostPad [Part] pos(7,-2274,-10921) size(16,1,22)
-BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(-191,-2907,-13120) size(26,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo1_pinos.BoostPad [Part] pos(71,422,-628) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo10_salto.BoostPad [Part] pos(23,-2872,-13038) size(16,1,22)
-BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(192,-2644,-12318) size(26,1,22)
-BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(-210,-2444,-11533) size(26,1,22)
-BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(16,-3315,-14770) size(24,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo3_hielo.BoostPad [Part] pos(-29,-281,-3231) size(16,1,22)
 BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(0,-3261,-14430) size(30,1,22)
+BoostRamp: ChristmasRun.Zona4_Centro.Gameplay.Turbo.BoostPad [Part] pos(32,-1195,-6970) size(30,1,22)
+BoostRamp: ChristmasRun.Zona5_GarajeDeSanta.Gameplay.Turbo.BoostPad [Part] pos(-176,-1457,-8060) size(30,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo8_juguetes.BoostPad [Part] pos(46,-2215,-10678) size(16,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo5_callejon.BoostPad [Part] pos(18,-900,-5751) size(16,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo9_salto.BoostPad [Part] pos(-74,-2566,-12008) size(16,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo6_parque.BoostPad [Part] pos(15,-1153,-6781) size(16,1,22)
+BoostRamp: ChristmasRun.Zona3_PuebloNavideno.Gameplay.Turbo.BoostPad [Part] pos(-143,-723,-4970) size(30,1,22)
+BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(-169,-2450,-11546) size(26,1,22)
+BoostRamp: ChristmasRun.Zona3_PuebloNavideno.Gameplay.Turbo.BoostPad [Part] pos(177,-468,-3888) size(24,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo7_juguetes.BoostPad [Part] pos(-43,-1979,-9891) size(16,1,22)
+BoostRamp: ChristmasRun.Zona4_Centro.Gameplay.Turbo.BoostPad [Part] pos(-186,-1062,-6369) size(24,1,22)
+BoostRamp: ChristmasRun.Zona3_PuebloNavideno.Gameplay.Turbo.BoostPad [Part] pos(208,-469,-3892) size(24,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo1_pinos.BoostPad [Part] pos(71,422,-628) size(16,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo7_juguetes.BoostPad [Part] pos(1,-1920,-9648) size(16,1,22)
+BoostRamp: ChristmasRun.Zona2_BosqueDeBastones.Gameplay.Turbo.BoostPad [Part] pos(206,19,-2170) size(30,1,22)
+BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(-210,-2444,-11533) size(26,1,22)
+BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(121,-2789,-12720) size(26,1,22)
+BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(148,-2645,-12321) size(26,1,22)
+BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(192,-2644,-12318) size(26,1,22)
+BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(-191,-2907,-13120) size(26,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo8_juguetes.BoostPad [Part] pos(7,-2274,-10921) size(16,1,22)
 BoostRamp: ChristmasRun.Zona4_Centro.Gameplay.Turbo.BoostPad [Part] pos(84,-959,-5950) size(30,1,22)
+BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(-16,-3315,-14770) size(24,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo3_hielo.BoostPad [Part] pos(-29,-281,-3231) size(16,1,22)
+BoostRamp: ChristmasRun.Zona1_ColinaNevada.Gameplay.Turbo.BoostPad [Part] pos(164,415,-660) size(30,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo2_hielo.BoostPad [Part] pos(52,10,-2201) size(16,1,22)
+BoostRamp: ChristmasRun.Zona6_TallerDeJuguetes.Gameplay.Turbo.BoostPad [Part] pos(-115,-2023,-10075) size(24,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo6_parque.BoostPad [Part] pos(-77,-1099,-6538) size(16,1,22)
+BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(0,-3376,-15150) size(30,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo1_pinos.BoostPad [Part] pos(-32,368,-871) size(16,1,22)
+BoostRamp: ChristmasRun.Zona6_TallerDeJuguetes.Gameplay.Turbo.BoostPad [Part] pos(-145,-2025,-10084) size(24,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo3_hielo.BoostPad [Part] pos(-59,-217,-2988) size(16,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo4_callejon.BoostPad [Part] pos(-38,-655,-4721) size(16,1,22)
+BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(16,-3315,-14770) size(24,1,22)
+BoostRamp: ChristmasRun.Zona5_GarajeDeSanta.Gameplay.Turbo.BoostPad [Part] pos(-212,-1532,-8327) size(24,1,22)
+BoostRamp: ChristmasRun.Zona5_GarajeDeSanta.Gameplay.Turbo.BoostPad [Part] pos(-183,-1528,-8313) size(24,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo2_hielo.BoostPad [Part] pos(0,103,-1958) size(16,1,22)
+BoostRamp: ChristmasRun.Zona5_GarajeDeSanta.Gameplay.Turbo.BoostPad [Part] pos(21,-1609,-8600) size(30,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo9_salto.BoostPad [Part] pos(36,-2624,-12251) size(16,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo10_salto.BoostPad [Part] pos(-22,-2950,-13281) size(16,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo10_salto.BoostPad [Part] pos(23,-2872,-13038) size(16,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo5_callejon.BoostPad [Part] pos(34,-846,-5508) size(16,1,22)
+BoostRamp: ChristmasRun.Atajos.Atajo4_callejon.BoostPad [Part] pos(26,-602,-4478) size(16,1,22)
+BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(0,-3424,-15450) size(30,1,22)
 LobbyWheel: Lobby.LuckyWheel.LobbyWheel [Model] pos(-92,625,72) SegmentCount=12
 LobbyLeaderboard: Lobby.HallOfFame.LobbyLeaderboard [Model] pos(101,626,62)
 Hazard: ninguno
-Lobby: ChevronRoad(5,600,66) · EventPedestal(-50,603,126) · HallOfFame(100,611,42) · LevelsPortal(-10,620,150) · LobbyDecor(-119,607,80) · LuckyWheel(-80,603,74) · MostPopular(44,602,32) · PenguinCampfire(-33,603,101) · PenguinCampfire2(35,603,99) · PlateauSpawn(0,601,110) · Shop(70,606,130)
+Lobby: ChevronRoad(-5,600,66) · EventPedestal(-58,617,129) · HallOfFame(100,643,68) · LevelsPortal(-8,629,150) · LobbyDecor(-119,607,80) · LuckyWheel(-83,603,81) · MostPopular(64,602,32) · PenguinCampfire(-33,603,101) · PenguinCampfire2(35,603,99) · PlateauSpawn(0,601,110) · Shop(62,601,136)
 ## N2 AvalancheMode | instancias=14726 partes=14468 conColision=633 | min(-21080,-6437,-39376) max(-18911,6765,38436)
 hijos: AvalancheMountain[Folder]226 · Finale[Model]127 · GroundTexture[Folder]9563 · Obstacles[Folder]1000 · Plateau[Folder]12 · ReturnPortalGate[Model]574 · Scenery[Folder]2636 · SlingshotDecor[Model]52 · Slingshot[Model]61 · Track[Folder]465
 PlateauSpawn: Plateau.PlateauSpawn [Part] pos(-20000,6545,38120) size(30,1,30)

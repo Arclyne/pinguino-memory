@@ -1,6 +1,6 @@
 ---
 tipo: estado
-verificado: 2026-11-14 (Studio, por inspección de la place en modo edición; la pista navideña no se jugó; el Modo Avalancha se probó en Play con bot)
+verificado: 2026-11-14 (Studio; pantalla de muerte probada en Play por angel; antes, por inspección de la place en modo edición; la pista navideña no se jugó; el Modo Avalancha se probó en Play con bot)
 ---
 # Estado
 
@@ -10,7 +10,7 @@ Esta nota solo cambia cuando cambia lo que existe en el juego. Lo que se mueve c
 
 ## Existe en Studio
 - **Pista navideña (N1):** una bajada de ~16,350 studs con 8 zonas, 10 atajos, vida (choque y caída restan, cada zona cura), rescate si te caes, ayuda de dirección y premios de peces por zona y en la meta. → [[nivel-1]]
-- **Carrera:** resortera → vuelo → deslizamiento → meta. Un choque te tumba y te endereza sobre la pista; sin vida, o al pisar un `Hazard` sin vida, eliminado y reaparece en la meseta. → [[juego]]
+- **Carrera:** resortera → vuelo → deslizamiento → meta. Un choque te tumba y te endereza sobre la pista; sin vida, o al pisar un `Hazard` sin vida, eliminado: pantalla de muerte con resumen de la bajada y botones REINTENTAR o LOBBY (D-037a). → [[juego]]
 - **Repetición:** al terminar se vuelve a montar en la misma resortera (el portal lleva a N1).
 - **Obstáculos** en las 8 zonas: 66 más 9 pilas de regalos, con slalom en la recta final (D-031c). Nada quita vida entre el lanzamiento y el aterrizaje (D-030c). **Pads de turbo** (`BoostRamp`, 46) en zonas y atajos, y **efectos de movimiento** (D-018).
 - **Avalancha:** cinemática al subirse a la resortera y ola que persigue al inicio de la bajada (D-029c).
@@ -27,6 +27,7 @@ Personalizar, Pack inicial, VIP, Renacer, Lanzarse con un amigo. No hay ninguna 
 
 ## Sin probar
 - La pista navideña completa con control: zonas, atajos, obstáculos, vida, rescate, meta y tiempo (T-14c).
+- La pantalla de muerte en celular (tamaño y toques) y con la resortera ocupada al reintentar.
 - El Modo Avalancha jugado por una persona (solo se probó con bot) y con varios jugadores a la vez.
 - Session lock de DataKit con dos servidores.
 - Celular y consola: no hay controles táctiles.
