@@ -1,33 +1,37 @@
 ---
 tipo: estado
-verificado: 2026-11-13 (Studio, por inspección de la place en modo edición; no se jugó)
+verificado: 2026-11-14 (Studio, por inspección de la place en modo edición; la pista navideña no se jugó; el Modo Avalancha se probó en Play con bot)
 ---
 # Estado
 
-Prototipo jugable en **PINGUINO TEST** (placeId 76340917059535, universeId 10776032682): 5 niveles encadenados, lobby en la meseta del nivel 1 y economía de peces con datos guardados. Sin publicar y sin monetización.
+Prototipo jugable en **PINGUINO TEST** (placeId 76340917059535, universeId 10776032682): un solo nivel, la pista navideña larga (D-027c), el Modo Avalancha (D-033c), lobby en su meseta y economía de peces con datos guardados. Sin publicar y sin monetización.
 
 Esta nota solo cambia cuando cambia lo que existe en el juego. Lo que se mueve cada sesión (huella, bitácoras, tareas urgentes, preguntas) lo arma `python3 herramientas/ver.py inicio`.
 
 ## Existe en Studio
-- **Carrera** en N1–N5: resortera → vuelo → deslizamiento → meta. Chocar, pisar un `Hazard` o caer elimina y reaparece en la meseta del mismo nivel. → [[juego]]
-- **Encadenado:** al terminar un nivel se monta solo en la resortera del siguiente; el último (N5) se repite (D-016).
-- **Rampas de impulso** en N1, N2 y N3 (D-017) y **efectos de movimiento** (D-018).
-- **Lobby** en la meseta de N1: camino de flechas, ruleta, salón de la fama, pedestal del evento, podio, portal de niveles, tienda, fogata. → [[lobby-economia]]
-- **Economía:** peces en la pista, regalo diario, impulso x2, ruleta, 5 skins, tabla semanal. Datos con DataKit (D-015).
-- **Decoración:** festiva en N1 (D-013) y Festival de Faroles en N2 (D-019).
-- **Cinemática de avalancha** en N1 al subirse a la resortera (sin decisión: Q-02).
-- **N5 Vecindario Navideño:** 18 casas que se cruzan por dentro y 36 ventanas que se rompen (sin decisión ni diseño: Q-25). → [[nivel-5]]
+- **Pista navideña (N1):** una bajada de ~16,350 studs con 8 zonas, 10 atajos, vida (choque y caída restan, cada zona cura), rescate si te caes, ayuda de dirección y premios de peces por zona y en la meta. → [[nivel-1]]
+- **Carrera:** resortera → vuelo → deslizamiento → meta. Un choque te tumba y te endereza sobre la pista; sin vida, o al pisar un `Hazard` sin vida, eliminado y reaparece en la meseta. → [[juego]]
+- **Repetición:** al terminar se vuelve a montar en la misma resortera (el portal lleva a N1).
+- **Obstáculos** en las 8 zonas: 66 más 9 pilas de regalos, con slalom en la recta final (D-031c). Nada quita vida entre el lanzamiento y el aterrizaje (D-030c). **Pads de turbo** (`BoostRamp`, 46) en zonas y atajos, y **efectos de movimiento** (D-018).
+- **Avalancha:** cinemática al subirse a la resortera y ola que persigue al inicio de la bajada (D-029c).
+- **Eventos (D-032c):** en la bajada, Santa con regalos, tormenta, desfile de juguetes, duendes y trineo dorado; para todo el servidor, Nevada de peces y carrera programada con inscripción.
+- **Modo Avalancha (D-033c):** botón de arriba del lobby, una vez cada 12 h. Mapa aparte (nivel 2): bajada de ~4 min a ~450 km/h con ~2,000 peces, barreras para saltar, muros para esquivar, avalancha que te alcanza si chocas dos veces seguidas, y rampa final a un campo de distancias con premio. → [[nivel-2]]
+- **Lobby** en la meseta de N1: camino de flechas, ruleta, salón de la fama, pedestal del evento, podio, portal de niveles (un solo nivel), tienda, fogatas. → [[lobby-economia]]
+- **Economía:** peces en la pista (5 carriles), regalo diario, impulso x2, ruleta, 5 skins, tabla semanal. Datos con DataKit (D-015).
+
+## Descartado (D-027c; sigue guardado en `ServerStorage.Respaldo_MapaViejo`)
+N2–N5 (`Niveles2a5`), y la pista vieja de N1 con casi toda su decoración festiva (D-013). Las fichas [[nivel-3]], [[nivel-4]] y [[nivel-5]] describen cómo eran.
 
 ## Solo fachada (botón con panel "próximamente")
-Personalizar, Pack inicial, VIP, Renacer, Lanzarse con un amigo, Próxima carrera, Evento Avalancha. No hay ninguna compra con Robux.
+Personalizar, Pack inicial, VIP, Renacer, Lanzarse con un amigo. No hay ninguna compra con Robux.
 
 ## Sin probar
-- Nadie ha registrado una partida completa de los 5 niveles con control. N5 no tiene ninguna prueba anotada.
-- Saltos de N3 y grietas de N4 con la física real.
+- La pista navideña completa con control: zonas, atajos, obstáculos, vida, rescate, meta y tiempo (T-14c).
+- El Modo Avalancha jugado por una persona (solo se probó con bot) y con varios jugadores a la vez.
 - Session lock de DataKit con dos servidores.
 - Celular y consola: no hay controles táctiles.
-- Rendimiento en celular (la place pasó de ~42,000 a ~61,500 instancias con N5).
-- Que el lobby y el Festival de N2 coincidan con los artefactos aprobados (Q-01).
+- Rendimiento en celular: la place tiene ~90,500 instancias (la pista navideña sola ~85,000).
+- Que el lobby coincida con los artefactos aprobados (Q-01).
 
 ## Frases gatillo
 | La persona dice | Claude hace |

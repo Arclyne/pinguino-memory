@@ -2,12 +2,14 @@
 tipo: nivel
 nivel: 3
 nombre: Ciudad Nevada
-folder: Workspace.PenguinSlingshotMap_Level3
+folder: ServerStorage.Respaldo_MapaViejo.Niveles2a5
 origen_x: 12000
 base_y: 600
-verificado: 2026-11-13 (existencia y coordenadas en Studio; la pista completa no se ha jugado)
+verificado: 2026-11-14 (el folder del nivel está en ServerStorage.Respaldo_MapaViejo.Niveles2a5; lo demás es como estaba en el juego)
 ---
 # Nivel 3 · Ciudad Nevada
+
+**Descartado (D-027c):** desde el 2026-11-14 el juego solo tiene la pista navideña. El folder sigue guardado en `ServerStorage.Respaldo_MapaViejo.Niveles2a5`. Esta ficha describe cómo era.
 
 Coordenadas reales: `grep -n "N3" place/mapa-place.md`. Prototipo v0.1: https://claude.ai/artifact/4ADzpxSBfM9okkTJvsVpWT
 
@@ -44,3 +46,6 @@ Los huecos de 20–22 studs con la física real → Q-10.
 
 ## Reconstrucción
 `archivo/construccion/BuildLevel3_v01.lua`, luego `InstallBoostRamps_v01.lua`. Al construirlo hubo que bajar los edificios de relleno: quedaban más altos que la pista.
+
+## Suelo (D-025c)
+`GroundTexture`: parches sin colisión en tonos de blanco o azul hielo sobre la franja de la pista, hechos con `DevTools.GroundTexturer`.

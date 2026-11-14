@@ -3,7 +3,7 @@ tipo: decision
 id: D-005
 fecha: 2026-11-11
 autor: v1
-estado: vigente
+estado: reemplazada por D-022c
 tema: resortera, controles
 ---
 # D-005 · Controles de la resortera

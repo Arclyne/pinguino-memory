@@ -7,8 +7,8 @@ generado: sí (ServerStorage.DevTools.PlaceMap, sección valores; no editar a ma
 Copia de los módulos de configuración. El código manda: para cambiar un valor se edita el módulo en Studio y se regenera esta nota. Tiempos en segundos, velocidades en studs/s.
 
 # huella
-place=Place2 placeId=76340917059535 universeId=10776032682 generado=2026-11-13 06:57
-huella: scripts=136 lineas=18439 codigo=79f4e2ab instancias=61499 mundo=aead3f96
+place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-14 08:41
+huella: scripts=156 lineas=25168 codigo=56faf210 instancias=106991 mundo=bb4cc67b
 # valores
 GameConfig.Boost.CapRecoverySeconds=0.8
 GameConfig.Boost.DragMultiplier=0.25
@@ -20,7 +20,7 @@ GameConfig.Boost.RetriggerSeconds=1.2
 GameConfig.Boost.Seconds=1.8
 GameConfig.Crash.LookAheadStuds=0.6
 GameConfig.Crash.MaximumFloorAlignment=0.55
-GameConfig.Crash.MinimumApproachSpeed=28
+GameConfig.Crash.MinimumApproachSpeed=40
 GameConfig.Crash.PopSpeed=16
 GameConfig.Crash.RagdollSeconds=1.2
 GameConfig.Crash.Restitution=0.5
@@ -48,8 +48,23 @@ GameConfig.Slide.DownhillMinimumSlope=0.08
 GameConfig.Slide.GroundProbeLength=1.8
 GameConfig.Slide.JumpBufferSeconds=0.15
 GameConfig.Slide.JumpCooldownSeconds=0.25
+GameConfig.Slide.JumpDistanceAttribute=JumpDistance
 GameConfig.Slide.JumpSpeed=50
+GameConfig.Slide.KeepSpeedAttribute=KeepSpeed
 GameConfig.Slide.LandingPoseSeconds=0.35
+GameConfig.Slide.LevelTuning.1.DownhillBoost=2.3
+GameConfig.Slide.LevelTuning.1.MaxSpeed=165
+GameConfig.Slide.LevelTuning.1.QuadraticDrag=0.0034
+GameConfig.Slide.LevelTuning.1.SteerAcceleration=215
+GameConfig.Slide.LevelTuning.2.DownhillBoost=4
+GameConfig.Slide.LevelTuning.2.MaxSpeed=360
+GameConfig.Slide.LevelTuning.2.QuadraticDrag=0.0009
+GameConfig.Slide.LevelTuning.2.SteerAcceleration=260
+GameConfig.Slide.LevelTuning.5.DownhillBoost=2.2
+GameConfig.Slide.LevelTuning.5.MaxSpeed=165
+GameConfig.Slide.LevelTuning.5.QuadraticDrag=0.0035
+GameConfig.Slide.LevelTuning.5.SteerAcceleration=200
+GameConfig.Slide.MaxRampLift=65
 GameConfig.Slide.MaxSpeed=145
 GameConfig.Slide.MaxTurnRate=1.7
 GameConfig.Slide.MinimumSteerReferenceSpeed=25
@@ -57,7 +72,7 @@ GameConfig.Slide.QuadraticDrag=0.0065
 GameConfig.Slide.SteerAcceleration=150
 GameConfig.Slingshot.AimTimeoutSeconds=45
 GameConfig.Slingshot.DefaultPitchDegrees=22
-GameConfig.Slingshot.DragForwardIncreasesPower=true
+GameConfig.Slingshot.DragForwardIncreasesPower=false
 GameConfig.Slingshot.FullPowerDragScreenFraction=0.35
 GameConfig.Slingshot.LaunchValidationDistance=30
 GameConfig.Slingshot.MaxLaunchSpeed=110
@@ -81,7 +96,12 @@ EconomyConfig.Fish.FishPerGroup=5
 EconomyConfig.Fish.FishSpacing=7
 EconomyConfig.Fish.GroupSpacing=70
 EconomyConfig.Fish.HoverHeight=4
-EconomyConfig.Fish.Lanes={-36,-18,0,18,36}
+EconomyConfig.Fish.Lanes={-18,-9,0,9,18}
+EconomyConfig.Fish.LevelOverrides.2.FishPerGroup=8
+EconomyConfig.Fish.LevelOverrides.2.FishSpacing=9
+EconomyConfig.Fish.LevelOverrides.2.GroupSpacing=300
+EconomyConfig.Fish.LevelOverrides.2.Lanes={-24,-12,0,12,24}
+EconomyConfig.Fish.LevelOverrides.2.ValuePerPickup=2
 EconomyConfig.Fish.StartAhead=90
 EconomyConfig.Fish.ValidationRadius=40
 EconomyConfig.Fish.ValuePerPickup=5
@@ -131,6 +151,7 @@ PlayerProfile.Template.extraSpins=0
 PlayerProfile.Template.finishes={}
 PlayerProfile.Template.fish=0
 PlayerProfile.Template.giftStreak=0
+PlayerProfile.Template.lastAvalancheMode=0
 PlayerProfile.Template.lastFreeSpin=0
 PlayerProfile.Template.lastGift=0
 PlayerProfile.Template.ownedSkins: classic=true
