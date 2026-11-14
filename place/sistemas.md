@@ -130,7 +130,7 @@ Solo cliente. `DecorationController` inicia un módulo por etiqueta; para animar
 - Lección: a 450 km/h el borde fino de una `WedgePart` deja pasar al pingüino por debajo; la rampa es un bloque grueso enterrado en la calle. Los obstáculos y el final son `Persistent` para que estén cargados al llegar.
 - Constructor: `ClaudeBuild.AvalancheModeBuild` (→ [[nivel-2]] § Reconstrucción).
 
-## Ventanas de N5 (por encima; sin decisión de Angel → Q-25)
+## Ventanas de N5 (por encima; lo pidió ciervo; N5 descartado, D-027c)
 - N5 está en respaldo desde el 2026-11-14: `WindowBreaker` sigue en el cliente pero no encuentra ventanas. `WindowBreaker` (cliente, solo nivel 5): durante Racing rompe los modelos `BreakableWindow` que el pingüino atraviesa (astillas, sonido, letrero "¡CRASH!"), lleva un contador contra el atributo `WindowCount` del nivel y vuelve casi transparentes las partes `HouseShell` de la casa que se está cruzando (cada casa tiene `HouseIndex`, `DisplayName`, `WorldZMin`, `WorldZMax`). Al volver a Idle o Aiming restaura las ventanas. No usa remotes: no da peces ni cuenta en el servidor.
 
 ## Ayudas

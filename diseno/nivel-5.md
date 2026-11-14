@@ -11,7 +11,7 @@ verificado: 2026-11-14 (el folder del nivel está en ServerStorage.Respaldo_Mapa
 
 **Descartado (D-027c):** desde el 2026-11-14 el juego solo tiene la pista navideña. El folder sigue guardado en `ServerStorage.Respaldo_MapaViejo.Niveles2a5`. Esta ficha describe cómo era.
 
-Apareció en la place el 2026-11-13 entre las 02:25 y las 06:50, sin bitácora, decisión ni artefacto en el vault → Q-25. Todo lo de abajo sale de leer la place; falta lo que Angel pidió y aprobó.
+Apareció en la place el 2026-11-13 entre las 02:25 y las 06:50, sin registro en el vault nuevo; lo pidió ciervo (bitácora 2026-11-13-ciervo, confirmado por Angel el 2026-11-14). Todo lo de abajo sale de leer la place. Está descartado (D-027c).
 
 Coordenadas reales: `grep -n "N5" place/mapa-place.md`.
 

@@ -30,8 +30,14 @@ Precios, premios y tiempos: `grep -n "EconomyConfig\|SkinCatalog\|WheelCatalog" 
 | `MostPopular` | Podio "Más populares" | panel `skins` |
 | `LevelsPortal` | Portal de niveles | panel `levels` |
 | `Shop` | Tienda | panel `shop` |
-| `PenguinCampfire` | Fogata con pingüinos (agregada el 2026-11-13, sin registro → Q-25) | — |
-Posiciones: `grep -n "Lobby:" place/mapa-place.md`. Construido por `ServerStorage.ClaudeBuild.BuildLobby`; después se movieron varios objetos a mano (Q-25). Hay un arco, dos iglús y tres pingüinos "cute" con animación propia, y el lobby tiene su propia exposición y bloom (`LobbyLighting`).
+| `PenguinCampfire` | Fogata con pingüinos (la agregó ciervo el 2026-11-13) | — |
+Posiciones: `grep -n "Lobby:" place/mapa-place.md`. Construido por `ServerStorage.ClaudeBuild.BuildLobby`; después ciervo movió varios objetos a mano el 2026-11-13. Hay un arco, dos iglús y tres pingüinos "cute" con animación propia, y el lobby tiene su propia exposición y bloom (`LobbyLighting`).
+
+## Puestos (D-034a)
+Diseño del vault viejo (2026-11-12); no se ha comparado con lo que hay hoy en Studio. Artefacto: https://claude.ai/artifact/GRYqXN7gF3MqDQxUEKVo36 (código en `archivo/construccion/PuestosLobby_artefacto_v01.html`).
+- **Chocolate** (`ChocolateStall`, donde estaba el `CocoaStand`): cabaña de troncos con repisas de frascos y galletas, postes de bastón de dulce, toldo rojo y crema con nieve y carámbanos, letrero "CHOCOLATE" con foquitos que corren y taza gigante que gira, olla de cobre con vapor, pingüino chef, faroles que se mecen.
+- **Tienda** (`Lobby.Shop`, E abre la tienda): puesto turquesa y blanco con adornos dorados, letrero "TIENDA" con foquitos y diamante flotando, vitrina con gemas que giran, pedestales con el Inferno y el Glacial bajo un haz de luz, vendedor con sombrero de copa.
+- Correcciones que quizá no se aplicaron: T-15a.
 
 ## HUD del lobby (visible solo en `Idle` y `Finished`)
 | Botón | Tecla | Panel | Estado |

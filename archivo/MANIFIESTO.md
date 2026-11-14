@@ -24,5 +24,43 @@ No es fuente de verdad. Material de una sola vez o histórico; se abre solo si h
 | `artefactos/pinguino-3d.html` | Primer modelo 3D redondo del pingüino | descartado |
 | `modelos/pinguino.blend` | Modelo v1 del pingüino en Blender | no importado a Studio |
 | `modelos/pinguino.fbx` | Exportación del modelo v1 | no importado a Studio |
+| `construccion/AvalancheCinematic.lua` | Cinemática y persecución de la avalancha de N1 (D-029c) | copia vieja; el código vivo es el de la place |
+| `construccion/AvalancheCinematic_v02.rbxmx` | Instalador de la cinemática de avalancha v0.2 | ya corrido |
+| `construccion/AvalancheCinematic_v03.rbxmx` | Instalador de la cinemática de avalancha v0.3 | ya corrido |
+| `construccion/AvalancheInstall_v01.rbxmx` | Instalador de la avalancha de N1 | ya corrido |
+| `construccion/BuildAvalancheMountains_v01.lua` | Montaña, cornisa y torre con sirena de la avalancha de N1 | ya corrido |
+| `construccion/BuildLevel2Festival_v01.lua` | Festival de Faroles de N2 (D-019) | ya corrido; N2 descartado (D-027c) |
+| `construccion/BuildLevel5_v01.lua` | N5 Vecindario navideño | ya corrido; N5 descartado (D-027c) |
+| `construccion/BuildLobby_v01.lua` | Lobby en la meseta (D-014) | ya corrido; después se movieron objetos a mano |
+| `construccion/BuildStalls_v01.lua` | Puestos del lobby: chocolate y tienda | incluye correcciones que quizá no se aplicaron (T-15a) |
+| `construccion/BuildStalls_v01.rbxmx` | Instalador de los puestos del lobby | ya corrido |
+| `construccion/ClaudeInstall_v01.rbxmx` | Instalador de economía y GUIs del lobby v0.1 | ya corrido |
+| `construccion/ClaudeInstall_v02.rbxmx` | Instalador de economía y GUIs del lobby v0.2 | ya corrido |
+| `construccion/HudIcons.lua` | Iconos dibujados y su tabla de emojis | copia vieja; el código vivo es el de la place |
+| `construccion/HudInstall_v01.rbxmx` | Instalador del HUD con iconos | ya corrido |
+| `construccion/HudLife.lua` | Animación de los botones (saltitos, brillo, estrellitas) | copia vieja; el código vivo es el de la place |
+| `construccion/IconInstall_v01.rbxmx` | Instalador de los iconos | ya corrido |
+| `construccion/IconText.lua` | Cambia los emojis de los textos por iconos dibujados | copia vieja; el código vivo es el de la place |
+| `construccion/IconTextInstall_v01.rbxmx` | Instalador de `IconText` | ya corrido |
+| `construccion/Iluminacion_v01.lua` | Iluminación del juego | ya corrido |
+| `construccion/Level5Install_v01.rbxmx` | Instalador de N5 v0.1 | ya corrido; N5 descartado |
+| `construccion/Level5Install_v02.rbxmx` | Instalador de N5 v0.2 | ya corrido; N5 descartado |
+| `construccion/LobbyHud.lua` | HUD del lobby | copia vieja; el código vivo es el de la place |
+| `construccion/LobbyHud_v03.rbxmx` | Instalador del HUD del lobby v0.3 | ya corrido |
+| `construccion/Nivel5_artefacto_v01.html` | Artefacto de diseño de N5 v0.1 | referencia de diseño; N5 descartado |
+| `construccion/Nivel5_artefacto_v02.html` | Artefacto de diseño de N5 v0.2 | referencia de diseño; N5 descartado |
+| `construccion/Nivel5_v02_fuente.html` | Fuente del artefacto de N5 v0.2 | referencia de diseño; N5 descartado |
+| `construccion/PanelHost.lua` | Contenedor de los paneles del lobby | copia vieja; el código vivo es el de la place |
+| `construccion/PatchSpeedDownhill_v01.lua` | Parche de más velocidad en bajadas y cámara | ya corrido |
+| `construccion/Place_v01.lua` | Pasos para instalar `ClaudeInstall` en la place | ya corrido |
+| `construccion/PuestosLobby_artefacto_v01.html` | Artefacto de diseño de los puestos del lobby | referencia de diseño |
+| `construccion/SpeedEffects.lua` | Efectos de velocidad (líneas, nieve, estela) | copia vieja; el código vivo es el de la place |
+| `construccion/StepAssist.lua` | Sube solo bordes pequeños al caminar | copia vieja; el código vivo es el de la place |
+| `construccion/StepAssist_v01.rbxmx` | Instalador de `StepAssist` | ya corrido |
+| `construccion/WheelPanel.lua` | Panel de la ruleta | copia vieja; el código vivo es el de la place |
+| `construccion/WheelPanel_v02.rbxmx` | Instalador del panel de la ruleta v0.2 | ya corrido |
+| `construccion/WindowBreaker.lua` | Ventanas que se rompen en N5 | copia vieja; N5 descartado |
+| `construccion/iconos/PinguinoIconos_v1.png` | Hoja de 17 iconos principales | fuente; ya subida como asset |
+| `construccion/iconos/PinguinoIconos_v2_extra.png` | Hoja de 34 iconos extra | fuente; ya subida como asset |
 
-Los constructores del lobby, del Festival de N2, de los puestos y de la montaña de avalancha no están aquí: viven en `ServerStorage` de la place (ver [[sistemas]] § Restos).
+Las copias de `construccion/` que van de `AvalancheCinematic.lua` a `iconos/` llegaron de la otra computadora al sincronizar el 2026-11-13. Los constructores también viven en `ServerStorage` de la place (ver [[sistemas]] § Restos).
