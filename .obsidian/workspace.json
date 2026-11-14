@@ -1,0 +1,235 @@
+{
+  "main": {
+    "id": "7907d692307d2832",
+    "type": "split",
+    "children": [
+      {
+        "id": "34ae288f54384e2b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "27307ae8769a4455",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Sin título 1.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Sin título 1"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "0ca11981fccf7e30",
+    "type": "split",
+    "children": [
+      {
+        "id": "950f4dd1ee8d8908",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ec7cd72861f4a2b2",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de archivos"
+            }
+          },
+          {
+            "id": "ef911dfee6adf005",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Buscar"
+            }
+          },
+          {
+            "id": "0c8df358b208d285",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Marcadores"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "441ed0db72ca2050",
+    "type": "split",
+    "children": [
+      {
+        "id": "2e208e74a60bc8bb",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "64e10ba4429f4c50",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Contexto para Claude.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Enlaces entrantes"
+            }
+          },
+          {
+            "id": "aa6cbec264a46657",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Bienvenido.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Enlaces salientes"
+            }
+          },
+          {
+            "id": "5fb8def2ca3b9b88",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
+            }
+          },
+          {
+            "id": "3ce2b020fa3b7fd0",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Todas las propiedades"
+            }
+          },
+          {
+            "id": "e6e89bc7f32404b1",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Bienvenido.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Esquema"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "github-sync:Sync with Remote": false,
+      "switcher:Abrir selector rápido": false,
+      "graph:Abrir vista gráfica": false,
+      "canvas:Crear nuevo lienzo": false,
+      "daily-notes:Abrir la nota de hoy": false,
+      "templates:Insertar plantilla": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Crear nueva base": false
+    }
+  },
+  "active": "27307ae8769a4455",
+  "lastOpenFiles": [
+    "Sin título 1.md",
+    "archivo/construccion/iconos/PinguinoIconos_v2_extra.png",
+    "archivo/construccion/iconos/PinguinoIconos_v1.png",
+    "archivo/construccion/iconos",
+    "archivo/construccion/WindowBreaker.lua",
+    "archivo/construccion/WheelPanel_v02.rbxmx",
+    "archivo/construccion/WheelPanel.lua",
+    "archivo/construccion/StepAssist_v01.rbxmx",
+    "archivo/construccion/StepAssist.lua",
+    "archivo/construccion/SpeedEffects.lua",
+    "archivo/construccion/PuestosLobby_artefacto_v01.html",
+    "archivo/construccion/Place_v01.lua",
+    "archivo/construccion/PatchSpeedDownhill_v01.lua",
+    "Sin título.md",
+    "06 Bitácora/2026-11-12.md",
+    "06 Bitácora/2026-11-13.md",
+    "05 Técnico/Arquitectura.md",
+    "04 Planeación/Preguntas abiertas.md",
+    "04 Planeación/Pendiente de agregar a Studio.md",
+    "03 Decisiones/Registro de decisiones.md",
+    "03 Decisiones/D-012 Nivel 5 en Studio.md",
+    "03 Decisiones/D-011 Iconos, menú del lobby, iluminación y puestos.md",
+    "03 Decisiones/D-010 Avalancha del nivel 1.md",
+    "03 Decisiones/D-009 Velocidad en bajadas, cámara y efectos.md",
+    "03 Decisiones/D-008 Lobby, economía y Festival de Faroles en Studio.md",
+    "02 Diseño/Mecánicas/Obstáculos.md",
+    "02 Diseño/Mecánicas/Deslizamiento.md",
+    "02 Diseño/Puestos del lobby.md",
+    "02 Diseño/Nivel 5 Vecindario navideño.md",
+    "02 Diseño/Lobby y skins.md",
+    "02 Diseño/Avalancha del nivel 1.md",
+    "00 Índice.md",
+    "pendientes/preguntas/Q-07-controles-en-celular-y-consola.md",
+    "CLAUDE.md",
+    "decisiones/D-010-nivel-2-y-portal-entre-niveles.md",
+    "decisiones/D-005-controles-de-la-resortera.md",
+    "decisiones/D-003-tipos-de-obstaculos.md",
+    "decisiones/D-002-limite-de-angulo-de-la-resortera.md",
+    "Sin título.canvas",
+    "Sin título 1.canvas"
+  ]
+}

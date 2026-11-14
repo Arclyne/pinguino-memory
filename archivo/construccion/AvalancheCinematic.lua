@@ -1,0 +1,980 @@
+--!strict
+local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+
+local LevelRegistry = require(ReplicatedStorage.Shared.LevelRegistry)
+local RunState = require(ReplicatedStorage.Shared.RunState)
+local SlingshotGeometry = require(ReplicatedStorage.Shared.SlingshotGeometry)
+
+local RENDER_STEP_NAME = "AvalancheCinematic"
+local MOUNTAIN_TAG = "AvalancheMountain"
+local SIREN_TAG = "AvalancheSiren"
+local BREAK_AT = 1.1
+local FOLLOW_AT = 1.9
+local BANNER_AT = 2.0
+local SLOPE_SHARE = 0.55
+local ARRIVE_AT = 5.0
+local RETURN_AT = 3.1
+local END_AT = 3.12
+local WHITEOUT_SECONDS = 0.25
+local OUTRO_SECONDS = 3.6
+local OUTRO_START_BEHIND = 70
+local OUTRO_END_BEHIND = 34
+local TRAIL_SCALE = 0.25
+local BANNER_SECONDS = 3
+local WAVE_WIDTH = 250
+local WAVE_BALLS = 30
+local DEBRIS_COUNT = 16
+local CHASE_SECONDS = 11.5
+local LOOM_BEHIND_SLINGSHOT = 75
+local AVALANCHE_LEVEL = 1
+local CHASE_SCHEDULE = { { 0, 82 }, { 1.4, 64 }, { 2.4, 47 }, { 3.2, 45 }, { 4.4, 66 }, { 5.8, 60 }, { 6.8, 46 }, { 7.6, 47 }, { 8.8, 70 }, { 11.5, 95 } }
+local SURGE_TIMES = { 2.1, 6.5 }
+local TRACK_FORWARD = Vector3.new(0, 0, -1)
+
+type Ball = { part: BasePart, offset: Vector3, phase: number }
+type Debris = { part: BasePart, lateral: number, ahead: number, phase: number, hop: number, spin: Vector3 }
+type Wave = { model: Model, balls: { Ball }, debris: { Debris }, emitters: { ParticleEmitter }, anchors: { { part: BasePart, offset: Vector3 } }, shadow: BasePart }
+type Saved = { part: BasePart, cframe: CFrame, transparency: number }
+
+local player = Players.LocalPlayer
+local random = Random.new()
+
+local active: { mountain: Instance, wave: Wave?, saved: { Saved }, sirens: { BasePart }, connections: { RBXScriptConnection }, guis: { Instance }, token: number, loom: CFrame, frost: { Frame } }? = nil
+local token = 0
+
+local AvalancheCinematic = {}
+
+local function smooth(x: number): number
+	local t = math.clamp(x, 0, 1)
+	return t * t * (3 - 2 * t)
+end
+
+local function findMountain(levelId: number): Instance?
+	for _, mountain in CollectionService:GetTagged(MOUNTAIN_TAG) do
+		if LevelRegistry.levelOf(mountain) == levelId then
+			return mountain
+		end
+	end
+	return nil
+end
+
+local function markerFrame(mountain: Instance, name: string): CFrame?
+	local marker = mountain:FindFirstChild(name)
+	return if marker and marker:IsA("BasePart") then marker.CFrame else nil
+end
+
+local function newGui(name: string, order: number): ScreenGui
+	local gui = Instance.new("ScreenGui")
+	gui.Name = name
+	gui.IgnoreGuiInset = true
+	gui.ResetOnSpawn = false
+	gui.DisplayOrder = order
+	gui.Parent = player:WaitForChild("PlayerGui")
+	return gui
+end
+
+local function corner(parent: Instance, scale: number)
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(scale, 0)
+	c.Parent = parent
+end
+
+local function stroke(parent: Instance, color: Color3, thickness: number, transparency: number?)
+	local s = Instance.new("UIStroke")
+	s.Color = color
+	s.Thickness = thickness
+	s.Transparency = transparency or 0
+	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	s.Parent = parent
+	return s
+end
+
+local function textStroke(parent: Instance, color: Color3, thickness: number)
+	local s = Instance.new("UIStroke")
+	s.Color = color
+	s.Thickness = thickness
+	s.Parent = parent
+end
+
+local function ghostPart(parent: Instance, size: Vector3, color: Color3, material: Enum.Material, shape: Enum.PartType?): Part
+	local p = Instance.new("Part")
+	if shape then
+		p.Shape = shape
+	end
+	p.Size = size
+	p.Color = color
+	p.Material = material
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CanTouch = false
+	p.CastShadow = false
+	p.Parent = parent
+	return p
+end
+
+local function emitter(anchor: BasePart, settings: { [string]: any }): ParticleEmitter
+	local e = Instance.new("ParticleEmitter")
+	for key, value in settings do
+		(e :: any)[key] = value
+	end
+	e.Parent = anchor
+	return e
+end
+
+local function buildWave(): Wave
+	local model = Instance.new("Model")
+	model.Name = "AvalancheWave"
+	local balls: { Ball } = {}
+	for index = 1, WAVE_BALLS do
+		local size = random:NextNumber(18, 36)
+		local color = if index % 4 == 0 then Color3.fromRGB(200, 222, 244) elseif index % 3 == 0 then Color3.fromRGB(226, 238, 252) else Color3.fromRGB(248, 251, 255)
+		local ball = ghostPart(model, Vector3.new(size, size, size), color, Enum.Material.Snow, Enum.PartType.Ball)
+		local lateral = (index - 1) / (WAVE_BALLS - 1) - 0.5
+		local row = index % 3
+		table.insert(balls, {
+			part = ball,
+			offset = Vector3.new(lateral * WAVE_WIDTH + random:NextNumber(-6, 6), row * 9 + random:NextNumber(-2, 6), row * 16 + random:NextNumber(0, 10)),
+			phase = random:NextNumber(0, 6),
+		})
+	end
+	local debris: { Debris } = {}
+	for index = 1, DEBRIS_COUNT do
+		local isPine = index % 4 == 0
+		local piece: BasePart
+		if isPine then
+			piece = ghostPart(model, Vector3.new(1.4, 9, 1.4), Color3.fromRGB(110, 72, 44), Enum.Material.Wood)
+			local crown = ghostPart(model, Vector3.new(6, 6, 6), Color3.fromRGB(40, 104, 70), Enum.Material.Grass)
+			crown.CFrame = piece.CFrame * CFrame.new(0, 4.5, 0)
+			crown.Anchored = false
+			local weld = Instance.new("WeldConstraint")
+			weld.Part0 = piece
+			weld.Part1 = crown
+			weld.Parent = crown
+		else
+			local s = random:NextNumber(3, 8)
+			piece = ghostPart(model, Vector3.new(s, s * 0.8, s * 1.1), if index % 2 == 0 then Color3.fromRGB(176, 220, 246) else Color3.fromRGB(236, 246, 255), if index % 2 == 0 then Enum.Material.Ice else Enum.Material.Snow)
+		end
+		table.insert(debris, {
+			part = piece,
+			lateral = random:NextNumber(-0.5, 0.5) * WAVE_WIDTH,
+			ahead = random:NextNumber(8, 26),
+			phase = random:NextNumber(0, 6),
+			hop = random:NextNumber(2.2, 3.6),
+			spin = Vector3.new(random:NextNumber(-6, 6), random:NextNumber(-6, 6), random:NextNumber(-6, 6)),
+		})
+	end
+	local emitters: { ParticleEmitter } = {}
+	local anchors: { { part: BasePart, offset: Vector3 } } = {}
+	local function anchorAt(offset: Vector3, size: Vector3): BasePart
+		local a = ghostPart(model, size, Color3.new(1, 1, 1), Enum.Material.SmoothPlastic)
+		a.Transparency = 1
+		table.insert(anchors, { part = a, offset = offset })
+		return a
+	end
+	for index = 0, 3 do
+		local plume = anchorAt(Vector3.new((index - 1.5) * WAVE_WIDTH / 4, 14, 14), Vector3.new(WAVE_WIDTH / 4, 10, 10))
+		table.insert(emitters, emitter(plume, {
+			Texture = "rbxasset://textures/particles/smoke_main.dds",
+			Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(196, 218, 240)),
+			Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(0.5, 0.35), NumberSequenceKeypoint.new(1, 1) }),
+			Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 26), NumberSequenceKeypoint.new(1, 72) }),
+			Lifetime = NumberRange.new(2, 3.2),
+			Speed = NumberRange.new(14, 30),
+			SpreadAngle = Vector2.new(55, 55),
+			EmissionDirection = Enum.NormalId.Top,
+			Acceleration = Vector3.new(0, 8, 0),
+			RotSpeed = NumberRange.new(-40, 40),
+			Rotation = NumberRange.new(0, 360),
+			LightInfluence = 0.6,
+			Rate = 40,
+			Shape = Enum.ParticleEmitterShape.Box,
+		}))
+	end
+	local front = anchorAt(Vector3.new(0, 2, -6), Vector3.new(WAVE_WIDTH, 2, 2))
+	table.insert(emitters, emitter(front, {
+		Texture = "rbxasset://textures/particles/smoke_main.dds",
+		Color = ColorSequence.new(Color3.fromRGB(255, 255, 255)),
+		Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 1) }),
+		Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 3), NumberSequenceKeypoint.new(1, 10) }),
+		Lifetime = NumberRange.new(0.5, 0.9),
+		Speed = NumberRange.new(40, 70),
+		SpreadAngle = Vector2.new(25, 15),
+		EmissionDirection = Enum.NormalId.Front,
+		Acceleration = Vector3.new(0, -30, 0),
+		Rate = 160,
+		Shape = Enum.ParticleEmitterShape.Box,
+	}))
+	local glitter = anchorAt(Vector3.new(0, 18, 4), Vector3.new(WAVE_WIDTH, 20, 20))
+	table.insert(emitters, emitter(glitter, {
+		Color = ColorSequence.new(Color3.fromRGB(220, 244, 255)),
+		LightEmission = 1,
+		Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.6), NumberSequenceKeypoint.new(1, 0) }),
+		Lifetime = NumberRange.new(0.8, 1.4),
+		Speed = NumberRange.new(10, 26),
+		SpreadAngle = Vector2.new(180, 180),
+		Rate = 90,
+		Shape = Enum.ParticleEmitterShape.Box,
+	}))
+	local shadow = ghostPart(model, Vector3.new(0.4, WAVE_WIDTH * 1.05, 60), Color3.fromRGB(70, 96, 140), Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
+	shadow.Transparency = 1
+	model.Parent = Workspace
+	return { model = model, balls = balls, debris = debris, emitters = emitters, anchors = anchors, shadow = shadow }
+end
+
+local function placeWave(wave: Wave, frame: CFrame, now: number, churn: number)
+	for _, ball in wave.balls do
+		local roll = math.sin(now * 6 + ball.phase) * 3 * churn
+		ball.part.CFrame = frame * CFrame.new(ball.offset + Vector3.new(0, roll, math.cos(now * 5 + ball.phase) * 4 * churn)) * CFrame.Angles(now * 3 + ball.phase, ball.phase, 0)
+	end
+	for _, piece in wave.debris do
+		local cycle = (now * piece.hop + piece.phase) % 1
+		local height = 4 + math.sin(cycle * math.pi) * 22 * churn
+		local spin = piece.spin * now
+		piece.part.CFrame = frame * CFrame.new(piece.lateral, height, -piece.ahead * churn) * CFrame.Angles(spin.X, spin.Y, spin.Z)
+	end
+	for _, anchor in wave.anchors do
+		anchor.part.CFrame = frame * CFrame.new(anchor.offset)
+	end
+	wave.shadow.CFrame = frame * CFrame.new(0, -4, -20) * CFrame.Angles(0, 0, math.pi / 2)
+	local camera = Workspace.CurrentCamera
+	if camera then
+		local eye = camera.CFrame.Position
+		for _, ball in wave.balls do
+			local gap = (ball.part.Position - eye).Magnitude - ball.part.Size.X * 0.5
+			ball.part.LocalTransparencyModifier = math.clamp(1 - (gap - 4) / 18, 0, 1)
+		end
+		for _, piece in wave.debris do
+			local gap = (piece.part.Position - eye).Magnitude
+			piece.part.LocalTransparencyModifier = math.clamp(1 - (gap - 6) / 10, 0, 1)
+		end
+	end
+end
+
+local function setWaveRate(wave: Wave, scale: number)
+	for _, e in wave.emitters do
+		local base = e:GetAttribute("BaseRate")
+		if typeof(base) ~= "number" then
+			base = e.Rate
+			e:SetAttribute("BaseRate", base)
+		end
+		e.Rate = (base :: number) * scale
+	end
+end
+
+local function setPowderDrift(wave: Wave, drift: Vector3)
+	for _, e in wave.emitters do
+		if e.EmissionDirection == Enum.NormalId.Top and e.Texture ~= "" then
+			e.Acceleration = Vector3.new(0, 8, 0) + drift
+		end
+	end
+end
+
+local function frostVignette(guis: { Instance }): { Frame }
+	local gui = newGui("AvalancheFrost", 37)
+	table.insert(guis, gui)
+	local edges: { Frame } = {}
+	for _, spec in { { 0, 0, 1, 0.3, 90 }, { 0, 0.7, 1, 0.3, -90 }, { 0, 0, 0.22, 1, 0 }, { 0.78, 0, 0.22, 1, 180 } } do
+		local edge = Instance.new("Frame")
+		edge.Position = UDim2.fromScale(spec[1], spec[2])
+		edge.Size = UDim2.fromScale(spec[3], spec[4])
+		edge.BackgroundColor3 = Color3.fromRGB(232, 244, 255)
+		edge.BorderSizePixel = 0
+		edge.BackgroundTransparency = 1
+		edge.Parent = gui
+		local gradient = Instance.new("UIGradient")
+		gradient.Rotation = spec[5]
+		gradient.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1) })
+		gradient.Parent = edge
+		table.insert(edges, edge)
+	end
+	return edges
+end
+
+local function setFrost(edges: { Frame }, amount: number)
+	for _, edge in edges do
+		edge.BackgroundTransparency = 1 - math.clamp(amount, 0, 1) * 0.8
+	end
+end
+
+local function flashScreen(guis: { Instance })
+	local gui = newGui("AvalancheFlash", 39)
+	table.insert(guis, gui)
+	local flash = Instance.new("Frame")
+	flash.Size = UDim2.fromScale(1, 1)
+	flash.BackgroundColor3 = Color3.fromRGB(235, 245, 255)
+	flash.BackgroundTransparency = 0.35
+	flash.BorderSizePixel = 0
+	flash.Parent = gui
+	TweenService:Create(flash, TweenInfo.new(0.45), { BackgroundTransparency = 1 }):Play()
+end
+
+local function whiteout(guis: { Instance })
+	local gui = newGui("AvalancheWhiteout", 41)
+	table.insert(guis, gui)
+	local veil = Instance.new("Frame")
+	veil.Size = UDim2.fromScale(1, 1)
+	veil.BackgroundColor3 = Color3.fromRGB(240, 248, 255)
+	veil.BackgroundTransparency = 1
+	veil.BorderSizePixel = 0
+	veil.Parent = gui
+	local fadeIn = TweenService:Create(veil, TweenInfo.new(WHITEOUT_SECONDS, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { BackgroundTransparency = 0 })
+	fadeIn.Completed:Connect(function()
+		TweenService:Create(veil, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 1 }):Play()
+	end)
+	fadeIn:Play()
+end
+
+local function clickShield(guis: { Instance }): ScreenGui
+	local gui = newGui("AvalancheClickShield", 100)
+	table.insert(guis, gui)
+	local shield = Instance.new("TextButton")
+	shield.Size = UDim2.fromScale(1, 1)
+	shield.BackgroundTransparency = 1
+	shield.Text = ""
+	shield.AutoButtonColor = false
+	shield.Active = true
+	shield.Selectable = false
+	shield.Parent = gui
+	return gui
+end
+
+local function letterbox(guis: { Instance }): (() -> ())
+	local gui = newGui("AvalancheLetterbox", 38)
+	table.insert(guis, gui)
+	local bars = {}
+	for _, top in { true, false } do
+		local bar = Instance.new("Frame")
+		bar.BackgroundColor3 = Color3.fromRGB(6, 10, 22)
+		bar.BorderSizePixel = 0
+		bar.AnchorPoint = Vector2.new(0, if top then 0 else 1)
+		bar.Position = UDim2.fromScale(0, if top then 0 else 1)
+		bar.Size = UDim2.fromScale(1, 0)
+		bar.Parent = gui
+		TweenService:Create(bar, TweenInfo.new(0.45, Enum.EasingStyle.Quad), { Size = UDim2.fromScale(1, 0.1) }):Play()
+		table.insert(bars, bar)
+	end
+	return function()
+		for _, bar in bars do
+			TweenService:Create(bar, TweenInfo.new(0.45, Enum.EasingStyle.Quad), { Size = UDim2.fromScale(1, 0) }):Play()
+		end
+	end
+end
+
+local function showBanner(guis: { Instance }, title: string, subtitle: string, seconds: number, yPosition: number, scale: number)
+	local gui = newGui("AvalancheBanner", 40)
+	table.insert(guis, gui)
+	local holder = Instance.new("Frame")
+	holder.AnchorPoint = Vector2.new(0.5, 0.5)
+	holder.Position = UDim2.fromScale(0.5, yPosition)
+	holder.Size = UDim2.fromScale(0.7 * scale, 0.2 * scale)
+	holder.BackgroundTransparency = 1
+	holder.Parent = gui
+	local aspect = Instance.new("UIAspectRatioConstraint")
+	aspect.AspectRatio = 5.4
+	aspect.Parent = holder
+	local uiScale = Instance.new("UIScale")
+	uiScale.Scale = 0
+	uiScale.Parent = holder
+
+	local shadow = Instance.new("Frame")
+	shadow.Size = UDim2.fromScale(1, 1)
+	shadow.Position = UDim2.new(0, 0, 0, 8)
+	shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	shadow.BackgroundTransparency = 0.55
+	shadow.BorderSizePixel = 0
+	shadow.Parent = holder
+	corner(shadow, 0.5)
+
+	local pill = Instance.new("CanvasGroup")
+	pill.Size = UDim2.fromScale(1, 1)
+	pill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	pill.BorderSizePixel = 0
+	pill.Parent = holder
+	corner(pill, 0.5)
+	local body = Instance.new("UIGradient")
+	body.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(14, 26, 64)),
+		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(34, 96, 182)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 26, 64)),
+	})
+	body.Parent = pill
+
+	local frost = Instance.new("Frame")
+	frost.Size = UDim2.fromScale(0.86, 0.36)
+	frost.Position = UDim2.fromScale(0.07, 0.06)
+	frost.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	frost.BackgroundTransparency = 0.86
+	frost.BorderSizePixel = 0
+	frost.Parent = pill
+	corner(frost, 0.5)
+
+	local shimmer = Instance.new("Frame")
+	shimmer.Size = UDim2.fromScale(0.12, 1.6)
+	shimmer.AnchorPoint = Vector2.new(0.5, 0.5)
+	shimmer.Position = UDim2.fromScale(-0.2, 0.5)
+	shimmer.Rotation = 18
+	shimmer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	shimmer.BackgroundTransparency = 0.7
+	shimmer.BorderSizePixel = 0
+	shimmer.Parent = pill
+
+	local border = Instance.new("Frame")
+	border.Size = UDim2.fromScale(1, 1)
+	border.BackgroundTransparency = 1
+	border.Parent = holder
+	corner(border, 0.5)
+	stroke(border, Color3.fromRGB(196, 238, 255), 5)
+	local inner = Instance.new("Frame")
+	inner.AnchorPoint = Vector2.new(0.5, 0.5)
+	inner.Position = UDim2.fromScale(0.5, 0.5)
+	inner.Size = UDim2.new(1, -14, 1, -14)
+	inner.BackgroundTransparency = 1
+	inner.Parent = holder
+	corner(inner, 0.5)
+	stroke(inner, Color3.fromRGB(255, 255, 255), 2, 0.55)
+
+	local lights: { Frame } = {}
+	local glows: { Frame } = {}
+	for _, x in { 0.075, 0.925 } do
+		local glow = Instance.new("Frame")
+		glow.AnchorPoint = Vector2.new(0.5, 0.5)
+		glow.Position = UDim2.fromScale(x, 0.5)
+		glow.SizeConstraint = Enum.SizeConstraint.RelativeYY
+		glow.Size = UDim2.fromScale(0.95, 0.95)
+		glow.BorderSizePixel = 0
+		glow.BackgroundTransparency = 0.6
+		glow.Parent = holder
+		corner(glow, 0.5)
+		local light = Instance.new("Frame")
+		light.AnchorPoint = Vector2.new(0.5, 0.5)
+		light.Position = UDim2.fromScale(x, 0.5)
+		light.SizeConstraint = Enum.SizeConstraint.RelativeYY
+		light.Size = UDim2.fromScale(0.6, 0.6)
+		light.BorderSizePixel = 0
+		light.Parent = holder
+		corner(light, 0.5)
+		stroke(light, Color3.fromRGB(10, 16, 36), 3)
+		local shine = Instance.new("Frame")
+		shine.Size = UDim2.fromScale(0.35, 0.25)
+		shine.Position = UDim2.fromScale(0.22, 0.16)
+		shine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		shine.BackgroundTransparency = 0.35
+		shine.BorderSizePixel = 0
+		shine.Parent = light
+		corner(shine, 0.5)
+		table.insert(lights, light)
+		table.insert(glows, glow)
+	end
+
+	local flakes: { TextLabel } = {}
+	for _, x in { 0.2, 0.8 } do
+		local flake = Instance.new("TextLabel")
+		flake.AnchorPoint = Vector2.new(0.5, 0.5)
+		flake.Position = UDim2.fromScale(x, 0.42)
+		flake.SizeConstraint = Enum.SizeConstraint.RelativeYY
+		flake.Size = UDim2.fromScale(0.42, 0.42)
+		flake.BackgroundTransparency = 1
+		flake.Font = Enum.Font.FredokaOne
+		flake.TextScaled = true
+		flake.Text = "❄"
+		flake.TextColor3 = Color3.fromRGB(200, 240, 255)
+		flake.Parent = holder
+		table.insert(flakes, flake)
+	end
+
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	titleLabel.Position = UDim2.fromScale(0.5, 0.38)
+	titleLabel.Size = UDim2.fromScale(0.6, 0.6)
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Font = Enum.Font.FredokaOne
+	titleLabel.TextScaled = true
+	titleLabel.Text = title
+	titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	titleLabel.Parent = holder
+	local titleGradient = Instance.new("UIGradient")
+	titleGradient.Rotation = 90
+	titleGradient.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(160, 222, 255))
+	titleGradient.Parent = titleLabel
+	textStroke(titleLabel, Color3.fromRGB(8, 18, 48), 3)
+
+	local subtitleLabel = Instance.new("TextLabel")
+	subtitleLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	subtitleLabel.Position = UDim2.fromScale(0.5, 0.82)
+	subtitleLabel.Size = UDim2.fromScale(0.5, 0.17)
+	subtitleLabel.BackgroundTransparency = 1
+	subtitleLabel.Font = Enum.Font.GothamBold
+	subtitleLabel.TextScaled = true
+	subtitleLabel.Text = subtitle
+	subtitleLabel.TextColor3 = Color3.fromRGB(255, 214, 90)
+	subtitleLabel.Parent = holder
+	textStroke(subtitleLabel, Color3.fromRGB(8, 18, 48), 2)
+
+	TweenService:Create(uiScale, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	local started = os.clock()
+	local warm = Color3.fromRGB(255, 64, 64)
+	local cold = Color3.fromRGB(80, 206, 255)
+	local connection: RBXScriptConnection
+	connection = RunService.RenderStepped:Connect(function()
+		if not holder.Parent then
+			connection:Disconnect()
+			return
+		end
+		local t = os.clock() - started
+		local blink = math.floor(t / 0.16) % 2 == 0
+		lights[1].BackgroundColor3 = if blink then warm else cold
+		lights[2].BackgroundColor3 = if blink then cold else warm
+		glows[1].BackgroundColor3 = lights[1].BackgroundColor3
+		glows[2].BackgroundColor3 = lights[2].BackgroundColor3
+		local pulse = 0.45 + 0.25 * math.sin(t * 22)
+		glows[1].BackgroundTransparency = pulse
+		glows[2].BackgroundTransparency = pulse
+		holder.Rotation = math.sin(t * 38) * 1.6 * math.max(0, 1 - t / 0.7)
+		shimmer.Position = UDim2.fromScale(-0.2 + ((t * 0.9) % 1.4), 0.5)
+		for index, flake in flakes do
+			flake.Rotation = t * (if index == 1 then 90 else -90)
+		end
+		body.Offset = Vector2.new(math.sin(t * 2) * 0.15, 0)
+	end)
+	task.delay(seconds, function()
+		if not holder.Parent then
+			return
+		end
+		TweenService:Create(uiScale, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Scale = 0 }):Play()
+		task.delay(0.4, function()
+			gui:Destroy()
+		end)
+	end)
+end
+
+local function sirensOf(mountain: Instance): { BasePart }
+	local list: { BasePart } = {}
+	for _, siren in CollectionService:GetTagged(SIREN_TAG) do
+		if siren:IsA("BasePart") and siren:IsDescendantOf(mountain) then
+			table.insert(list, siren)
+		end
+	end
+	return list
+end
+
+local function animateSirens(sirens: { BasePart }, now: number)
+	for _, siren in sirens do
+		local on = math.floor(now / 0.25) % 2 == 0
+		siren.Color = if on then Color3.fromRGB(255, 70, 40) else Color3.fromRGB(255, 170, 40)
+		local light = siren:FindFirstChildOfClass("PointLight")
+		if light then
+			light.Brightness = if on then 4 else 1
+		end
+	end
+end
+
+local function cleanup()
+	local state = active
+	active = nil
+	RunService:UnbindFromRenderStep(RENDER_STEP_NAME)
+	if not state then
+		return
+	end
+	for _, connection in state.connections do
+		connection:Disconnect()
+	end
+	for _, saved in state.saved do
+		saved.part.CFrame = saved.cframe
+		saved.part.Transparency = saved.transparency
+	end
+	for _, siren in state.sirens do
+		siren.Color = Color3.fromRGB(255, 120, 30)
+		local light = siren:FindFirstChildOfClass("PointLight")
+		if light then
+			light.Brightness = 2
+		end
+	end
+	if state.wave then
+		state.wave.model:Destroy()
+	end
+	for _, gui in state.guis do
+		gui:Destroy()
+	end
+	local playerGui = player:FindFirstChild("PlayerGui")
+	local gameHud = playerGui and playerGui:FindFirstChild("GameHud")
+	if gameHud and gameHud:IsA("ScreenGui") then
+		gameHud.Enabled = true
+	end
+end
+
+local function saveCornice(mountain: Instance): ({ Saved }, { BasePart })
+	local saved: { Saved } = {}
+	local chunks: { BasePart } = {}
+	local cornice = mountain:FindFirstChild("Cornice")
+	if cornice then
+		for _, piece in cornice:GetDescendants() do
+			if piece:IsA("BasePart") then
+				table.insert(saved, { part = piece, cframe = piece.CFrame, transparency = piece.Transparency })
+				if piece.Name == "Chunk" then
+					table.insert(chunks, piece)
+				end
+			end
+		end
+	end
+	return saved, chunks
+end
+
+local function loomFrame(levelId: number, waveEnd: CFrame): CFrame
+	local slingshot = SlingshotGeometry.find(levelId)
+	if not slingshot then
+		return waveEnd
+	end
+	local pivot = slingshot:GetPivot().Position
+	local spot = pivot - TRACK_FORWARD * LOOM_BEHIND_SLINGSHOT
+	return CFrame.lookAt(Vector3.new(spot.X, waveEnd.Position.Y, spot.Z), Vector3.new(spot.X, waveEnd.Position.Y, spot.Z) + TRACK_FORWARD)
+end
+
+local function wavePath(waveStart: CFrame, waveEdge: CFrame, waveLoom: CFrame, progress: number): CFrame
+	if progress < SLOPE_SHARE then
+		return waveStart:Lerp(waveEdge, progress / SLOPE_SHARE)
+	end
+	return waveEdge:Lerp(waveLoom, (progress - SLOPE_SHARE) / (1 - SLOPE_SHARE))
+end
+
+local function play(levelId: number)
+	cleanup()
+	if levelId ~= AVALANCHE_LEVEL then
+		return
+	end
+	local mountain = findMountain(levelId)
+	if not mountain then
+		return
+	end
+	local waveStart = markerFrame(mountain, "WaveStart")
+	local waveEdge = markerFrame(mountain, "WaveEnd")
+	local shot = markerFrame(mountain, "ShotCamera")
+	if not (waveStart and waveEdge and shot) then
+		return
+	end
+	local waveLoom = loomFrame(levelId, waveEdge)
+	token += 1
+	local myToken = token
+	local saved, chunks = saveCornice(mountain)
+	local guis: { Instance } = {}
+	local state = { mountain = mountain, wave = nil :: Wave?, saved = saved, sirens = sirensOf(mountain), connections = {}, guis = guis, token = myToken, loom = waveLoom, frost = {} :: { Frame } }
+	active = state
+
+	local playerGui = player:WaitForChild("PlayerGui")
+	local gameHud = playerGui:FindFirstChild("GameHud")
+	if gameHud and gameHud:IsA("ScreenGui") then
+		gameHud.Enabled = false
+	end
+	state.frost = frostVignette(guis)
+	local closeLetterbox = letterbox(guis)
+	local shield = clickShield(guis)
+	local started = os.clock()
+	local broken = false
+	local bannerShown = false
+	local returning = false
+	local whitedOut = false
+	local lastCinematicFrame = shot
+	local chunkOrigins: { [BasePart]: CFrame } = {}
+	for _, chunk in chunks do
+		chunkOrigins[chunk] = chunk.CFrame
+	end
+
+	RunService:BindToRenderStep(RENDER_STEP_NAME, Enum.RenderPriority.Last.Value, function()
+		if not active or active.token ~= myToken then
+			return
+		end
+		local camera = Workspace.CurrentCamera
+		if not camera then
+			return
+		end
+		local now = os.clock()
+		local t = now - started
+		animateSirens(state.sirens, now)
+
+		if t >= BREAK_AT and not broken then
+			broken = true
+			state.wave = buildWave()
+			flashScreen(guis)
+			for _, entry in saved do
+				if entry.part.Name ~= "Chunk" then
+					entry.part.Transparency = 1
+				end
+			end
+		end
+
+		local progress = smooth((t - BREAK_AT) / (ARRIVE_AT - BREAK_AT))
+		local waveFrame = wavePath(waveStart, waveEdge, waveLoom, progress)
+		local wave = state.wave
+		if wave then
+			placeWave(wave, waveFrame, now, 1)
+			for index, chunk in chunks do
+				local origin = chunkOrigins[chunk]
+				local delayed = smooth((t - BREAK_AT - index * 0.04) / (ARRIVE_AT - BREAK_AT - 0.3))
+				local target = wavePath(waveStart, waveEdge, waveLoom, delayed) * CFrame.new(((index - 1) / math.max(#chunks - 1, 1) - 0.5) * WAVE_WIDTH * 0.8, 6 + math.abs(math.sin(delayed * 9 + index)) * 14, -14)
+				chunk.CFrame = CFrame.new(origin.Position:Lerp(target.Position, math.min(delayed * 3, 1))) * CFrame.Angles(delayed * 12 + index, delayed * 5, delayed * 8)
+				chunk.Transparency = if delayed > 0.95 then 1 else 0
+			end
+			local cameraDistance = (camera.CFrame.Position - waveFrame.Position).Magnitude
+			setFrost(state.frost, (1 - (cameraDistance - 60) / 80) * (if t < RETURN_AT then 1 else 0.4))
+		end
+
+		if t >= BANNER_AT and not bannerShown then
+			bannerShown = true
+			showBanner(guis, "¡SOBREVIVE A LA AVALANCHA!", "¡Lánzate antes de que te alcance!", BANNER_SECONDS, 0.24, 1)
+		end
+
+		local rumble = math.clamp(t / BREAK_AT, 0, 1) * 0.35 + (if t > BREAK_AT and t < ARRIVE_AT + 0.4 then 0.9 else 0)
+		local shake = CFrame.Angles(math.noise(now * 12, 1) * 0.025 * rumble, math.noise(2, now * 12) * 0.025 * rumble, math.noise(3, now * 12) * 0.012 * rumble)
+
+		local cinematicFrame: CFrame
+		if t < FOLLOW_AT then
+			cinematicFrame = shot * CFrame.new(0, 0, -t * 4)
+		else
+			local wavePosition = waveFrame.Position
+			local followPosition = wavePosition + waveFrame.LookVector * 90 + Vector3.yAxis * 34 + waveFrame.RightVector * 45
+			local follow = CFrame.lookAt(followPosition, wavePosition + Vector3.yAxis * 10)
+			local blendIn = smooth((t - FOLLOW_AT) / 0.7)
+			cinematicFrame = (shot * CFrame.new(0, 0, -FOLLOW_AT * 4)):Lerp(follow, blendIn)
+		end
+
+		if t >= RETURN_AT - WHITEOUT_SECONDS and not whitedOut then
+			whitedOut = true
+			whiteout(guis)
+		end
+
+		if t < RETURN_AT then
+			lastCinematicFrame = cinematicFrame
+			camera.CameraType = Enum.CameraType.Scriptable
+			camera.CFrame = cinematicFrame * shake
+		elseif t < END_AT then
+			if not returning then
+				returning = true
+				closeLetterbox()
+			end
+			local blend = smooth((t - RETURN_AT) / (END_AT - RETURN_AT))
+			camera.CFrame = lastCinematicFrame:Lerp(camera.CFrame, blend) * shake
+		else
+			if not returning then
+				returning = true
+				closeLetterbox()
+			end
+			RunService:UnbindFromRenderStep(RENDER_STEP_NAME)
+			if gameHud and gameHud:IsA("ScreenGui") then
+				gameHud.Enabled = true
+			end
+			if wave then
+				setWaveRate(wave, 0.08)
+			end
+			shield:Destroy()
+			setFrost(state.frost, 0)
+			for _, chunk in chunks do
+				chunk.Transparency = 1
+			end
+			table.insert(state.connections, RunService.RenderStepped:Connect(function()
+				local idleNow = os.clock()
+				animateSirens(state.sirens, idleNow)
+				if state.wave then
+					local travel = smooth((idleNow - started - BREAK_AT) / (ARRIVE_AT - BREAK_AT))
+					placeWave(state.wave, wavePath(waveStart, waveEdge, waveLoom, travel), idleNow, if travel < 1 then 1 else 0.45)
+				end
+			end))
+		end
+	end)
+end
+
+local function scheduledDistance(t: number): number
+	for index = 1, #CHASE_SCHEDULE - 1 do
+		local a, b = CHASE_SCHEDULE[index], CHASE_SCHEDULE[index + 1]
+		if t <= b[1] then
+			return a[2] + (b[2] - a[2]) * smooth((t - a[1]) / (b[1] - a[1]))
+		end
+	end
+	return CHASE_SCHEDULE[#CHASE_SCHEDULE][2]
+end
+
+local function chase()
+	local state = active
+	if not state or not state.wave then
+		cleanup()
+		return
+	end
+	RunService:UnbindFromRenderStep(RENDER_STEP_NAME)
+	for _, connection in state.connections do
+		connection:Disconnect()
+	end
+	table.clear(state.connections)
+	local playerGui = player:FindFirstChild("PlayerGui")
+	local gameHud = playerGui and playerGui:FindFirstChild("GameHud")
+	if gameHud and gameHud:IsA("ScreenGui") then
+		gameHud.Enabled = true
+	end
+	for _, gui in state.guis do
+		if gui.Name == "AvalancheLetterbox" then
+			gui:Destroy()
+		end
+	end
+	local wave = state.wave
+	setWaveRate(wave, 1)
+	showBanner(state.guis, "¡LA AVALANCHA VIENE DETRÁS!", "¡No te detengas!", 2.2, 0.16, 0.7)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.RespectCanCollide = true
+	local started = os.clock()
+	local current = state.loom.Position
+	local surgesShown = 0
+	local closeness = 0
+	local lastFrame = os.clock()
+	RunService:BindToRenderStep(RENDER_STEP_NAME, Enum.RenderPriority.Last.Value, function()
+		local deltaSeconds = os.clock() - lastFrame
+		lastFrame = os.clock()
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if not (character and root and root:IsA("BasePart")) then
+			return
+		end
+		local now = os.clock()
+		local t = now - started
+		local nextSurge = SURGE_TIMES[surgesShown + 1]
+		if nextSurge and t >= nextSurge then
+			surgesShown += 1
+			showBanner(state.guis, "¡TE ESTÁ ALCANZANDO!", "¡Más rápido!", 1.4, 0.15, 0.6)
+		end
+		params.FilterDescendantsInstances = { character, wave.model }
+		local distance = scheduledDistance(t)
+		local target = root.Position - TRACK_FORWARD * distance
+		local ground = Workspace:Raycast(target + Vector3.yAxis * 80, Vector3.new(0, -200, 0), params)
+		local groundY = if ground then ground.Position.Y else root.Position.Y
+		local desired = Vector3.new(target.X, groundY + 6, target.Z)
+		current = current:Lerp(desired, 1 - math.exp(-6 * deltaSeconds))
+		placeWave(wave, CFrame.lookAt(current, current + TRACK_FORWARD), now, 1)
+		local targetCloseness = math.clamp((68 - distance) / 20, 0, 1)
+		closeness += (targetCloseness - closeness) * (1 - math.exp(-5 * deltaSeconds))
+		setPowderDrift(wave, TRACK_FORWARD * (10 + closeness * 25))
+		setWaveRate(wave, if t < CHASE_SECONDS then 1 - closeness * 0.55 else TRAIL_SCALE)
+		setFrost(state.frost, closeness)
+		local camera = Workspace.CurrentCamera
+		if camera then
+			local amount = 0.006 + closeness * 0.03
+			camera.CFrame *= CFrame.Angles(math.noise(now * 13, 4) * amount, math.noise(5, now * 13) * amount, 0)
+		end
+	end)
+end
+
+local function outro()
+	local state = active
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local camera = Workspace.CurrentCamera
+	if not state or not state.wave or not (character and root and root:IsA("BasePart")) or not camera then
+		cleanup()
+		return
+	end
+	RunService:UnbindFromRenderStep(RENDER_STEP_NAME)
+	for _, connection in state.connections do
+		connection:Disconnect()
+	end
+	table.clear(state.connections)
+	local wave = state.wave
+	setFrost(state.frost, 0)
+	setPowderDrift(wave, Vector3.zero)
+	setWaveRate(wave, 0.6)
+	for _, ball in wave.balls do
+		ball.part.Transparency = 0
+	end
+	local sizes: { [BasePart]: Vector3 } = {}
+	for _, ball in wave.balls do
+		sizes[ball.part] = ball.part.Size
+	end
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.RespectCanCollide = true
+	params.FilterDescendantsInstances = { character, wave.model }
+	local anchor = root.Position
+	local closeLetterbox = letterbox(state.guis)
+	clickShield(state.guis)
+	local startCamera = camera.CFrame
+	local started = os.clock()
+	local burst = false
+	local bannerShown = false
+	local closing = false
+	RunService:BindToRenderStep(RENDER_STEP_NAME, Enum.RenderPriority.Last.Value, function()
+		if active ~= state then
+			return
+		end
+		local now = os.clock()
+		local t = now - started
+		local move = 1 - (1 - math.min(t / 1.8, 1)) ^ 3
+		local behind = OUTRO_START_BEHIND + (OUTRO_END_BEHIND - OUTRO_START_BEHIND) * move
+		local spot = anchor - TRACK_FORWARD * behind
+		local ground = Workspace:Raycast(spot + Vector3.yAxis * 80, Vector3.new(0, -200, 0), params)
+		local groundY = if ground then ground.Position.Y else anchor.Y
+		local waveCenter = Vector3.new(spot.X, groundY + 6, spot.Z)
+		local collapse = smooth((t - 1.0) / 1.9)
+		placeWave(wave, CFrame.lookAt(waveCenter, waveCenter + TRACK_FORWARD) * CFrame.new(0, -collapse * 12, 0), now, 1 - collapse * 0.9)
+		local vanish = smooth((t - 2.1) / 1.1)
+		for _, ball in wave.balls do
+			ball.part.Size = sizes[ball.part] * (1 - collapse * 0.6)
+			ball.part.Transparency = vanish
+		end
+		for _, piece in wave.debris do
+			piece.part.Transparency = collapse
+		end
+		if t >= 1.1 and not burst then
+			burst = true
+			for _, e in wave.emitters do
+				e:Emit(if e.Texture == "rbxasset://textures/particles/smoke_main.dds" then 18 else 40)
+			end
+			setWaveRate(wave, 0)
+		end
+		if t >= 1.5 and not bannerShown then
+			bannerShown = true
+			showBanner(state.guis, "¡SOBREVIVISTE!", "La avalancha se quedó atrás", 1.9, 0.2, 0.75)
+		end
+		local focus = root.Position
+		local lookout = CFrame.lookAt(focus + TRACK_FORWARD * 16 + Vector3.yAxis * 9 + Vector3.xAxis * 7, waveCenter + Vector3.yAxis * 6)
+		local blendIn = smooth(t / 0.6)
+		local blendOut = smooth((t - (OUTRO_SECONDS - 0.7)) / 0.7)
+		local frame = startCamera:Lerp(lookout, blendIn)
+		if blendOut > 0 then
+			if not closing then
+				closing = true
+				closeLetterbox()
+			end
+			frame = frame:Lerp(camera.CFrame, blendOut)
+		end
+		local rumble = 0.012 * (1 - collapse)
+		camera.CFrame = frame * CFrame.Angles(math.noise(now * 12, 7) * rumble, math.noise(8, now * 12) * rumble, 0)
+		if t >= OUTRO_SECONDS then
+			RunService:UnbindFromRenderStep(RENDER_STEP_NAME)
+			task.delay(0.6, function()
+				if active == state then
+					cleanup()
+				end
+			end)
+		end
+	end)
+end
+
+local function onRunStateChanged()
+	local runState = player:GetAttribute("RunState")
+	if runState == RunState.Aiming then
+		play(LevelRegistry.playerLevel(player))
+	elseif runState == RunState.Racing then
+		chase()
+	elseif runState == RunState.Finished then
+		outro()
+	else
+		cleanup()
+	end
+end
+
+function AvalancheCinematic.init()
+	player:GetAttributeChangedSignal("RunState"):Connect(onRunStateChanged)
+end
+
+return AvalancheCinematic

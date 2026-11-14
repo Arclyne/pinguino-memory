@@ -1,0 +1,1379 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" version="4"><Item class="Folder" referent="RBX1"><Properties><string name="Name">Level5Install</string></Properties><Item class="ModuleScript" referent="RBX2"><Properties><string name="Name">BuildLevel5</string><ProtectedString name="Source"><![CDATA[return function()
+local CollectionService = game:GetService("CollectionService")
+
+local LEVEL_FOLDER_NAME = "PenguinSlingshotMap_Level5"
+local LEVEL_ID = 5
+local OFFSET_X = 24000
+local BASE_Y = 1200
+local SLINGSHOT_LIFT = BASE_Y - 600
+local SLOPE = math.rad(7)
+local Z_FLAT = 4620
+local Z_END = 4780
+local HALF = 45
+local SOLID_HEIGHT = 18
+local ROOM_HEIGHT = 30
+local ROOM_LENGTH = 55
+local OPENING_HALF = 28
+local DOOR_HALF = 22
+local FIRST_HOUSE = 190
+local MANSION_START = 4360
+local MANSION_LENGTH = 140
+local FINISH_ZM = 4580
+local PORTAL_ZM = 4700
+local STREET_X = -96
+local V = Vector3.new
+local M = Enum.Material
+
+local levelOne = workspace:FindFirstChild("PenguinSlingshotMap_v01")
+local levelFour = workspace:FindFirstChild("PenguinSlingshotMap_Level4")
+local existing = workspace:FindFirstChild(LEVEL_FOLDER_NAME)
+if existing then existing:Destroy() end
+
+local root = Instance.new("Folder")
+root.Name = LEVEL_FOLDER_NAME
+root:SetAttribute("LevelId", LEVEL_ID)
+root.Parent = workspace
+
+local function newFolder(name, parent)
+	local folder = Instance.new("Folder")
+	folder.Name = name
+	folder.Parent = parent or root
+	return folder
+end
+local terrainFolder = newFolder("Terrain")
+local housesFolder = newFolder("Houses")
+local yardFolder = newFolder("Yards")
+local streetFolder = newFolder("Street")
+local decorationFolder = newFolder("Decoration")
+local gameplayFolder = newFolder("Gameplay")
+local hazardFolder = newFolder("Hazards")
+
+local function rgb(hex)
+	return Color3.fromRGB(bit32.rshift(hex, 16) % 256, bit32.rshift(hex, 8) % 256, hex % 256)
+end
+
+local C = {
+	Snow = rgb(0xf4f8fd), SnowShade = rgb(0xdbe6f1), Ice = rgb(0xcfeeff), Trim = rgb(0xfbf7ee), Glass = rgb(0xbfe9ff),
+	Wood = rgb(0xb8794a), WoodDark = rgb(0x6b4226), WoodMid = rgb(0x8a5a35), Stone = rgb(0x9a978f), Brick = rgb(0xa5442f),
+	Shingle = rgb(0x3a3f4a), Ceiling = rgb(0xfbf3e4), Red = rgb(0xd8302a), Green = rgb(0x2e9b4a), PineGreen = rgb(0x1e7a43),
+	Gold = rgb(0xffd23f), Blue = rgb(0x2f6fd6), White = rgb(0xffffff), Black = rgb(0x14182a), Asphalt = rgb(0x4a4f5a),
+	Sidewalk = rgb(0xcfd3da), LineYellow = rgb(0xffe27a), Steel = rgb(0xc0c6d0), Cabinet = rgb(0x3f6e8c), Counter = rgb(0xf7f4ee),
+	Cookie = rgb(0xb0703a), Rug = rgb(0xb3262f), RugTrim = rgb(0xffd88a), Lamp = rgb(0xfff1c8), Window = rgb(0xffd98a),
+	Garland = rgb(0x1f6b3c), Carrot = rgb(0xff8a1a), Teddy = rgb(0x9a6a3a), Mountain = rgb(0xaebfdc), Pad = rgb(0xffd166),
+}
+local BULB_COLORS = { rgb(0xff3040), rgb(0x30ff6a), rgb(0xffcf2a), rgb(0x3a9bff), rgb(0xff9a2a) }
+local GIFT_COLORS = { { C.Red, C.Gold }, { C.Green, C.Red }, { C.Blue, C.White }, { C.Gold, C.Green }, { rgb(0xff6fae), C.White }, { rgb(0x8a4fd6), C.Gold }, { C.White, C.Red } }
+local HOUSE_COLORS = { rgb(0x7c8a5e), rgb(0xd9c79c), rgb(0x7f93a6), rgb(0xb98a5a), rgb(0xece2c8), rgb(0x9a6b5a), rgb(0x8fa07a), rgb(0xc9b48a), rgb(0x6f8fa3), rgb(0xd8b98f), rgb(0x8d7d9e), rgb(0xb7c3a0) }
+local PAPER_COLORS = { rgb(0xf3e3c2), rgb(0xd9eadf), rgb(0xf6dede), rgb(0xe3e6f6), rgb(0xf7eccd) }
+local DOOR_COLORS = { rgb(0xa3262e), rgb(0x1f5f3a), rgb(0x2f4a7a), rgb(0x8a2a2a), C.Black }
+local SHINGLE_COLORS = { rgb(0x3a3f4a), rgb(0x4a3a32), rgb(0x2f3440), rgb(0x3d4250), rgb(0x2a5040), rgb(0x5a2f2f) }
+
+local random = Random.new(511)
+local function roll() return random:NextNumber() end
+
+local slopeFrame = CFrame.new(OFFSET_X, BASE_Y, 0) * CFrame.Angles(-SLOPE, 0, 0)
+local plateauFrame = CFrame.new(OFFSET_X, BASE_Y, 0)
+local flatFrame = CFrame.new((slopeFrame * CFrame.new(0, 0, -Z_FLAT)).Position)
+
+local function at(x, h, zm)
+	if zm < 0 then return plateauFrame * CFrame.new(x, h, -zm) end
+	if zm <= Z_FLAT then return slopeFrame * CFrame.new(x, h, -zm) end
+	return flatFrame * CFrame.new(x, h, -(zm - Z_FLAT))
+end
+
+local function createPart(parent, name, size, cframe, color, options)
+	options = options or {}
+	local part = Instance.new(options.className or "Part")
+	part.Name = name
+	part.Anchored = true
+	if options.shape then part.Shape = options.shape end
+	part.Size = size
+	part.CFrame = cframe
+	part.Color = color
+	part.Material = options.material or M.Plastic
+	local smooth = options.material == M.Neon or options.material == M.Glass or options.noStuds
+	part.TopSurface = smooth and Enum.SurfaceType.Smooth or Enum.SurfaceType.Studs
+	part.BottomSurface = smooth and Enum.SurfaceType.Smooth or Enum.SurfaceType.Inlet
+	if options.className == "WedgePart" then part.FrontSurface = Enum.SurfaceType.Studs end
+	if options.transparency then part.Transparency = options.transparency end
+	if options.noCollide then part.CanCollide = false end
+	if options.noQuery then part.CanQuery = false end
+	if options.noShadow then part.CastShadow = false end
+	if options.shell then CollectionService:AddTag(part, "HouseShell") end
+	part.Parent = parent
+	return part
+end
+
+local function box(parent, name, size, x, h, zm, color, options, rotation)
+	return createPart(parent, name, size, at(x, h, zm) * (rotation or CFrame.identity), color, options)
+end
+
+local function piece(parent, anchor, name, size, ox, oy, oz, color, options, rotation)
+	return createPart(parent, name, size, anchor * CFrame.new(ox, oy, oz) * (rotation or CFrame.identity), color, options)
+end
+
+local function newModel(name, parent)
+	local model = Instance.new("Model")
+	model.Name = name
+	model.Parent = parent
+	return model
+end
+
+local function ball(parent, anchor, name, diameter, ox, oy, oz, color, options)
+	options = options or {}
+	options.shape = Enum.PartType.Ball
+	options.noStuds = true
+	return piece(parent, anchor, name, V(diameter, diameter, diameter), ox, oy, oz, color, options)
+end
+
+local function cylinderUp(parent, anchor, name, diameter, height, ox, oy, oz, color, options)
+	options = options or {}
+	options.shape = Enum.PartType.Cylinder
+	options.noStuds = true
+	return piece(parent, anchor, name, V(height, diameter, diameter), ox, oy, oz, color, options, CFrame.Angles(0, 0, math.pi / 2))
+end
+
+local function wedgeRamp(parent, name, x, zmStart, zmEnd, height, width, color, options)
+	options = options or {}
+	options.className = "WedgePart"
+	local length = zmEnd - zmStart
+	return box(parent, name, V(width, height, length), x, height / 2, (zmStart + zmEnd) / 2, color, options, CFrame.Angles(0, math.pi, 0))
+end
+
+local bulbCount = 0
+local function bulbLine(parent, a, b, spacing, offset)
+	local distance = (b - a).Magnitude
+	local count = math.max(1, math.floor(distance / spacing))
+	for index = 0, count do
+		local point = a:Lerp(b, index / count)
+		local bulb = createPart(parent, "Bulb", V(0.9, 0.9, 0.9), CFrame.new(point), BULB_COLORS[(index + (offset or 0)) % #BULB_COLORS + 1], { shape = Enum.PartType.Ball, material = M.Neon, noCollide = true, noQuery = true, noShadow = true })
+		bulb:SetAttribute("ChaseIndex", index)
+		bulbCount += 1
+	end
+end
+local function localPoint(x, h, zm)
+	return at(x, h, zm).Position
+end
+
+local function boardWithText(parent, name, size, frame, boardColor, text, textColor, strokeColor)
+	local board = createPart(parent, name, size, frame, boardColor, { noStuds = true })
+	for _, face in ipairs({ Enum.NormalId.Front, Enum.NormalId.Back }) do
+		local gui = Instance.new("SurfaceGui")
+		gui.Face = face
+		gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		gui.PixelsPerStud = 20
+		gui.Parent = board
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.fromScale(1, 1)
+		label.BackgroundTransparency = 1
+		label.Text = text
+		label.TextScaled = true
+		label.Font = Enum.Font.FredokaOne
+		label.TextColor3 = textColor
+		label.TextStrokeColor3 = strokeColor
+		label.TextStrokeTransparency = 0.3
+		label.Parent = gui
+	end
+	return board
+end
+
+local function gift(parent, anchor, ox, oy, oz, size, colors, rotation)
+	local frame = anchor * CFrame.new(ox, oy + size / 2, oz) * CFrame.Angles(0, rotation or 0, 0)
+	createPart(parent, "Gift", V(size, size, size), frame, colors[1])
+	createPart(parent, "Ribbon", V(size + 0.1, size + 0.1, size * 0.2), frame, colors[2], { noStuds = true, noQuery = true })
+	createPart(parent, "Ribbon", V(size * 0.2, size + 0.1, size + 0.1), frame, colors[2], { noStuds = true, noQuery = true })
+	createPart(parent, "Bow", V(size * 0.6, size * 0.3, size * 0.3), frame * CFrame.new(0, size / 2 + 0.15, 0), colors[2], { noStuds = true, noQuery = true, noCollide = true })
+end
+
+local function giftPile(parent, anchor, count, spread)
+	for index = 1, count do
+		local size = 1.6 + roll() * 1.8
+		gift(parent, anchor, (roll() - 0.5) * spread, 0, (roll() - 0.5) * spread, size, GIFT_COLORS[(index - 1) % #GIFT_COLORS + 1], roll() * 3)
+	end
+end
+
+local function christmasTree(parent, anchor, scale)
+	local model = newModel("ChristmasTree", parent)
+	cylinderUp(model, anchor, "Pot", 3.2 * scale, 2 * scale, 0, scale, 0, C.Red)
+	cylinderUp(model, anchor, "Trunk", 1.2 * scale, 2 * scale, 0, 2.6 * scale, 0, C.WoodDark)
+	local layers = { { 7.4, 3.6, 3 }, { 6, 3.4, 5.8 }, { 4.4, 3.2, 8.4 }, { 2.6, 3, 10.8 } }
+	for _, layer in ipairs(layers) do
+		piece(model, anchor, "Branches", V(layer[1] * scale, layer[2] * scale, layer[1] * scale), 0, layer[3] * scale, 0, C.PineGreen, nil, CFrame.Angles(0, math.rad(45), 0))
+		piece(model, anchor, "BranchesSnow", V(layer[1] * 0.7 * scale, 0.4 * scale, layer[1] * 0.7 * scale), 0, (layer[3] + layer[2] / 2) * scale, 0, C.Snow, { noQuery = true })
+	end
+	for index = 1, 22 do
+		local angle = index * 2.39
+		local height = 2.2 + index * 0.4
+		local radius = math.max(0.8, 3.7 - height * 0.3)
+		ball(model, anchor, "Ornament", 0.8 * scale, math.cos(angle) * radius * scale, height * scale, math.sin(angle) * radius * scale, BULB_COLORS[index % #BULB_COLORS + 1], { material = M.Neon, noCollide = true, noQuery = true, noShadow = true })
+	end
+	local star = piece(model, anchor, "TreeStar", V(1.6 * scale, 1.6 * scale, 0.5 * scale), 0, 12.8 * scale, 0, C.Gold, { material = M.Neon, noStuds = true, noCollide = true, noQuery = true }, CFrame.Angles(0, 0, math.rad(45)))
+	star:SetAttribute("SpinSpeed", 1.2)
+	CollectionService:AddTag(star, "SpinningDecor")
+	CollectionService:AddTag(star, "PulseGlow")
+	return model
+end
+
+local function pine(parent, x, zm, scale)
+	local anchor = at(x, 0, zm)
+	local model = newModel("Pine", parent)
+	cylinderUp(model, anchor, "Trunk", 1.4 * scale, 4 * scale, 0, 2 * scale, 0, C.WoodDark)
+	for index, layer in ipairs({ { 10, 6, 6 }, { 8, 5, 10 }, { 5.6, 4.4, 13.6 } }) do
+		piece(model, anchor, "Needles", V(layer[1] * scale, layer[2] * scale, layer[1] * scale), 0, layer[3] * scale, 0, index % 2 == 0 and rgb(0x24583d) or rgb(0x2d6a4a), nil, CFrame.Angles(0, math.rad(45 * index), 0))
+		piece(model, anchor, "NeedleSnow", V(layer[1] * 0.75 * scale, 0.8 * scale, layer[1] * 0.75 * scale), 0, (layer[3] + layer[2] / 2) * scale, 0, C.Snow, { noQuery = true }, CFrame.Angles(0, math.rad(45 * index), 0))
+	end
+	return model
+end
+
+local function snowman(parent, x, zm, scale)
+	local anchor = at(x, 0, zm) * CFrame.Angles(0, math.pi / 2, 0)
+	local model = newModel("Snowman", parent)
+	ball(model, anchor, "Base", 5 * scale, 0, 2.4 * scale, 0, C.White)
+	ball(model, anchor, "Middle", 3.6 * scale, 0, 5.8 * scale, 0, C.White)
+	ball(model, anchor, "Head", 2.6 * scale, 0, 8.4 * scale, 0, C.White)
+	piece(model, anchor, "Carrot", V(0.4 * scale, 0.4 * scale, 1.6 * scale), 0, 8.4 * scale, -1.8 * scale, C.Carrot)
+	for _, side in ipairs({ -1, 1 }) do ball(model, anchor, "Eye", 0.4 * scale, side * 0.5 * scale, 8.9 * scale, -1.1 * scale, C.Black) end
+	cylinderUp(model, anchor, "HatBrim", 2.4 * scale, 0.3 * scale, 0, 9.6 * scale, 0, C.Black)
+	cylinderUp(model, anchor, "Hat", 1.6 * scale, 1.8 * scale, 0, 10.6 * scale, 0, C.Black)
+	piece(model, anchor, "Scarf", V(3.6 * scale, 0.8 * scale, 3.6 * scale), 0, 7.2 * scale, 0, C.Red)
+	return model
+end
+
+local function candyCane(parent, x, zm, height)
+	local anchor = at(x, 0, zm)
+	local model = newModel("CandyCane", parent)
+	local segments = math.floor(height / 0.8)
+	for index = 0, segments - 1 do
+		piece(model, anchor, "Stripe", V(0.6, 0.8, 0.6), 0, 0.4 + index * 0.8, 0, index % 2 == 0 and C.Red or C.White, { noStuds = true })
+	end
+	piece(model, anchor, "Hook", V(0.6, 0.6, 1.6), 0, height + 0.2, 0.5, C.Red, { noStuds = true })
+	piece(model, anchor, "HookEnd", V(0.6, 0.9, 0.6), 0, height - 0.3, 1.1, C.White, { noStuds = true })
+end
+
+local function wreath(parent, frame, size)
+	local model = newModel("Wreath", parent)
+	for index = 0, 7 do
+		local angle = index / 8 * math.pi * 2
+		createPart(model, "Leaves", V(size * 0.45, size * 0.45, 0.5), frame * CFrame.new(math.cos(angle) * size * 0.5, math.sin(angle) * size * 0.5, 0) * CFrame.Angles(0, 0, angle), C.Garland, { noCollide = true, noQuery = true })
+	end
+	createPart(model, "Bow", V(size * 0.6, size * 0.3, 0.6), frame * CFrame.new(0, -size * 0.5, -0.2), C.Red, { noStuds = true, noCollide = true, noQuery = true })
+end
+
+local themes = { "sala", "cocina", "comedor", "dormitorio", "juegos", "taller", "garaje" }
+local themeNames = { sala = "Sala", cocina = "Cocina", comedor = "Comedor", dormitorio = "Recámara", juegos = "Cuarto de juegos", taller = "Taller de Santa", garaje = "Garaje", salon = "Gran salón" }
+local pattern = { 2, 3, 2, 3, 3, 2, 3, 3, 2, 3, 2, 3, 3, 2, 3, 3, 2 }
+local totalRoomsLength = 0
+for _, rooms in ipairs(pattern) do totalRoomsLength += rooms * ROOM_LENGTH end
+local yardLength = (MANSION_START - FIRST_HOUSE - totalRoomsLength) / #pattern
+
+local houses = {}
+do
+	local zm = FIRST_HOUSE
+	local lastTheme = ""
+	for index, roomCount in ipairs(pattern) do
+		local house = { index = index, z0 = zm, z1 = zm + roomCount * ROOM_LENGTH, rooms = {}, color = HOUSE_COLORS[(index - 1) % #HOUSE_COLORS + 1], paper = PAPER_COLORS[(index - 1) % #PAPER_COLORS + 1], door = DOOR_COLORS[(index - 1) % #DOOR_COLORS + 1], shingle = SHINGLE_COLORS[(index - 1) % #SHINGLE_COLORS + 1], twoStory = index % 4 == 0 }
+		for roomIndex = 1, roomCount do
+			local theme
+			repeat theme = themes[random:NextInteger(1, #themes)] until theme ~= lastTheme
+			lastTheme = theme
+			table.insert(house.rooms, { z0 = zm + (roomIndex - 1) * ROOM_LENGTH, z1 = zm + roomIndex * ROOM_LENGTH, theme = theme })
+		end
+		table.insert(houses, house)
+		zm = house.z1 + yardLength
+	end
+	table.insert(houses, { index = #pattern + 1, z0 = MANSION_START, z1 = MANSION_START + MANSION_LENGTH, rooms = { { z0 = MANSION_START, z1 = MANSION_START + MANSION_LENGTH, theme = "salon" } }, color = rgb(0xece2c8), paper = PAPER_COLORS[2], door = rgb(0x1f5f3a), shingle = rgb(0x2a5040), mansion = true })
+end
+
+local function wallAcross(parent, zm, opening, height, colorOut, colorIn, outward)
+	local solidTop = math.min(SOLID_HEIGHT, height)
+	for _, side in ipairs({ -1, 1 }) do
+		local inner, outer = opening, HALF
+		local width = outer - inner
+		box(parent, "WallLower", V(width, solidTop, 2), side * (inner + width / 2), solidTop / 2, zm, colorOut, { shell = true })
+	end
+	box(parent, "WallUpper", V(HALF * 2, height - solidTop, 2), 0, solidTop + (height - solidTop) / 2, zm, colorOut, { noCollide = true, noQuery = true, shell = true })
+	for _, side in ipairs({ -1, 1 }) do
+		box(parent, "WindowTrim", V(2, solidTop, 2.6), side * (opening + 1), solidTop / 2, zm, C.Trim, { shell = true })
+	end
+	box(parent, "WindowHeader", V(opening * 2 + 4, 2, 2.6), 0, solidTop + 1, zm, C.Trim, { noCollide = true, noQuery = true, shell = true })
+end
+
+local windowCount = 0
+local function breakableWindow(parent, zm, opening, height, houseIndex, outward)
+	windowCount += 1
+	local model = newModel("BreakableWindow", parent)
+	model:SetAttribute("HouseIndex", houseIndex)
+	local frame = at(0, height / 2, zm)
+	createPart(model, "Glass", V(opening * 2, height, 0.6), frame, C.Glass, { material = M.Glass, transparency = 0.45, noCollide = true, noQuery = true, noShadow = true })
+	for _, offset in ipairs({ -opening / 2, 0, opening / 2 }) do
+		createPart(model, "Mullion", V(0.8, height, 0.8), frame * CFrame.new(offset, 0, 0), C.Trim, { noStuds = true, noCollide = true, noQuery = true, noShadow = true })
+	end
+	createPart(model, "Mullion", V(opening * 2, 0.8, 0.8), frame * CFrame.new(0, height * 0.15, 0), C.Trim, { noStuds = true, noCollide = true, noQuery = true, noShadow = true })
+	for _, part in ipairs(model:GetChildren()) do part.CanTouch = false end
+	CollectionService:AddTag(model, "BreakableWindow")
+	if outward then
+		local a = localPoint(-opening - 2.5, 0.6, zm - outward * 1.6)
+		local b = localPoint(-opening - 2.5, SOLID_HEIGHT + 2.5, zm - outward * 1.6)
+		local c = localPoint(opening + 2.5, SOLID_HEIGHT + 2.5, zm - outward * 1.6)
+		local d = localPoint(opening + 2.5, 0.6, zm - outward * 1.6)
+		bulbLine(parent, a, b, 3, 0)
+		bulbLine(parent, b, c, 3, 2)
+		bulbLine(parent, c, d, 3, 4)
+	end
+	return model
+end
+
+local function buildRoof(parent, house, top)
+	local length = house.z1 - house.z0
+	local center = (house.z0 + house.z1) / 2
+	local rise = house.mansion and 24 or 18
+	local overhang = 3
+	local angle = math.atan(rise / HALF)
+	local slopeLength = (HALF + overhang) / math.cos(angle)
+	for _, side in ipairs({ -1, 1 }) do
+		local eaveDrop = overhang * math.tan(angle)
+		local midX = side * (HALF + overhang) / 2
+		local midY = top + rise - (HALF + overhang) / 2 * math.tan(angle)
+		local rotation = CFrame.Angles(0, 0, -side * angle)
+		box(parent, "Roof", V(slopeLength, 1.4, length + 8), midX, midY + 0.7, center, house.shingle, { noCollide = true, noQuery = true, shell = true }, rotation)
+		box(parent, "RoofSnow", V(slopeLength - 1, 1.2, length + 6), midX - side * 0.15, midY + 2, center, C.Snow, { noCollide = true, noQuery = true, shell = true }, rotation)
+		local triangle = { V(1.6, rise, HALF), side * HALF / 2, top + rise / 2 }
+		for _, wallZ in ipairs({ house.z0, house.z1 }) do
+			box(parent, "Gable", triangle[1], triangle[2], triangle[3], wallZ, house.color, { className = "WedgePart", noCollide = true, noQuery = true, shell = true }, CFrame.Angles(0, -side * math.pi / 2, 0))
+		end
+		if side < 0 then
+			bulbLine(decorationFolder, localPoint(-HALF - overhang, top - eaveDrop - 0.4, house.z0 - 3), localPoint(-HALF - overhang, top - eaveDrop - 0.4, house.z1 + 3), 3.2, house.index)
+		end
+	end
+	box(parent, "RidgeSnow", V(2.4, 1.8, length + 8), 0, top + rise + 1.4, center, C.Snow, { noCollide = true, noQuery = true, shell = true })
+	bulbLine(decorationFolder, localPoint(-HALF - 3, top - 0.6, house.z0 - 1.6), localPoint(0, top + rise + 1.6, house.z0 - 1.6), 3, 0)
+	bulbLine(decorationFolder, localPoint(0, top + rise + 1.6, house.z0 - 1.6), localPoint(HALF + 3, top - 0.6, house.z0 - 1.6), 3, 2)
+	local star = box(decorationFolder, "GableStar", V(3, 3, 0.8), 0, top + rise + 4, house.z0 - 1.6, C.Gold, { material = M.Neon, noStuds = true, noCollide = true, noQuery = true }, CFrame.Angles(0, 0, math.rad(45)))
+	CollectionService:AddTag(star, "PulseGlow")
+	box(parent, "GableWindow", V(9, 7, 0.6), 0, top + rise * 0.42, house.z0 - 1.1, C.Window, { material = M.Neon, noCollide = true, noQuery = true })
+	wreath(decorationFolder, at(0, top + rise * 0.42 + 5, house.z0 - 1.6), 2.4)
+	local chimneyX = HALF * 0.45
+	box(parent, "Chimney", V(5, rise + 6, 5), chimneyX, top + rise / 2 + 2, house.z0 + length * 0.7, C.Brick, { noCollide = true, noQuery = true, shell = true })
+	box(parent, "ChimneySnow", V(5.8, 0.8, 5.8), chimneyX, top + rise + 5.2, house.z0 + length * 0.7, C.Snow, { noCollide = true, noQuery = true, shell = true })
+	local smokeAnchor = box(parent, "SmokeSource", V(1, 1, 1), chimneyX, top + rise + 6, house.z0 + length * 0.7, C.Snow, { transparency = 1, noCollide = true, noQuery = true })
+	local smoke = Instance.new("ParticleEmitter")
+	smoke.Texture = "rbxasset://textures/particles/smoke_main.dds"
+	smoke.Rate = 3
+	smoke.Lifetime = NumberRange.new(3, 5)
+	smoke.Speed = NumberRange.new(3, 5)
+	smoke.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 2), NumberSequenceKeypoint.new(1, 7) })
+	smoke.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 1) })
+	smoke.Parent = smokeAnchor
+end
+
+local function buildFacade(parent, house, top)
+	local length = house.z1 - house.z0
+	local porchZ0 = house.z0 + 10
+	local porchLength = math.min(36, length * 0.4)
+	local porchTop = 15
+	local frontX = -HALF - 1
+	for zm = porchZ0 + porchLength + 14, house.z1 - 10, 22 do
+		box(parent, "FrontWindowTrim", V(0.6, 10.6, 11.6), frontX - 0.2, 10, zm, C.Trim, { noQuery = true })
+		box(parent, "FrontWindow", V(0.4, 9, 10), frontX - 0.4, 10, zm, C.Window, { material = M.Neon, noCollide = true, noQuery = true })
+		box(parent, "WindowSill", V(1.4, 0.5, 12), frontX - 0.8, 4.6, zm, C.Trim, { noQuery = true })
+		wreath(decorationFolder, at(frontX - 0.9, 13, zm) * CFrame.Angles(0, math.pi / 2, 0), 2)
+	end
+	if house.twoStory or house.mansion then
+		for zm = house.z0 + 14, house.z1 - 10, 24 do
+			box(parent, "UpperWindow", V(0.4, 7, 9), frontX - 0.4, top - 8, zm, C.Window, { material = M.Neon, noCollide = true, noQuery = true })
+			box(parent, "UpperWindowTrim", V(0.6, 8.4, 10.4), frontX - 0.2, top - 8, zm, C.Trim, { noQuery = true })
+		end
+	end
+	local porchX = frontX - 6
+	box(parent, "PorchFloor", V(12, 1.4, porchLength), porchX, -0.2, porchZ0 + porchLength / 2, C.Stone, { noQuery = true })
+	for _, zm in ipairs({ porchZ0 + 1.5, porchZ0 + porchLength / 2, porchZ0 + porchLength - 1.5 }) do
+		box(parent, "ColumnBase", V(2.6, 4.5, 2.6), frontX - 10.5, 2.25, zm, C.Stone, { noQuery = true })
+		box(parent, "Column", V(1.8, porchTop - 4.5, 1.8), frontX - 10.5, 4.5 + (porchTop - 4.5) / 2, zm, C.Trim, { noQuery = true, noStuds = true })
+		local anchor = at(frontX - 10.5, 0, zm)
+		for step = 0, 9 do
+			ball(decorationFolder, anchor, "ColumnBulb", 0.7, math.cos(step * 1.5) * 1.3, 5 + step * 1, math.sin(step * 1.5) * 1.3, step % 2 == 0 and BULB_COLORS[1] or C.White, { material = M.Neon, noCollide = true, noQuery = true, noShadow = true })
+		end
+	end
+	box(parent, "PorchBeam", V(1.8, 1.4, porchLength + 2), frontX - 10.5, porchTop + 0.7, porchZ0 + porchLength / 2, C.Trim, { noQuery = true })
+	box(parent, "PorchRoof", V(13, 1, porchLength + 4), frontX - 6, porchTop + 2.2, porchZ0 + porchLength / 2, house.shingle, { noQuery = true, shell = true }, CFrame.Angles(0, 0, math.rad(-14)))
+	box(parent, "PorchRoofSnow", V(12, 0.8, porchLength + 3), frontX - 6.2, porchTop + 3.1, porchZ0 + porchLength / 2, C.Snow, { noQuery = true, shell = true }, CFrame.Angles(0, 0, math.rad(-14)))
+	bulbLine(decorationFolder, localPoint(frontX - 12.4, porchTop + 0.6, porchZ0 - 1), localPoint(frontX - 12.4, porchTop + 0.6, porchZ0 + porchLength + 1), 2.6, 1)
+	local doorZ = porchZ0 + porchLength / 2
+	box(parent, "DoorFrame", V(0.6, 13, 7.4), frontX - 0.2, 6.5, doorZ, C.Trim, { noQuery = true })
+	box(parent, "Door", V(0.6, 12, 6), frontX - 0.5, 6, doorZ, house.door, { noQuery = true })
+	box(parent, "DoorWindow", V(0.3, 2.2, 3.6), frontX - 0.9, 9.6, doorZ, C.Window, { material = M.Neon, noCollide = true, noQuery = true })
+	wreath(decorationFolder, at(frontX - 1, 7.2, doorZ) * CFrame.Angles(0, math.pi / 2, 0), 2.6)
+	for _, side in ipairs({ -1, 1 }) do
+		local railZ = doorZ + side * porchLength * 0.28
+		box(parent, "Rail", V(0.5, 0.5, porchLength * 0.3), frontX - 10.5, 4.4, railZ, C.Trim, { noQuery = true })
+		for k = 0, 6 do box(parent, "Baluster", V(0.35, 3.6, 0.35), frontX - 10.5, 2.4, railZ - porchLength * 0.13 + k * porchLength * 0.044, C.Trim, { noQuery = true }) end
+	end
+	for step = 0, 2 do
+		box(parent, "Step", V(2.4, 0.6, 6), frontX - 13 - step * 2, -0.6 - step * 0.6, doorZ, C.Stone, { noQuery = true })
+	end
+	box(parent, "Walkway", V(28, 0.2, 6), frontX - 30, -0.05, doorZ, C.Sidewalk, { noQuery = true })
+	for k = 0, 2 do
+		candyCane(decorationFolder, frontX - 22 - k * 6, doorZ - 4.5, 3.6)
+		candyCane(decorationFolder, frontX - 22 - k * 6, doorZ + 4.5, 3.6)
+	end
+end
+
+local function buildShell(house)
+	local model = newModel(("House%02d"):format(house.index), housesFolder)
+	house.model = model
+	local top = house.mansion and 42 or house.twoStory and 46 or ROOM_HEIGHT
+	house.top = top
+	local length = house.z1 - house.z0
+	local center = (house.z0 + house.z1) / 2
+	model:SetAttribute("HouseIndex", house.index)
+	model:SetAttribute("ZStart", house.z0)
+	model:SetAttribute("ZEnd", house.z1)
+	model:SetAttribute("WorldZMax", at(0, 0, house.z0).Position.Z + 30)
+	model:SetAttribute("WorldZMin", at(0, 0, house.z1).Position.Z - 30)
+	box(model, "Floor", V(HALF * 2, 1, length), 0, -0.45, center, C.Wood, { noStuds = true })
+	box(model, "Foundation", V(HALF * 2 + 4, 4, length + 4), 0, -2.6, center, C.Stone, { noQuery = true })
+	for _, side in ipairs({ -1, 1 }) do
+		box(model, "SideWallLower", V(2, SOLID_HEIGHT, length), side * (HALF + 1), SOLID_HEIGHT / 2, center, house.color, { shell = true })
+		box(model, "SideWallUpper", V(2, top - SOLID_HEIGHT, length), side * (HALF + 1), SOLID_HEIGHT + (top - SOLID_HEIGHT) / 2, center, house.color, { noCollide = true, noQuery = true, shell = true })
+		box(model, "Wallpaper", V(0.2, top - 1, length - 2), side * (HALF - 0.1), top / 2, center, house.paper, { noCollide = true, noQuery = true, shell = true })
+	end
+	wallAcross(model, house.z0, OPENING_HALF, top, house.color, house.paper, -1)
+	wallAcross(model, house.z1, OPENING_HALF, top, house.color, house.paper, 1)
+	breakableWindow(model, house.z0, OPENING_HALF, SOLID_HEIGHT, house.index, 1)
+	breakableWindow(model, house.z1, OPENING_HALF, SOLID_HEIGHT, house.index, nil)
+	box(model, "Ceiling", V(HALF * 2, 1, length), 0, top + 0.5, center, C.Ceiling, { noCollide = true, noQuery = true, shell = true })
+	buildRoof(model, house, top + 1)
+	buildFacade(model, house, top)
+	for _, room in ipairs(house.rooms) do
+		local roomCenter = (room.z0 + room.z1) / 2
+		box(model, "Rug", V(28, 0.2, math.min(30, room.z1 - room.z0 - 14)), 0, 0.1, roomCenter, C.Rug, { noStuds = true, noQuery = true })
+		box(model, "RugTrim", V(30, 0.15, math.min(32, room.z1 - room.z0 - 12)), 0, 0.07, roomCenter, C.RugTrim, { noStuds = true, noQuery = true })
+		for _, side in ipairs({ -1, 1 }) do
+			bulbLine(model, localPoint(side * (HALF - 1), top - 2, room.z0 + 2), localPoint(side * (HALF - 1), top - 2, room.z1 - 2), 4, side > 0 and 2 or 0)
+			local lampAnchor = at(side * 14, top, roomCenter)
+			piece(model, lampAnchor, "LampCord", V(0.3, 2.4, 0.3), 0, -1.2, 0, C.Black, { noCollide = true, noQuery = true })
+			piece(model, lampAnchor, "LampShade", V(3.4, 1.8, 3.4), 0, -3.2, 0, C.Lamp, { material = M.Neon, noCollide = true, noQuery = true })
+		end
+	end
+	return model
+end
+
+local function partition(house, zm)
+	local model = house.model
+	local top = house.top
+	for _, side in ipairs({ -1, 1 }) do
+		local width = HALF - DOOR_HALF
+		box(model, "PartitionLower", V(width, SOLID_HEIGHT, 1.4), side * (DOOR_HALF + width / 2), SOLID_HEIGHT / 2, zm, house.paper, { shell = true })
+		box(model, "DoorTrim", V(1.6, SOLID_HEIGHT, 2), side * (DOOR_HALF + 0.8), SOLID_HEIGHT / 2, zm, C.Trim, { shell = true })
+	end
+	box(model, "PartitionUpper", V(HALF * 2, top - SOLID_HEIGHT, 1.4), 0, SOLID_HEIGHT + (top - SOLID_HEIGHT) / 2, zm, house.paper, { noCollide = true, noQuery = true, shell = true })
+	box(model, "DoorHeader", V(DOOR_HALF * 2 + 3.2, 1.6, 2), 0, SOLID_HEIGHT + 0.8, zm, C.Trim, { noCollide = true, noQuery = true, shell = true })
+	bulbLine(model, localPoint(-DOOR_HALF, SOLID_HEIGHT - 0.6, zm - 1.2), localPoint(DOOR_HALF, SOLID_HEIGHT - 0.6, zm - 1.2), 3, 1)
+	box(model, "Garland", V(DOOR_HALF * 2, 1, 1), 0, SOLID_HEIGHT - 0.2, zm - 1.1, C.Garland, { noCollide = true, noQuery = true })
+end
+
+local function sofa(model, anchor, width, color)
+	piece(model, anchor, "SofaSeat", V(width, 4, 7), 0, 2, 0, color)
+	piece(model, anchor, "SofaBack", V(width, 9, 2.6), 0, 4.5, 2.6, color)
+	for _, side in ipairs({ -1, 1 }) do piece(model, anchor, "SofaArm", V(2.2, 6, 7), side * (width / 2 - 1.1), 3, 0, color) end
+	local cushions = math.max(2, math.floor(width / 7))
+	for index = 0, cushions - 1 do
+		local ox = -width / 2 + 2.2 + (index + 0.5) * (width - 4.4) / cushions
+		piece(model, anchor, "Cushion", V((width - 4.4) / cushions - 0.6, 1.4, 5), ox, 4.7, -0.6, C.Counter)
+		piece(model, anchor, "Pillow", V(2.6, 2.6, 1.2), ox, 6.4, 1.2, ({ C.Red, C.Green, C.Gold })[index % 3 + 1], nil, CFrame.Angles(math.rad(-15), 0, 0))
+	end
+end
+
+local function table4(model, anchor, width, depth, height, color)
+	piece(model, anchor, "TableTop", V(width, 1, depth), 0, height, 0, color)
+	for _, a in ipairs({ -1, 1 }) do
+		for _, b in ipairs({ -1, 1 }) do piece(model, anchor, "TableLeg", V(1, height, 1), a * (width / 2 - 1), height / 2, b * (depth / 2 - 1), color) end
+	end
+end
+
+local function bed(model, anchor, width, color)
+	piece(model, anchor, "BedFrame", V(width, 2.6, 26), 0, 1.3, 0, C.WoodDark)
+	piece(model, anchor, "Mattress", V(width - 1, 2.4, 25), 0, 3.8, 0, C.White)
+	piece(model, anchor, "Blanket", V(width - 0.6, 1, 16), 0, 5.4, -3.6, color)
+	piece(model, anchor, "Pillow", V(width * 0.6, 1.6, 3.6), 0, 5.8, 9.4, C.Counter)
+	piece(model, anchor, "Headboard", V(width, 10, 1.6), 0, 5, 12.6, C.WoodDark)
+	piece(model, anchor, "Footboard", V(width, 6.4, 1.6), 0, 3.2, -12.6, C.WoodDark)
+end
+
+local function car(model, anchor, color)
+	piece(model, anchor, "CarBody", V(13, 5.4, 26), 0, 4.4, 0, color, { material = M.SmoothPlastic })
+	piece(model, anchor, "CarCabin", V(11.4, 4.8, 14), 0, 9.5, 1, color, { material = M.SmoothPlastic })
+	piece(model, anchor, "Windshield", V(11, 3.8, 0.4), 0, 9.6, -6.2, C.Glass, { material = M.Glass, transparency = 0.3 })
+	for _, a in ipairs({ -1, 1 }) do
+		for _, b in ipairs({ -1, 1 }) do
+			piece(model, anchor, "Wheel", V(1.6, 4.6, 4.6), a * 6.6, 2.3, b * 8.6, C.Black, { shape = Enum.PartType.Cylinder, noStuds = true })
+		end
+		piece(model, anchor, "Headlight", V(1.6, 1.2, 0.4), a * 4, 4.6, -13.1, rgb(0xfff6c0), { material = M.Neon })
+	end
+	piece(model, anchor, "Ribbon", V(13.2, 0.8, 1.6), 0, 12, 1, C.Red, { noCollide = true })
+	piece(model, anchor, "Ribbon", V(1.6, 0.8, 26.2), 0, 7.2, 0, C.Red, { noCollide = true })
+	wreath(model, anchor * CFrame.new(0, 6, -13.4), 3)
+end
+
+local function mainObstacle(model, theme, x, zm, width, side)
+	local anchor = at(x, 0, zm)
+	if theme == "sala" then
+		if width > 22 then
+			sofa(model, anchor * CFrame.Angles(0, side < 0 and 0 or math.pi, 0), width - 6, ({ rgb(0x8b3a3a), rgb(0x2e6b54), rgb(0x3f4f7a) })[random:NextInteger(1, 3)])
+			table4(model, at(x, 0, zm - 9), math.min(14, width - 10), 6, 3, C.WoodDark)
+		else
+			christmasTree(model, anchor, math.min(1.6, width / 9))
+		end
+	elseif theme == "cocina" then
+		piece(model, anchor, "Island", V(width - 2, 8, 12), 0, 4, 0, C.Cabinet)
+		piece(model, anchor, "IslandTop", V(width - 1, 1, 13), 0, 8.5, 0, C.Counter)
+		piece(model, anchor, "Turkey", V(4, 2.4, 3.4), width * 0.2, 10.2, 0, rgb(0xb0603a), { shape = Enum.PartType.Ball, noStuds = true })
+		cylinderUp(model, anchor, "Pot", 3, 3, -width * 0.25, 10.5, 0, C.Steel, { material = M.Metal })
+		for index = 0, math.floor((width - 6) / 4) do
+			piece(model, anchor, "Gingerbread", V(1, 1.6, 0.4), -width / 2 + 3 + index * 4, 9.8, 2.6, C.Cookie)
+			cylinderUp(model, at(x - width / 2 + 3 + index * 4, 0, zm - 9), "StoolSeat", 2.4, 0.8, 0, 6.2, 0, C.Red)
+			cylinderUp(model, at(x - width / 2 + 3 + index * 4, 0, zm - 9), "StoolLeg", 0.6, 6, 0, 3, 0, C.Black)
+		end
+	elseif theme == "comedor" then
+		table4(model, anchor, width - 4, 14, 5.4, C.WoodMid)
+		piece(model, anchor, "Tablecloth", V(width - 3.4, 0.2, 14.6), 0, 5.95, 0, C.Red, { noStuds = true })
+		piece(model, anchor, "Roast", V(4.4, 3, 3.6), 0, 7.6, 0, rgb(0xb5652e), { shape = Enum.PartType.Ball, noStuds = true })
+		for index = 0, math.floor((width - 10) / 6) do
+			local ox = -width / 2 + 5 + index * 6
+			cylinderUp(model, anchor, "Plate", 2.4, 0.2, ox, 6.15, -4, C.White)
+			cylinderUp(model, anchor, "Plate", 2.4, 0.2, ox, 6.15, 4, C.White)
+			for _, b in ipairs({ -1, 1 }) do
+				local chairAnchor = anchor * CFrame.new(ox, 0, b * 10)
+				piece(model, chairAnchor, "ChairSeat", V(3.6, 0.8, 3.6), 0, 3.8, 0, C.WoodDark)
+				piece(model, chairAnchor, "ChairBack", V(3.6, 6, 0.8), 0, 6.8, b * 1.4, C.WoodDark)
+			end
+		end
+		for _, b in ipairs({ -1, 1 }) do
+			cylinderUp(model, anchor, "Candle", 0.6, 3, b * (width / 2 - 6), 7.5, 0, rgb(0xfff6dd))
+			piece(model, anchor, "Flame", V(0.6, 0.9, 0.6), b * (width / 2 - 6), 9.4, 0, rgb(0xffb300), { material = M.Neon, noCollide = true })
+		end
+	elseif theme == "dormitorio" then
+		local beds = math.max(1, math.floor(width / 15))
+		for index = 0, beds - 1 do
+			bed(model, anchor * CFrame.new(-(beds - 1) * 7.5 + index * 15, 0, 0), 13, ({ C.Red, C.Green, C.Blue })[index % 3 + 1])
+		end
+	elseif theme == "juegos" then
+		giftPile(model, anchor, math.floor(width * 0.8), math.min(width - 4, 16))
+		local teddy = anchor * CFrame.new(width * 0.2, 0, 0)
+		ball(model, teddy, "TeddyBody", 7, 0, 3.5, 0, C.Teddy)
+		ball(model, teddy, "TeddyHead", 5, 0, 8.4, 0, C.Teddy)
+		for _, side2 in ipairs({ -1, 1 }) do ball(model, teddy, "TeddyEar", 1.8, side2 * 1.8, 10.6, 0, C.Teddy) end
+		for index = 0, 4 do piece(model, anchor, "Block", V(4, 4, 4), -width * 0.3, 2 + index * 4, 0, BULB_COLORS[index % #BULB_COLORS + 1], nil, CFrame.Angles(0, index * 0.3, 0)) end
+	elseif theme == "taller" then
+		piece(model, anchor, "Workbench", V(width - 2, 1.4, 16), 0, 7, 0, C.WoodMid)
+		for _, a in ipairs({ -1, 1 }) do
+			for _, b in ipairs({ -1, 1 }) do piece(model, anchor, "BenchLeg", V(1.2, 6.4, 1.2), a * (width / 2 - 2), 3.2, b * 6.6, C.WoodDark) end
+		end
+		piece(model, anchor, "BenchShelf", V(width - 4, 0.8, 14), 0, 2, 0, C.WoodMid)
+		for index = 0, math.floor((width - 4) / 6) - 1 do
+			local robot = anchor * CFrame.new(-width / 2 + 4 + index * 6, 7.7, (index % 2 == 0) and -3 or 3)
+			piece(model, robot, "ToyBody", V(3, 3.4, 2.4), 0, 1.7, 0, BULB_COLORS[index % #BULB_COLORS + 1])
+			piece(model, robot, "ToyHead", V(2.2, 2.2, 2.2), 0, 4.5, 0, C.Steel)
+			for _, eye in ipairs({ -0.5, 0.5 }) do piece(model, robot, "ToyEye", V(0.4, 0.4, 0.2), eye, 4.6, -1.15, C.Red, { material = M.Neon }) end
+		end
+	else
+		if width >= 18 then
+			car(model, anchor * CFrame.Angles(0, 0, 0), ({ C.Red, C.Blue, C.Green })[random:NextInteger(1, 3)])
+		else
+			for index = 0, 5 do piece(model, anchor, "Box", V(5, 5, 5), (index % 2 - 0.5) * 5.4, 2.5 + math.floor(index / 2) * 5, 0, rgb(0xb58a5a), nil, CFrame.Angles(0, index * 0.2, 0)) end
+		end
+	end
+end
+
+local function sideObstacle(model, theme, x, zm, width)
+	local anchor = at(x, 0, zm)
+	if theme == "sala" then
+		piece(model, anchor, "LampPole", V(1.4, 16, 1.4), 0, 8, 0, C.WoodDark)
+		piece(model, anchor, "LampShade", V(4, 3.4, 4), 0, 16.6, 0, C.Lamp, { material = M.Neon })
+		cylinderUp(model, at(x, 0, zm - 6), "PlantPot", 3, 3.4, 0, 1.7, 0, rgb(0xc0603a))
+		piece(model, at(x, 0, zm - 6), "Plant", V(4.4, 8, 4.4), 0, 7.4, 0, C.PineGreen, nil, CFrame.Angles(0, math.rad(45), 0))
+	elseif theme == "cocina" then
+		piece(model, anchor, "Fridge", V(math.min(9, width - 1), 18, 8), 0, 9, 0, rgb(0xeef3f8), { material = M.SmoothPlastic })
+		piece(model, anchor, "FridgeHandle", V(0.6, 5, 0.6), 0, 12, -4.3, C.Steel)
+	elseif theme == "comedor" then
+		piece(model, anchor, "Hutch", V(math.min(10, width - 1), 16, 6), 0, 8, 0, C.WoodDark)
+		piece(model, anchor, "HutchGlass", V(math.min(8, width - 3), 6, 0.3), 0, 12, -3.1, C.Glass, { material = M.Glass, transparency = 0.3 })
+	elseif theme == "dormitorio" then
+		piece(model, anchor, "Dresser", V(math.min(10, width - 1), 9, 7), 0, 4.5, 0, C.WoodMid)
+		piece(model, anchor, "NightLight", V(2, 2, 2), 0, 10, 0, C.Gold, { material = M.Neon, shape = Enum.PartType.Ball, noStuds = true })
+	elseif theme == "juegos" then
+		piece(model, anchor, "RockingHorse", V(3, 6, 9), 0, 4.6, 0, rgb(0xf2e0c0))
+		piece(model, anchor, "RockerLeft", V(0.8, 1, 12), -1.4, 0.6, 0, C.Red)
+		piece(model, anchor, "RockerRight", V(0.8, 1, 12), 1.4, 0.6, 0, C.Red)
+		piece(model, anchor, "HorseHead", V(2.6, 4.6, 3.6), 0, 8.6, -4.4, rgb(0xf2e0c0), nil, CFrame.Angles(math.rad(-20), 0, 0))
+	elseif theme == "taller" then
+		piece(model, anchor, "SleighBody", V(math.min(10, width - 1), 5, 14), 0, 4, 0, C.Red)
+		piece(model, anchor, "SleighBack", V(math.min(10, width - 1), 9, 2.4), 0, 6, 6, C.Red)
+		for _, side2 in ipairs({ -1, 1 }) do piece(model, anchor, "Runner", V(0.8, 0.8, 18), side2 * 4, 0.6, 0, C.Gold, { material = M.Metal }) end
+		giftPile(model, anchor * CFrame.new(0, 6.5, 0), 4, 6)
+	else
+		for index = 0, 2 do piece(model, anchor, "Box", V(5, 5, 5), 0, 2.5 + index * 5, 0, rgb(0xb58a5a), nil, CFrame.Angles(0, index * 0.3, 0)) end
+	end
+end
+
+local function hopObstacle(model, theme, x, zm)
+	local anchor = at(x, 0, zm)
+	if theme == "taller" or theme == "garaje" then
+		piece(model, anchor, "LowSled", V(7, 2.4, 9), 0, 1.6, 0, C.Red)
+		for _, side in ipairs({ -1, 1 }) do piece(model, anchor, "SledRunner", V(0.6, 0.6, 11), side * 3, 0.3, 0, C.Gold, { material = M.Metal }) end
+	elseif theme == "cocina" or theme == "comedor" then
+		piece(model, anchor, "CookieTable", V(14, 3, 5), 0, 1.5, 0, C.WoodMid)
+		piece(model, anchor, "CookieTop", V(14.6, 0.4, 5.6), 0, 3.2, 0, C.Counter)
+		for index = 0, 5 do piece(model, anchor, "Cookie", V(1.2, 0.3, 1.2), -5 + index * 2, 3.55, 0, C.Cookie, { noCollide = true }) end
+	elseif theme == "dormitorio" or theme == "juegos" then
+		for index = 0, 15 do
+			local angle = index / 16 * math.pi * 2
+			piece(model, anchor, "TrainTrack", V(0.6, 0.3, 2.8), math.cos(angle) * 6, 0.15, math.sin(angle) * 6, rgb(0x555555), { noCollide = true }, CFrame.Angles(0, -angle, 0))
+		end
+		for index = 0, 3 do
+			local angle = index * 0.45
+			piece(model, anchor, "TrainCar", V(2.2, 2.4, 3.2), math.cos(angle) * 6, 1.3, math.sin(angle) * 6, ({ C.Red, C.Green, C.Blue, C.Gold })[index + 1], nil, CFrame.Angles(0, -angle, 0))
+		end
+	else
+		for index = 1, 6 do
+			gift(model, anchor, (roll() - 0.5) * 9, 0, (roll() - 0.5) * 6, 2 + roll() * 1.2, GIFT_COLORS[index], roll() * 3)
+		end
+	end
+end
+
+local function wallDecor(model, theme, room)
+	local back, front = HALF - 3, -HALF + 3
+	local center = (room.z0 + room.z1) / 2
+	if theme == "sala" then
+		local anchor = at(back, 0, center) * CFrame.Angles(0, -math.pi / 2, 0)
+		piece(model, anchor, "Fireplace", V(14, 11, 3), 0, 5.5, 0, C.Brick)
+		piece(model, anchor, "FireOpening", V(7, 5.4, 1), 0, 2.8, -1.2, rgb(0x1a1210))
+		piece(model, anchor, "Fire", V(5, 3, 0.6), 0, 2, -1.4, rgb(0xff7a1a), { material = M.Neon, noCollide = true })
+		piece(model, anchor, "Mantel", V(16, 1, 4), 0, 11.4, -0.4, C.WoodDark)
+		for index = 0, 3 do
+			piece(model, anchor, "Stocking", V(1.8, 3.4, 0.8), -4.8 + index * 3.2, 9, -2.2, ({ C.Red, C.Green, C.Red, C.Blue })[index + 1])
+			piece(model, anchor, "StockingCuff", V(1.9, 0.9, 0.9), -4.8 + index * 3.2, 10.6, -2.2, C.White)
+		end
+		local tvAnchor = at(front, 0, center) * CFrame.Angles(0, math.pi / 2, 0)
+		piece(model, tvAnchor, "TvStand", V(16, 5, 4), 0, 2.5, 0, C.WoodDark)
+		piece(model, tvAnchor, "Tv", V(14, 8, 0.8), 0, 9.5, 0.6, C.Black)
+		piece(model, tvAnchor, "TvScreen", V(13, 7, 0.2), 0, 9.5, 0.1, rgb(0x3a6aa8), { material = M.Neon, noCollide = true })
+	elseif theme == "cocina" then
+		for zm = room.z0 + 5, room.z1 - 5, 7 do
+			box(model, "Cabinet", V(5, 8, 6.6), back - 0.5, 4, zm, C.Cabinet)
+			box(model, "CabinetTop", V(5.8, 0.8, 7), back - 0.6, 8.4, zm, C.Counter)
+			box(model, "UpperCabinet", V(3.4, 6, 6.6), back + 0.4, 17, zm, rgb(0xf5f2ea))
+		end
+		box(model, "Stove", V(5.4, 8.4, 7), back - 0.5, 4.2, center, C.Steel, { material = M.Metal })
+	elseif theme == "comedor" then
+		box(model, "China", V(5, 18, 18), back, 9, center, C.WoodDark)
+		box(model, "Painting", V(0.4, 6, 9), front - 2.6, 14, center, rgb(0x7fb2e0), { noCollide = true })
+	elseif theme == "dormitorio" then
+		box(model, "Wardrobe", V(6, 20, 16), back, 10, room.z0 + 14, C.WoodMid)
+		box(model, "BunkFrame", V(10, 14, 20), front + 2, 7, room.z1 - 16, C.Blue)
+	elseif theme == "juegos" or theme == "taller" then
+		for zm = room.z0 + 4, room.z1 - 4, 10 do
+			box(model, "Shelf", V(4, 0.6, 9), back, 4, zm, C.WoodMid)
+			box(model, "Shelf", V(4, 0.6, 9), back, 9, zm, C.WoodMid)
+			box(model, "Shelf", V(4, 0.6, 9), back, 14, zm, C.WoodMid)
+			gift(model, at(back, 4.3, zm - 2), 0, 0, 0, 2.4, GIFT_COLORS[random:NextInteger(1, 7)], 0)
+			gift(model, at(back, 9.3, zm + 2), 0, 0, 0, 2.2, GIFT_COLORS[random:NextInteger(1, 7)], 0)
+			gift(model, at(back, 14.3, zm), 0, 0, 0, 2, GIFT_COLORS[random:NextInteger(1, 7)], 0)
+		end
+		if theme == "taller" then
+			boardWithText(model, "WorkshopSign", V(16, 6, 0.6), at(back + 1.5, 21, center) * CFrame.Angles(0, -math.pi / 2, 0), rgb(0x8a2a2a), "TALLER DE SANTA", C.Gold, rgb(0x3a0a0a))
+		end
+	else
+		for zm = room.z0 + 6, room.z1 - 6, 12 do
+			box(model, "Pegboard", V(0.6, 12, 9), back + 1.4, 10, zm, rgb(0x9a7a55))
+			for k = 0, 3 do box(model, "Tool", V(0.4, 3, 0.8), back + 0.9, 10, zm - 3 + k * 2, ({ C.Red, C.Blue, C.Black })[k % 3 + 1]) end
+		end
+	end
+end
+
+local function buildRoom(house, roomIndex, room, side)
+	local model = house.model
+	if roomIndex > 1 then partition(house, room.z0) end
+	wallDecor(model, room.theme, room)
+	local isLast = roomIndex == #house.rooms
+	local obstacleZ = room.z0 + (roomIndex == 1 and 30 or isLast and 18 or 24)
+	local laneX = side * (9 + roll() * 9)
+	local gap = 13
+	local mainFrom, mainTo = -side * (HALF - 3), laneX - side * gap
+	local mainWidth = math.abs(mainTo - mainFrom)
+	mainObstacle(model, room.theme, (mainFrom + mainTo) / 2, obstacleZ, mainWidth, side)
+	local sideFrom, sideTo = laneX + side * gap, side * (HALF - 3)
+	local sideWidth = math.abs(sideTo - sideFrom)
+	if sideWidth > 7 then sideObstacle(model, room.theme, (sideFrom + sideTo) / 2, obstacleZ + (roll() - 0.5) * 6, sideWidth) end
+	if not isLast then
+		hopObstacle(model, room.theme, laneX * 0.2, room.z0 + 46)
+	else
+		local rampStart = house.z1 - 32
+		local ramp = wedgeRamp(model, "ExitRamp", 0, rampStart, house.z1 - 14, 5, 30, C.WoodMid)
+		for _, stripeSide in ipairs({ -1, 1 }) do
+			wedgeRamp(model, "RampStripe", stripeSide * 14, rampStart, house.z1 - 14, 5.1, 2.4, C.Red, { noQuery = true })
+			bulbLine(model, localPoint(stripeSide * 15.6, 0.8, rampStart), localPoint(stripeSide * 15.6, 6, house.z1 - 14), 2.6, stripeSide > 0 and 2 or 0)
+		end
+		ramp:SetAttribute("Level5Ramp", true)
+	end
+end
+
+local function buildMansionHall(house)
+	local model = house.model
+	local z0 = house.z0
+	christmasTree(model, at(-20, 0, z0 + 52), 2.6)
+	giftPile(model, at(-20, 0, z0 + 52), 14, 18)
+	local piano = at(22, 0, z0 + 88)
+	piece(model, piano, "PianoBody", V(11, 3, 9), 0, 5, 0, C.Black, { material = M.SmoothPlastic })
+	piece(model, piano, "PianoLid", V(11, 0.4, 9), 0, 7.6, 2.4, C.Black, { material = M.SmoothPlastic }, CFrame.Angles(math.rad(35), 0, 0))
+	for _, a in ipairs({ -1, 0, 1 }) do piece(model, piano, "PianoLeg", V(1, 4, 1), a * 4.4, 2, a * 3, C.Black) end
+	piece(model, piano, "Keys", V(10, 0.6, 2), 0, 6.6, -5.4, C.White)
+	for index = 1, 14 do
+		gift(model, at(28 + (index % 3) * 4.4, 0, z0 + 66 + math.floor(index / 3) * 4.4), 0, (index > 9) and 4 or 0, 0, 4, GIFT_COLORS[(index - 1) % #GIFT_COLORS + 1], index * 0.4)
+	end
+	for _, side in ipairs({ -1, 1 }) do
+		for k = 0, 4 do box(model, "HallColumn", V(3, house.top - 1, 3), side * (HALF - 4), (house.top - 1) / 2, z0 + 14 + k * 27, C.Trim, { noQuery = true }) end
+	end
+	local chandelier = at(0, house.top - 5, z0 + 60)
+	for k = 0, 13 do
+		local angle = k / 14 * math.pi * 2
+		ball(model, chandelier, "ChandelierLight", 0.9, math.cos(angle) * 5, 0, math.sin(angle) * 5, rgb(0xffd27a), { material = M.Neon, noCollide = true, noQuery = true })
+	end
+	piece(model, chandelier, "ChandelierRing", V(0.6, 10.6, 10.6), 0, -0.4, 0, rgb(0xd4af37), { material = M.Metal, noCollide = true, noQuery = true, shape = Enum.PartType.Cylinder }, CFrame.Angles(0, 0, math.pi / 2))
+	boardWithText(model, "FelizNavidad", V(28, 7, 0.6), at(0, house.top - 9, house.z1 - 2.5), rgb(0xa3262e), "¡FELIZ NAVIDAD!", C.Gold, rgb(0x5a0a0a))
+	local rampStart = house.z1 - 40
+	wedgeRamp(model, "GiftRamp", 0, rampStart, house.z1 - 18, 7, 30, C.Red)
+	for _, stripeSide in ipairs({ -1, 1 }) do
+		bulbLine(model, localPoint(stripeSide * 15.6, 0.8, rampStart), localPoint(stripeSide * 15.6, 8, house.z1 - 18), 2.4, 1)
+		for k = 0, 3 do gift(model, at(stripeSide * 19, 0, rampStart + 3 + k * 5), 0, 0, 0, 3.4, GIFT_COLORS[k + 1], k) end
+	end
+end
+
+local laneSide = 1
+for _, house in ipairs(houses) do
+	buildShell(house)
+	if house.mansion then
+		buildMansionHall(house)
+	else
+		for roomIndex, room in ipairs(house.rooms) do
+			buildRoom(house, roomIndex, room, laneSide)
+			laneSide = -laneSide
+		end
+	end
+	local names = {}
+	for _, room in ipairs(house.rooms) do
+		local name = themeNames[room.theme]
+		if not table.find(names, name) then table.insert(names, name) end
+	end
+	house.model:SetAttribute("DisplayName", ("Casa %d/%d · %s"):format(house.index, #houses, house.mansion and "La mansión" or table.concat(names, ", ")))
+end
+
+local function groundSlab(parent, name, x, width, zStart, zEnd, depth, color, options, lift)
+	local zm = zStart
+	while zm < zEnd do
+		local stop = math.min(zEnd, zm + 500)
+		box(parent, name, V(width, depth, stop - zm), x, (lift or 0) - depth / 2, (zm + stop) / 2, color, options)
+		zm = stop
+	end
+end
+
+groundSlab(terrainFolder, "TrackSnow", 0, HALF * 2 + 6, 0, Z_FLAT, 4, C.Snow)
+groundSlab(terrainFolder, "TrackSnowEnd", 0, HALF * 2 + 6, Z_FLAT, Z_END, 4, C.Snow)
+groundSlab(terrainFolder, "Hillside", -175, 250, -60, Z_FLAT, 4, C.SnowShade, { noQuery = true }, -0.1)
+groundSlab(terrainFolder, "Hillside", 175, 250, -60, Z_FLAT, 4, C.SnowShade, { noQuery = true }, -0.1)
+groundSlab(terrainFolder, "HillsideEnd", 0, 600, Z_FLAT, Z_END + 80, 3.8, C.SnowShade, { noQuery = true }, -0.1)
+groundSlab(streetFolder, "Street", STREET_X, 26, -60, Z_FLAT, 0.5, C.Asphalt, { noQuery = true }, 0.05)
+groundSlab(streetFolder, "SidewalkNear", STREET_X + 18, 8, -60, Z_FLAT, 0.4, C.Sidewalk, { noQuery = true }, 0.15)
+groundSlab(streetFolder, "SidewalkFar", STREET_X - 18, 8, -60, Z_FLAT, 0.4, C.Sidewalk, { noQuery = true }, 0.15)
+for zm = -40, Z_FLAT - 10, 20 do
+	box(streetFolder, "LaneLine", V(0.8, 0.1, 9), STREET_X, 0.1, zm, C.LineYellow, { noQuery = true, noCollide = true, noStuds = true })
+end
+for zm = 0, Z_FLAT - 30, 60 do
+	local anchor = at(STREET_X + 15.5, 0, zm)
+	local model = newModel("StreetLamp", streetFolder)
+	piece(model, anchor, "Pole", V(1, 15, 1), 0, 7.5, 0, rgb(0x1c2230))
+	piece(model, anchor, "Lantern", V(2, 2.4, 2), 0, 15.6, 0, rgb(0x1c2230))
+	piece(model, anchor, "Light", V(1.4, 1.6, 1.4), 0, 15.5, 0, rgb(0xfff0b8), { material = M.Neon, noCollide = true })
+	wreath(model, anchor * CFrame.new(0.8, 10.6, 0) * CFrame.Angles(0, math.pi / 2, 0), 2)
+	piece(model, anchor, "Banner", V(0.2, 4, 2.6), 1.2, 12.8, 0, C.Red, { noCollide = true })
+end
+
+for index = 0, 66 do
+	local zm = -40 + index * 70
+	if zm > Z_FLAT - 30 then break end
+	local model = newModel("BackdropHouse", streetFolder)
+	local color = HOUSE_COLORS[index % #HOUSE_COLORS + 1]
+	local x = STREET_X - 52
+	box(model, "Body", V(30, 18, 46), x, 9, zm, color, { noQuery = true })
+	box(model, "Roof", V(17, 1.4, 50), x + 7.6, 22, zm, SHINGLE_COLORS[index % #SHINGLE_COLORS + 1], { noQuery = true, noCollide = true }, CFrame.Angles(0, 0, math.rad(-33)))
+	box(model, "Roof", V(17, 1.4, 50), x - 7.6, 22, zm, SHINGLE_COLORS[index % #SHINGLE_COLORS + 1], { noQuery = true, noCollide = true }, CFrame.Angles(0, 0, math.rad(33)))
+	box(model, "RoofSnow", V(3, 1.4, 50), x, 27, zm, C.Snow, { noQuery = true, noCollide = true })
+	for _, offset in ipairs({ -12, 12 }) do box(model, "Window", V(0.4, 6, 7), x + 15.1, 9, zm + offset, C.Window, { material = M.Neon, noQuery = true, noCollide = true }) end
+	box(model, "Door", V(0.4, 10, 6), x + 15.1, 5, zm, DOOR_COLORS[index % #DOOR_COLORS + 1], { noQuery = true })
+	bulbLine(model, localPoint(x + 16, 18.2, zm - 24), localPoint(x + 16, 18.2, zm + 24), 3.4, index)
+end
+
+for houseIndex, house in ipairs(houses) do
+	local yardStart = house.z1
+	local yardEnd = houses[houseIndex + 1] and houses[houseIndex + 1].z0 or FINISH_ZM - 20
+	local yardMid = (yardStart + yardEnd) / 2
+	local yardModel = newModel(("Yard%02d"):format(houseIndex), yardFolder)
+	for _, side in ipairs({ -1, 1 }) do
+		box(yardModel, "YardBarrier", V(2, 40, yardEnd - yardStart + 2), side * (HALF + 1), 20, yardMid, C.Snow, { transparency = 1, noQuery = true, noShadow = true })
+		for zm = yardStart + 2, yardEnd - 2, 4 do
+			box(yardModel, "Picket", V(0.5, 4.4, 0.4), side * (HALF + 0.5), 2.2, zm, C.White, { noQuery = true })
+		end
+		box(yardModel, "FenceRail", V(0.4, 0.4, yardEnd - yardStart - 2), side * (HALF + 0.5), 3.4, yardMid, C.White, { noQuery = true })
+		for k = 0, 2 do candyCane(yardModel, side * (HALF - 3), yardStart + 18 + k * 22, 4.4) end
+	end
+	local nextHouse = houses[houseIndex + 1]
+	if nextHouse then
+		local rampEnd = nextHouse.z0 - 14
+		local rampStart = rampEnd - 18
+		wedgeRamp(yardModel, "YardRamp", 0, rampStart, rampEnd, 5, 40, C.Ice, { material = M.Ice })
+		for _, stripeSide in ipairs({ -1, 1 }) do
+			wedgeRamp(yardModel, "RampStripe", stripeSide * 19, rampStart, rampEnd, 5.1, 2.4, C.Red, { noQuery = true })
+			bulbLine(yardModel, localPoint(stripeSide * 20.6, 0.8, rampStart), localPoint(stripeSide * 20.6, 6, rampEnd), 2.6, 1)
+		end
+		local decoration = houseIndex % 3
+		local decoSide = houseIndex % 2 == 0 and 1 or -1
+		if decoration == 0 then
+			snowman(yardModel, decoSide * 32, yardStart + 30, 1.2)
+		elseif decoration == 1 then
+			pine(yardModel, decoSide * 34, yardStart + 28, 0.8)
+		else
+			giftPile(yardModel, at(decoSide * 32, 0, yardStart + 30), 8, 10)
+		end
+	end
+	if houseIndex % 2 == 0 then
+		snowman(decorationFolder, -HALF - 30, house.z0 + (house.z1 - house.z0) * 0.75, 1.4)
+	else
+		pine(decorationFolder, -HALF - 30, house.z0 + (house.z1 - house.z0) * 0.75, 0.9)
+	end
+	local mailbox = newModel("Mailbox", decorationFolder)
+	piece(mailbox, at(STREET_X + 22, 0, house.z1 - 6), "MailPost", V(1.4, 5, 1.4), 0, 2.5, 0, C.Black)
+	piece(mailbox, at(STREET_X + 22, 0, house.z1 - 6), "MailBox", V(2.2, 2, 3.4), 0, 5.8, 0, C.Red)
+end
+
+for zm = -40, Z_FLAT, 36 do
+	pine(decorationFolder, HALF + 26 + (zm % 3) * 10, zm, 1.2 + (zm % 5) * 0.08)
+	if zm % 72 == 0 then pine(decorationFolder, HALF + 70, zm + 18, 1.5) end
+end
+
+local mountainsFolder = newFolder("Mountains")
+for index = 0, 30 do
+	local zm = -200 + index * 170
+	local frame = at(420 + (index % 3) * 60, -60, zm)
+	local height = 220 + (index % 4) * 60
+	local width = 260 + (index % 3) * 80
+	createPart(mountainsFolder, "Mountain", V(width, height, width * 0.8), CFrame.new(frame.Position + V(0, height / 2, 0)), C.Mountain, { noQuery = true, noShadow = true, noCollide = true })
+	createPart(mountainsFolder, "MountainSnow", V(width * 0.6, height * 0.3, width * 0.5), CFrame.new(frame.Position + V(0, height * 0.95, 0)), C.Snow, { noQuery = true, noShadow = true, noCollide = true })
+end
+
+createPart(terrainFolder, "Plateau", V(200, BASE_Y, 160), CFrame.new(OFFSET_X, BASE_Y / 2, 80), C.Snow)
+for _, tileX in ipairs({ -1000, 1000 }) do
+	for _, tileZ in ipairs({ -800, -2800, -4800 }) do
+		local floor = createPart(hazardFolder, "KillFloor", V(2000, 4, 2000), CFrame.new(OFFSET_X + tileX, BASE_Y - 1100, tileZ), C.SnowShade, { transparency = 1 })
+		CollectionService:AddTag(floor, "Hazard")
+		floor:SetAttribute("HazardKind", "Pit")
+	end
+end
+
+do
+	local sign = newModel("NeighborhoodSign", decorationFolder)
+	local anchor = at(-30, 0, -70)
+	for _, side in ipairs({ -1, 1 }) do piece(sign, anchor, "SignPost", V(1.4, 12, 1.4), side * 10, 6, 0, C.WoodDark, { noStuds = true }) end
+	boardWithText(sign, "SignBoard", V(24, 7, 0.8), anchor * CFrame.new(0, 9, 0), rgb(0xa3262e), "VECINDARIO NAVIDEÑO", C.Gold, rgb(0x5a0a0a))
+	piece(sign, anchor, "SignSnow", V(25, 1, 1.8), 0, 12.9, 0, C.Snow)
+end
+
+do
+	local arch = newModel("FinishArch", decorationFolder)
+	local anchor = at(0, 0, FINISH_ZM)
+	for _, side in ipairs({ -1, 1 }) do
+		for index = 0, 9 do piece(arch, anchor, "CandyPost", V(4, 3, 4), side * 40, 1.5 + index * 3, 0, index % 2 == 0 and C.Red or C.White, { noStuds = true }) end
+		ball(arch, anchor, "PostTop", 5, side * 40, 32, 0, C.Gold, { material = M.Neon })
+	end
+	piece(arch, anchor, "Beam", V(84, 2, 2), 0, 28, 0, C.Green, { noStuds = true })
+	boardWithText(arch, "FinishBoard", V(40, 11, 0.8), anchor * CFrame.new(0, 34, 0), C.Green, "¡META!", C.White, rgb(0x0a3a1a))
+	bulbLine(arch, (anchor * CFrame.new(-38, 26.5, -1.2)).Position, (anchor * CFrame.new(38, 26.5, -1.2)).Position, 2.4, 0)
+	local finishLine = box(gameplayFolder, "FinishLine", V(HALF * 2, 0.3, 2.4), 0, 0.2, FINISH_ZM, C.White, { material = M.Neon, noCollide = true, noQuery = true })
+	CollectionService:AddTag(finishLine, "FinishLine")
+	christmasTree(decorationFolder, at(0, 0, Z_END - 20), 5)
+	giftPile(decorationFolder, at(0, 0, Z_END - 20), 20, 34)
+end
+
+local plateauSpawn = createPart(gameplayFolder, "PlateauSpawn", V(30, 1, 30), CFrame.new(OFFSET_X, BASE_Y + 0.5, 110), C.Pad)
+CollectionService:AddTag(plateauSpawn, "PlateauSpawn")
+
+local slingshotOffset = V(OFFSET_X, SLINGSHOT_LIFT, 0)
+for _, name in ipairs({ "Slingshot", "SlingshotDecor" }) do
+	local source = levelOne and levelOne:FindFirstChild(name)
+	if source then
+		local copy = source:Clone()
+		copy:PivotTo(source:GetPivot() + slingshotOffset)
+		copy.Parent = root
+		if name == "Slingshot" then
+			copy:SetAttribute("SeatPosition", source:GetAttribute("SeatPosition") + slingshotOffset)
+			copy:SetAttribute("DismountPosition", source:GetAttribute("DismountPosition") + slingshotOffset)
+		end
+	end
+end
+local waitingSource = levelOne and levelOne:FindFirstChild("WaitingPenguins")
+if waitingSource then
+	local copy = waitingSource:Clone()
+	for _, penguin in ipairs(copy:GetChildren()) do
+		if penguin:IsA("Model") then penguin:PivotTo(penguin:GetPivot() + slingshotOffset) end
+	end
+	copy.Parent = root
+end
+
+local plazaGround = levelOne.FinishPlaza:FindFirstChild("PlazaGround")
+local plazaTop = plazaGround.Position.Y + plazaGround.Size.Y / 2
+local portalSource = levelOne:FindFirstChild("ReturnPortalGate")
+local portalCopy = portalSource:Clone()
+local sourcePivot = portalSource:GetPivot()
+local portalGround = at(0, 0, PORTAL_ZM).Position
+portalCopy:PivotTo(sourcePivot + (portalGround - V(sourcePivot.Position.X, plazaTop, sourcePivot.Position.Z)))
+portalCopy.Parent = root
+for _, descendant in ipairs(portalCopy:GetDescendants()) do
+	if descendant:GetAttribute("DestinationLevel") ~= nil then descendant:SetAttribute("DestinationLevel", nil) end
+end
+if levelFour then
+	for _, descendant in ipairs(levelFour:GetDescendants()) do
+		if CollectionService:HasTag(descendant, "ReturnPortal") then descendant:SetAttribute("DestinationLevel", LEVEL_ID) end
+	end
+end
+
+root:SetAttribute("WindowCount", windowCount)
+local camera = workspace.CurrentCamera
+if camera then
+	camera.CFrame = CFrame.lookAt(at(-160, 120, -120).Position, at(0, 0, 400).Position)
+end
+
+local partCount = 0
+for _, descendant in ipairs(root:GetDescendants()) do
+	if descendant:IsA("BasePart") then partCount += 1 end
+end
+print(("Level 5 built: %d parts, %d houses, %d windows, %d bulbs, finish Y %.1f, portal Y %.1f, yard %.1f"):format(partCount, #houses, windowCount, bulbCount, at(0, 0, FINISH_ZM).Position.Y, portalGround.Y, yardLength))
+return true
+
+end
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX3"><Properties><string name="Name">WindowBreaker</string><ProtectedString name="Source"><![CDATA[--!strict
+local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+
+local LevelRegistry = require(ReplicatedStorage.Shared.LevelRegistry)
+local RunState = require(ReplicatedStorage.Shared.RunState)
+
+local LEVEL_ID = 5
+local WINDOW_TAG = "BreakableWindow"
+local SHELL_TAG = "HouseShell"
+local SHARD_COUNT = 34
+local SHARD_LIFETIME = 1.6
+local FADED_TRANSPARENCY = 0.82
+local CROSSING_MARGIN = 6
+local SLOW_DEPTH = 6
+local GLASS_SOUND = "rbxasset://sounds/glassbreak.wav"
+
+type WindowEntry = {
+	model: Model,
+	parts: { BasePart },
+	frame: CFrame,
+	halfSize: Vector3,
+	lastDepth: number?,
+	broken: boolean,
+}
+
+type HouseEntry = {
+	model: Model,
+	zMin: number,
+	zMax: number,
+	shell: { BasePart },
+	name: string,
+}
+
+local WindowBreaker = {}
+
+local player = Players.LocalPlayer
+local windows: { WindowEntry } = {}
+local houses: { HouseEntry } = {}
+local faded: { [BasePart]: boolean } = {}
+local brokenCount = 0
+local connection: RBXScriptConnection? = nil
+local gui: ScreenGui? = nil
+local counterLabel: TextLabel? = nil
+local popLabel: TextLabel? = nil
+local roomLabel: TextLabel? = nil
+local shardFolder: Folder? = nil
+local currentHouse: HouseEntry? = nil
+
+local function levelFolder(): Instance?
+	for _, child in Workspace:GetChildren() do
+		if child:GetAttribute("LevelId") == LEVEL_ID then
+			return child
+		end
+	end
+	return nil
+end
+
+local function collect()
+	table.clear(windows)
+	table.clear(houses)
+	for _, instance in CollectionService:GetTagged(WINDOW_TAG) do
+		if instance:IsA("Model") and LevelRegistry.levelOf(instance) == LEVEL_ID then
+			local glass = instance:FindFirstChild("Glass")
+			if glass and glass:IsA("BasePart") then
+				local parts: { BasePart } = {}
+				for _, descendant in instance:GetDescendants() do
+					if descendant:IsA("BasePart") then
+						table.insert(parts, descendant)
+					end
+				end
+				table.insert(windows, { model = instance, parts = parts, frame = glass.CFrame, halfSize = glass.Size / 2, lastDepth = nil, broken = false })
+			end
+		end
+	end
+	local folder = levelFolder()
+	local housesFolder = folder and folder:FindFirstChild("Houses")
+	if housesFolder then
+		for _, model in housesFolder:GetChildren() do
+			if model:IsA("Model") then
+				local shell: { BasePart } = {}
+				for _, descendant in model:GetDescendants() do
+					if descendant:IsA("BasePart") and CollectionService:HasTag(descendant, SHELL_TAG) then
+						table.insert(shell, descendant)
+					end
+				end
+				local zMin = model:GetAttribute("WorldZMin")
+				local zMax = model:GetAttribute("WorldZMax")
+				local name = model:GetAttribute("DisplayName")
+				if typeof(zMin) == "number" and typeof(zMax) == "number" then
+					table.insert(houses, { model = model, zMin = zMin, zMax = zMax, shell = shell, name = if typeof(name) == "string" then name else model.Name })
+				end
+			end
+		end
+	end
+end
+
+local function styledLabel(parent: Instance, size: UDim2, position: UDim2, textSize: number, color: Color3): TextLabel
+	local label = Instance.new("TextLabel")
+	label.AnchorPoint = Vector2.new(0.5, 0)
+	label.BackgroundTransparency = 1
+	label.Size = size
+	label.Position = position
+	label.Font = Enum.Font.FredokaOne
+	label.TextColor3 = color
+	label.TextSize = textSize
+	label.Text = ""
+	local stroke = Instance.new("UIStroke")
+	stroke.Thickness = 3
+	stroke.Color = Color3.fromRGB(20, 24, 42)
+	stroke.Parent = label
+	label.Parent = parent
+	return label
+end
+
+local function buildGui()
+	if gui then
+		return
+	end
+	local screen = Instance.new("ScreenGui")
+	screen.Name = "WindowCounter"
+	screen.ResetOnSpawn = false
+	screen.IgnoreGuiInset = true
+	screen.DisplayOrder = 8
+	screen.Enabled = false
+	local pill = Instance.new("Frame")
+	pill.AnchorPoint = Vector2.new(0.5, 0)
+	pill.Position = UDim2.new(0.5, 0, 0, 58)
+	pill.Size = UDim2.fromOffset(250, 52)
+	pill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	pill.Parent = screen
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(1, 0)
+	corner.Parent = pill
+	local border = Instance.new("UIStroke")
+	border.Thickness = 4
+	border.Color = Color3.fromRGB(20, 24, 42)
+	border.Parent = pill
+	counterLabel = styledLabel(pill, UDim2.fromScale(1, 1), UDim2.fromScale(0.5, 0), 28, Color3.fromRGB(110, 205, 255))
+	roomLabel = styledLabel(screen, UDim2.fromOffset(600, 30), UDim2.new(0.5, 0, 0, 116), 24, Color3.fromRGB(255, 255, 255))
+	popLabel = styledLabel(screen, UDim2.fromOffset(700, 110), UDim2.new(0.5, 0, 0.22, 0), 86, Color3.fromRGB(255, 255, 255))
+	screen.Parent = player:WaitForChild("PlayerGui")
+	gui = screen
+end
+
+local function refreshCounter()
+	if counterLabel then
+		counterLabel.Text = ("VENTANAS %d/%d"):format(brokenCount, #windows)
+	end
+end
+
+local POP_WORDS = { "¡CRASH!", "¡CRACK!", "¡PUM!", "¡ZAS!" }
+
+local function pop(word: string)
+	local label = popLabel
+	if not label then
+		return
+	end
+	label.Text = word
+	label.TextTransparency = 0
+	label.Rotation = -10
+	label.Size = UDim2.fromOffset(240, 40)
+	TweenService:Create(label, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.fromOffset(700, 110), Rotation = 3 }):Play()
+	task.delay(0.7, function()
+		if label.Text == word then
+			TweenService:Create(label, TweenInfo.new(0.35), { TextTransparency = 1 }):Play()
+		end
+	end)
+end
+
+local function spawnShards(entry: WindowEntry, velocity: Vector3)
+	if not shardFolder then
+		local folder = Instance.new("Folder")
+		folder.Name = "WindowShards"
+		folder.Parent = Workspace
+		shardFolder = folder
+	end
+	local frame = entry.frame
+	local half = entry.halfSize
+	local forward = if velocity.Magnitude > 1 then velocity.Unit else -frame.LookVector
+	for _ = 1, SHARD_COUNT do
+		local shard = Instance.new("Part")
+		shard.Name = "Shard"
+		shard.Material = Enum.Material.Glass
+		shard.Color = Color3.fromRGB(205, 240, 255)
+		shard.Transparency = 0.25
+		shard.Size = Vector3.new(0.3 + math.random() * 1.8, 0.3 + math.random() * 1.8, 0.15)
+		shard.CanCollide = false
+		shard.CanQuery = false
+		shard.CanTouch = false
+		shard.CastShadow = false
+		shard.CFrame = frame * CFrame.new((math.random() - 0.5) * 2 * half.X, (math.random() - 0.5) * 2 * half.Y, 0) * CFrame.Angles(math.random() * 6, math.random() * 6, math.random() * 6)
+		shard.AssemblyLinearVelocity = forward * (25 + math.random() * 45) + Vector3.new((math.random() - 0.5) * 40, 8 + math.random() * 22, (math.random() - 0.5) * 40)
+		shard.AssemblyAngularVelocity = Vector3.new(math.random() - 0.5, math.random() - 0.5, math.random() - 0.5) * 30
+		shard.Parent = shardFolder
+		TweenService:Create(shard, TweenInfo.new(SHARD_LIFETIME), { Transparency = 1 }):Play()
+		task.delay(SHARD_LIFETIME, function()
+			shard:Destroy()
+		end)
+	end
+	local burst = Instance.new("Part")
+	burst.Anchored = true
+	burst.CanCollide = false
+	burst.CanQuery = false
+	burst.CanTouch = false
+	burst.Transparency = 1
+	burst.Size = Vector3.new(1, 1, 1)
+	burst.CFrame = frame
+	burst.Parent = shardFolder
+	local sparkle = Instance.new("ParticleEmitter")
+	sparkle.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+	sparkle.Color = ColorSequence.new(Color3.fromRGB(220, 245, 255))
+	sparkle.LightEmission = 1
+	sparkle.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.6), NumberSequenceKeypoint.new(1, 0) })
+	sparkle.Lifetime = NumberRange.new(0.4, 0.8)
+	sparkle.Speed = NumberRange.new(20, 40)
+	sparkle.SpreadAngle = Vector2.new(180, 180)
+	sparkle.Rate = 0
+	sparkle.Parent = burst
+	sparkle:Emit(60)
+	local sound = Instance.new("Sound")
+	sound.SoundId = GLASS_SOUND
+	sound.Volume = 0.8
+	sound.PlaybackSpeed = 0.9 + math.random() * 0.25
+	sound.Parent = burst
+	sound:Play()
+	task.delay(2, function()
+		burst:Destroy()
+	end)
+end
+
+local function breakWindow(entry: WindowEntry, velocity: Vector3)
+	entry.broken = true
+	for _, part in entry.parts do
+		part.LocalTransparencyModifier = 1
+	end
+	brokenCount += 1
+	refreshCounter()
+	pop(POP_WORDS[(brokenCount - 1) % #POP_WORDS + 1])
+	spawnShards(entry, velocity)
+end
+
+local function restoreWindows()
+	for _, entry in windows do
+		entry.broken = false
+		entry.lastDepth = nil
+		for _, part in entry.parts do
+			part.LocalTransparencyModifier = 0
+		end
+	end
+	brokenCount = 0
+	refreshCounter()
+end
+
+local function clearFades()
+	for part in faded do
+		part.LocalTransparencyModifier = 0
+	end
+	table.clear(faded)
+end
+
+local function segmentHitsPart(part: BasePart, from: Vector3, to: Vector3): boolean
+	local localFrom = part.CFrame:PointToObjectSpace(from)
+	local localTo = part.CFrame:PointToObjectSpace(to)
+	local half = part.Size / 2
+	local enter, exit = 0, 1
+	local direction = localTo - localFrom
+	for _, axis in { "X", "Y", "Z" } do
+		local start = (localFrom :: any)[axis] :: number
+		local delta = (direction :: any)[axis] :: number
+		local limit = (half :: any)[axis] :: number
+		if math.abs(delta) < 1e-6 then
+			if math.abs(start) > limit then
+				return false
+			end
+		else
+			local t1 = (-limit - start) / delta
+			local t2 = (limit - start) / delta
+			if t1 > t2 then
+				t1, t2 = t2, t1
+			end
+			enter = math.max(enter, t1)
+			exit = math.min(exit, t2)
+			if enter > exit then
+				return false
+			end
+		end
+	end
+	return true
+end
+
+local function rootPart(): BasePart?
+	local character = player.Character
+	if not character then
+		return nil
+	end
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if root and root:IsA("BasePart") then
+		return root
+	end
+	return character.PrimaryPart
+end
+
+local function step()
+	local root = rootPart()
+	local camera = Workspace.CurrentCamera
+	if not root or not camera then
+		return
+	end
+	local position = root.Position
+	local velocity = root.AssemblyLinearVelocity
+	for _, entry in windows do
+		if not entry.broken then
+			local localPosition = entry.frame:PointToObjectSpace(position)
+			local depth = localPosition.Z
+			local inside = math.abs(localPosition.X) <= entry.halfSize.X + CROSSING_MARGIN and math.abs(localPosition.Y) <= entry.halfSize.Y + CROSSING_MARGIN
+			local previous = entry.lastDepth
+			if inside and (math.abs(depth) < SLOW_DEPTH or (previous ~= nil and math.sign(previous) ~= math.sign(depth))) then
+				breakWindow(entry, velocity)
+			end
+			entry.lastDepth = if inside then depth else nil
+		end
+	end
+	local from = camera.CFrame.Position
+	local targets = { position, position + Vector3.new(0, 4, 0) }
+	local zLow = math.min(from.Z, position.Z)
+	local zHigh = math.max(from.Z, position.Z)
+	local stillFaded: { [BasePart]: boolean } = {}
+	local inside: HouseEntry? = nil
+	for _, house in houses do
+		if position.Z <= house.zMax - 30 and position.Z >= house.zMin + 30 then
+			inside = house
+		end
+		if house.zMax >= zLow and house.zMin <= zHigh then
+			for _, part in house.shell do
+				for _, target in targets do
+					if segmentHitsPart(part, from, target) then
+						stillFaded[part] = true
+						break
+					end
+				end
+			end
+		end
+	end
+	for part in faded do
+		if not stillFaded[part] then
+			part.LocalTransparencyModifier = 0
+		end
+	end
+	for part in stillFaded do
+		part.LocalTransparencyModifier = FADED_TRANSPARENCY
+	end
+	faded = stillFaded
+	if inside ~= currentHouse then
+		currentHouse = inside
+		if roomLabel then
+			roomLabel.Text = if inside then inside.name else ""
+		end
+	end
+end
+
+local function stop()
+	if connection then
+		connection:Disconnect()
+		connection = nil
+	end
+	clearFades()
+	if gui then
+		gui.Enabled = false
+	end
+end
+
+local function start()
+	stop()
+	collect()
+	if #windows == 0 then
+		return
+	end
+	buildGui()
+	refreshCounter()
+	if gui then
+		gui.Enabled = true
+	end
+	connection = RunService.RenderStepped:Connect(step)
+end
+
+local function onStateChanged()
+	local state = player:GetAttribute("RunState")
+	local onLevel = LevelRegistry.playerLevel(player) == LEVEL_ID
+	if state == RunState.Racing and onLevel then
+		start()
+	else
+		stop()
+		if state == RunState.Aiming or state == RunState.Idle then
+			if #windows == 0 then
+				collect()
+			end
+			restoreWindows()
+			currentHouse = nil
+			if roomLabel then
+				roomLabel.Text = ""
+			end
+		end
+	end
+end
+
+function WindowBreaker.init()
+	player:GetAttributeChangedSignal("RunState"):Connect(onStateChanged)
+	player:GetAttributeChangedSignal(LevelRegistry.Attribute):Connect(onStateChanged)
+	onStateChanged()
+end
+
+return WindowBreaker
+]]></ProtectedString></Properties></Item></Item></roblox>

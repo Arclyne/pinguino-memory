@@ -1,0 +1,18 @@
+local SES = game:GetService("ScriptEditorService") local RS = game:GetService("ReplicatedStorage") local SSS = game:GetService("ServerScriptService") local SPS = game:GetService("StarterPlayer").StarterPlayerScripts
+local pack = workspace:FindFirstChild("ClaudeInstall", true)
+local function folderIn(p, n) local f = p:FindFirstChild(n) if not f then f = Instance.new("Folder") f.Name = n f.Parent = p end return f end
+local function move(src, dest) for _, m in ipairs(src:GetChildren()) do local old = dest:FindFirstChild(m.Name) if old then old:Destroy() end m.Parent = dest end end
+local Client = SPS.Client
+move(pack.Shared, RS.Shared) move(pack.Server, SSS.Server.Services) move(pack.Client, Client) move(pack.Panels, folderIn(Client, "Panels")) move(pack.Decoration, folderIn(Client, "Decoration"))
+local build = pack.Build build.Parent = game:GetService("ServerStorage") local oldb = game.ServerStorage:FindFirstChild("ClaudeBuild") if oldb then oldb:Destroy() end build.Name = "ClaudeBuild" pack:Destroy()
+local Remotes = RS.Remotes
+for _, d in ipairs({ { "ProfileChanged", "RemoteEvent" }, { "ProfileRequested", "RemoteFunction" }, { "SkinPurchaseRequested", "RemoteFunction" }, { "SkinEquipRequested", "RemoteFunction" }, { "WheelSpinRequested", "RemoteFunction" }, { "WheelSpinPurchaseRequested", "RemoteFunction" }, { "BoostPurchaseRequested", "RemoteFunction" }, { "DailyGiftClaimRequested", "RemoteFunction" }, { "LevelTravelRequested", "RemoteFunction" }, { "LaunchPadRequested", "RemoteFunction" }, { "FishCollectRequested", "RemoteEvent" }, { "WheelSpun", "RemoteEvent" }, { "LeaderboardChanged", "RemoteEvent" }, { "LeaderboardRequested", "RemoteFunction" } }) do if not Remotes:FindFirstChild(d[1]) then local r = Instance.new(d[2]) r.Name = d[1] r.Parent = Remotes end end
+local function put(parent, name, className, source) local s = parent:FindFirstChild(name) if s and s.ClassName ~= className then s:Destroy() s = nil end if not s then s = Instance.new(className) s.Name = name s.Parent = parent end SES:UpdateSourceAsync(s, function() return source end) end
+put(SSS, "EconomyMain", "Script", 'local Services = game:GetService("ServerScriptService"):WaitForChild("Server"):WaitForChild("Services")\nfor _, name in { "ProfileService", "SkinService", "FishService", "WheelService", "RewardService", "ProgressService", "LeaderboardService" } do\n\trequire(Services:WaitForChild(name)).init()\nend\n')
+put(SPS, "LobbyMain", "LocalScript", 'local Client = script.Parent:WaitForChild("Client")\nfor _, name in { "ProfileStore", "LeaderboardStore", "Feedback", "LobbyHud", "FishPickupController", "WorldWheelController", "WorldBoardController" } do\n\trequire(Client:WaitForChild(name)).init()\nend\n')
+local rss = SSS.Server.Services.RunStateService local rsrc = rss.Source
+if not rsrc:find("previousState, payload)", 1, true) then local p, n = rsrc:gsub("Changed:Fire%(player, newState, previousState%)", "Changed:Fire(player, newState, previousState, payload)") SES:UpdateSourceAsync(rss, function() return p end) print("RunState patched", n) end
+for line in rss.Source:gmatch("[^\n]*") do if line:find("function") and (line:find("apply") or line:find("transition") or line:find("reset")) then print("SIG", line) end end
+local ret = SSS.Server.Services.ReturnService local tsrc = ret.Source
+if not tsrc:find("ReturnService.sendToLevel = sendToLevel", 1, true) then local p, n = tsrc:gsub("\nreturn ReturnService%s*$", "\nReturnService.sendToLevel = sendToLevel\n\nreturn ReturnService\n") SES:UpdateSourceAsync(ret, function() return p end) print("Return patched", n) end
+print("PLACE OK", #Client.Panels:GetChildren(), #Client.Decoration:GetChildren())

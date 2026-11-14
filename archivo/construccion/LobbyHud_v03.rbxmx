@@ -1,0 +1,323 @@
+<roblox version="4"><Item class="ModuleScript" referent="R1"><Properties><string name="Name">LobbyHud</string><ProtectedString name="Source"><![CDATA[--!strict
+local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local Shared = ReplicatedStorage.Shared
+local EconomyConfig = require(Shared.EconomyConfig)
+local EconomyRemotes = require(Shared.EconomyRemotes)
+local RunState = require(Shared.RunState)
+
+local Client = script.Parent
+local Feedback = require(Client.Feedback)
+local PanelHost = require(Client.PanelHost)
+local ProfileStore = require(Client.ProfileStore)
+local UiKit = require(Client.UiKit)
+local HudIcons = require(Client.HudIcons)
+local HudLife = require(Client.HudLife)
+local Panels = Client.Panels
+local InfoPanel = require(Panels.InfoPanel)
+local LeaderboardPanel = require(Panels.LeaderboardPanel)
+local LevelsPanel = require(Panels.LevelsPanel)
+local ShopPanel = require(Panels.ShopPanel)
+local SkinsPanel = require(Panels.SkinsPanel)
+local WheelPanel = require(Panels.WheelPanel)
+
+local rgb = Color3.fromRGB
+local OPEN_PANEL_ATTRIBUTE = "OpensPanel"
+local VISIBLE_STATES = { [RunState.Idle] = true, [RunState.Finished] = true }
+
+type PanelEntry = { title: string, palette: { Color3 }, build: PanelHost.Builder }
+
+local localPlayer = Players.LocalPlayer
+local host: PanelHost.PanelHost? = nil
+local hudRoot: Frame? = nil
+local panels: { [string]: PanelEntry } = {}
+local keyBindings: { [Enum.KeyCode]: () -> () } = {}
+
+local LobbyHud = {}
+
+local function registerPanels()
+	panels.skins = { title = "🐧 SKINS", palette = { rgb(123, 92, 255), rgb(90, 140, 255), rgb(63, 208, 255) }, build = SkinsPanel.build }
+	panels.shop = { title = "🛒 TIENDA", palette = { rgb(255, 111, 216), rgb(123, 92, 255), rgb(63, 208, 255) }, build = ShopPanel.build }
+	panels.wheel = { title = "🎡 RULETA DE LA SUERTE", palette = { rgb(255, 79, 163), rgb(255, 179, 0), rgb(255, 79, 163) }, build = WheelPanel.build }
+	panels.levels = { title = "🗺️ NIVELES", palette = UiKit.Palettes.purple, build = LevelsPanel.build }
+	panels.leaderboard = { title = "🏆 TABLA DE CAMPEONES", palette = { rgb(123, 92, 255), rgb(63, 208, 255), rgb(123, 92, 255) }, build = LeaderboardPanel.build }
+	for name, spec in InfoPanel.Specs do
+		panels[name] = { title = spec.title, palette = spec.palette, build = InfoPanel.build(spec) }
+	end
+end
+
+function LobbyHud.open(name: string)
+	local activeHost = host
+	local entry = panels[name]
+	if not (activeHost and entry) then
+		return
+	end
+	if activeHost.openName == name then
+		activeHost:close()
+		return
+	end
+	activeHost:open(name, entry.title, entry.palette, entry.build)
+end
+
+local function launch()
+	local ok, success, message = pcall(function()
+		return EconomyRemotes.LaunchPadRequested:InvokeServer()
+	end)
+	if ok and success then
+		Feedback.toast("🐧💨 ¡Presiona E en la resortera!", UiKit.Palettes.gold)
+	else
+		Feedback.toast(if ok and typeof(message) == "string" then message else "No se pudo", UiKit.Palettes.red)
+	end
+end
+
+local function tile(parent: Instance, options: { icon: string, text: string, palette: { Color3 }, key: Enum.KeyCode?, ribbon: string?, order: number, size: number?, action: () -> () }): Frame
+	local size = options.size or 104
+	local button, holder = UiKit.button({ parent = parent, size = UDim2.fromOffset(size, size), palette = options.palette, radius = 18, layoutOrder = options.order })
+	local icon = UiKit.label(button, options.icon, { Size = UDim2.new(1, -16, 0.56, 0), Position = UDim2.new(0, 8, 0, 8), StrokeThickness = 0, MaxTextSize = 64, ZIndex = 4 })
+	icon.Name = "Icon"
+	local kind = HudIcons.KindByEmoji[options.icon]
+	if kind then
+		HudIcons.replaceTextIcon(icon, kind, options.order)
+	end
+	UiKit.label(button, options.text, { Name = "Caption", Size = UDim2.new(1, -8, 0.24, 0), Position = UDim2.new(0, 4, 0.7, 0), MaxTextSize = 20, StrokeThickness = 2.5, ZIndex = 4 })
+	if options.key then
+		UiKit.label(button, "[" .. options.key.Name .. "]", { Size = UDim2.fromOffset(34, 18), Position = UDim2.fromOffset(6, 4), MaxTextSize = 16, StrokeThickness = 2, ZIndex = 5, TextXAlignment = Enum.TextXAlignment.Left })
+		keyBindings[options.key] = options.action
+	end
+	if options.ribbon then
+		UiKit.ribbon(holder, options.ribbon)
+	end
+	HudLife.tile(holder, button, options.ribbon ~= nil)
+	button.MouseButton1Click:Connect(options.action)
+	return holder
+end
+
+local function belowChip(holder: Frame, text: string, palette: { Color3 }?): (Frame, TextLabel, Frame)
+	local chip = UiKit.new("Frame", { Size = UDim2.new(1, 0, 0, 26), Position = UDim2.new(0, 0, 1, 12), BackgroundColor3 = UiKit.Ink, ZIndex = 6, Parent = holder })
+	UiKit.cornerScale(chip, 0.5)
+	UiKit.border(chip, 2.5)
+	local fill = UiKit.new("Frame", { Size = UDim2.fromScale(0, 1), BackgroundColor3 = UiKit.White, ZIndex = 6, Parent = chip })
+	UiKit.cornerScale(fill, 0.5)
+	UiKit.gradient(fill, palette or UiKit.Palettes.orange, 90)
+	local label = UiKit.label(chip, text, { Size = UDim2.new(1, -10, 1, -6), Position = UDim2.fromOffset(5, 3), MaxTextSize = 16, StrokeThickness = 1.8, ZIndex = 7 })
+	return chip, label, fill
+end
+
+local function buildHud(screen: ScreenGui): Frame
+	local root = UiKit.new("Frame", { Name = "Hud", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Parent = screen })
+	local scale = UiKit.new("UIScale", { Parent = root })
+	local function rescale()
+		local camera = workspace.CurrentCamera
+		local viewport = if camera then camera.ViewportSize else Vector2.new(1400, 850)
+		scale.Scale = math.clamp(math.min(viewport.X / 1400, viewport.Y / 820), 0.55, 1)
+		root.Size = UDim2.fromScale(1 / scale.Scale, 1 / scale.Scale)
+	end
+	rescale()
+	if workspace.CurrentCamera then
+		workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(rescale)
+	end
+
+	local eventButton, eventHolder = UiKit.button({ parent = root, size = UDim2.fromOffset(300, 40), position = UDim2.fromOffset(14, 8), palette = { rgb(94, 225, 255), rgb(60, 140, 230), rgb(47, 111, 214) }, text = "❄️ EVENTO AVALANCHA · PRONTO", radius = 20, textSize = 22, shadow = 4 })
+	eventButton.MouseButton1Click:Connect(function()
+		LobbyHud.open("event")
+	end)
+	UiKit.pulse(eventHolder, eventHolder:FindFirstChildOfClass("UIScale"), 0.03)
+	local eventLabel = eventButton:FindFirstChild("Label")
+	if eventLabel and eventLabel:IsA("TextLabel") then
+		eventLabel.Text = "EVENTO AVALANCHA · PRONTO"
+		eventLabel.Position = UDim2.fromOffset(46, 4)
+		eventLabel.Size = UDim2.new(1, -54, 1, -10)
+	end
+	local eventIcon = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(46, 46), Position = UDim2.fromOffset(2, -3), ZIndex = 4, Parent = eventButton })
+	HudIcons.create(eventIcon, "snowflake", 1)
+
+	local function row(parent: Instance, order: number, height: number): Frame
+		local frame = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, height), LayoutOrder = order, Parent = parent })
+		UiKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 12), SortOrder = Enum.SortOrder.LayoutOrder, VerticalAlignment = Enum.VerticalAlignment.Top, Parent = frame })
+		return frame
+	end
+	local left = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(240, 600), Position = UDim2.fromOffset(14, 62), Parent = root })
+	UiKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, Padding = UDim.new(0, 18), SortOrder = Enum.SortOrder.LayoutOrder, Parent = left })
+	local rowWheel = row(left, 1, 114)
+	local wheelHolder = tile(rowWheel, { icon = "🎡", text = "RULETA", palette = UiKit.Palettes.blue, key = Enum.KeyCode.P, order = 1, size = 114, action = function() LobbyHud.open("wheel") end })
+	tile(rowWheel, { icon = "🛒", text = "TIENDA", palette = { rgb(255, 111, 216), rgb(123, 92, 255), rgb(63, 208, 255) }, key = Enum.KeyCode.G, ribbon = "NUEVO", order = 2, size = 114, action = function() LobbyHud.open("shop") end })
+	local rowSkins = row(left, 2, 114)
+	tile(rowSkins, { icon = "🐧", text = "SKINS", palette = UiKit.Palettes.purple, key = Enum.KeyCode.K, ribbon = "NUEVO", order = 1, size = 114, action = function() LobbyHud.open("skins") end })
+	local giftHolder = tile(rowSkins, { icon = "🎁", text = "REGALO", palette = UiKit.Palettes.pink, key = Enum.KeyCode.Y, order = 2, size = 114, action = function() LobbyHud.open("gift") end })
+	local giftBadge = UiKit.badge(giftHolder, "!")
+	local rowLevels = row(left, 3, 114)
+	tile(rowLevels, { icon = "🗺️", text = "NIVELES", palette = UiKit.Palettes.purple, key = Enum.KeyCode.Q, ribbon = "NUEVO", order = 1, size = 114, action = function() LobbyHud.open("levels") end })
+	tile(rowLevels, { icon = "🚀", text = "IMPULSO", palette = UiKit.Palettes.cyan, key = Enum.KeyCode.B, order = 2, size = 114, action = function() LobbyHud.open("boost") end })
+	local rowSmall = row(left, 4, 72)
+	tile(rowSmall, { icon = "🏆", text = "TABLA", palette = UiKit.Palettes.orange, key = Enum.KeyCode.L, order = 1, size = 72, action = function() LobbyHud.open("leaderboard") end })
+	tile(rowSmall, { icon = "📦", text = "INICIAL", palette = UiKit.Palettes.gold, key = Enum.KeyCode.H, order = 2, size = 72, action = function() LobbyHud.open("starter") end })
+	tile(rowSmall, { icon = "👑", text = "VIP", palette = UiKit.Palettes.gold, key = Enum.KeyCode.X, order = 3, size = 72, action = function() LobbyHud.open("vip") end })
+
+	local wheelBadge, wheelBadgeLabel = UiKit.badge(wheelHolder, "1")
+	local wheelChip, wheelChipLabel, wheelChipFill = belowChip(wheelHolder, "¡GIRO GRATIS!", UiKit.Palettes.gold)
+	wheelChip.Size = UDim2.new(1, 4, 0, 22)
+	wheelChip.Position = UDim2.new(0, -2, 1, -6)
+
+	local topRight = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(420, 60), Position = UDim2.new(1, -14, 0, 6), AnchorPoint = Vector2.new(1, 0), Parent = root })
+	UiKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 10), SortOrder = Enum.SortOrder.LayoutOrder, Parent = topRight })
+	local money = UiKit.new("Frame", { Size = UDim2.fromOffset(230, 60), BackgroundColor3 = UiKit.Ink, LayoutOrder = 3, Parent = topRight })
+	UiKit.corner(money, 16)
+	UiKit.border(money, 3, rgb(10, 13, 24))
+	local moneyLabel = UiKit.label(money, "0", { Size = UDim2.new(1, -80, 1, -12), Position = UDim2.fromOffset(70, 6), MaxTextSize = 40, ZIndex = 3 })
+	local moneyIcon = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(68, 68), Position = UDim2.fromOffset(0, -4), ZIndex = 4, Parent = money })
+	HudIcons.create(moneyIcon, "fish", 0)
+	local boostChip = UiKit.new("Frame", { Size = UDim2.fromOffset(150, 34), Position = UDim2.new(1, -14, 0, 74), AnchorPoint = Vector2.new(1, 0), BackgroundColor3 = UiKit.White, Visible = false, Parent = root })
+	UiKit.corner(boostChip, 12)
+	UiKit.border(boostChip, 3)
+	UiKit.gradient(boostChip, UiKit.Palettes.cyan, 90)
+	local boostLabel = UiKit.label(boostChip, "", { Size = UDim2.new(1, -10, 1, -8), Position = UDim2.fromOffset(5, 4), MaxTextSize = 20, ZIndex = 3 })
+
+	local right = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(230, 230), Position = UDim2.new(1, -14, 0.42, 0), AnchorPoint = Vector2.new(1, 0.5), Parent = root })
+	UiKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, HorizontalAlignment = Enum.HorizontalAlignment.Right, Padding = UDim.new(0, 14), SortOrder = Enum.SortOrder.LayoutOrder, Parent = right })
+	local function pill(options: { icon: string, text: string, palette: { Color3 }, key: Enum.KeyCode?, order: number, chip: string?, action: () -> () })
+		local button, holder = UiKit.button({ parent = right, size = UDim2.fromOffset(220, 58), palette = options.palette, radius = 18, layoutOrder = options.order, shadow = 5 })
+		local iconFrame = UiKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(62, 62), Position = UDim2.fromOffset(-4, -4), ZIndex = 5, Parent = button })
+		HudIcons.create(iconFrame, HudIcons.KindByEmoji[options.icon] or "check", options.order)
+		UiKit.label(button, options.text, { Size = UDim2.new(1, -70, 0, 30), Position = UDim2.fromOffset(60, 12), MaxTextSize = 26, StrokeThickness = 2.5, ZIndex = 4, TextXAlignment = Enum.TextXAlignment.Left })
+		if options.key then
+			UiKit.label(holder, "[" .. options.key.Name .. "]", { Size = UDim2.fromOffset(30, 16), Position = UDim2.new(1, -34, 0, 2), MaxTextSize = 14, StrokeThickness = 2, ZIndex = 6 })
+			keyBindings[options.key] = options.action
+		end
+		if options.chip then
+			local chip = UiKit.new("Frame", { Size = UDim2.fromOffset(72, 20), Position = UDim2.new(1, -6, 1, -8), AnchorPoint = Vector2.new(1, 0), BackgroundColor3 = UiKit.Ink, ZIndex = 7, Parent = holder })
+			UiKit.cornerScale(chip, 0.5)
+			UiKit.label(chip, options.chip, { Size = UDim2.new(1, -6, 1, -4), Position = UDim2.fromOffset(3, 2), MaxTextSize = 14, StrokeThickness = 1.5, ZIndex = 8 })
+		end
+		HudLife.tile(holder, button, false)
+		button.MouseButton1Click:Connect(options.action)
+	end
+	pill({ icon = "🎨", text = "PERSONALIZAR", palette = UiKit.Palettes.pink, key = Enum.KeyCode.C, order = 1, action = function() LobbyHud.open("custom") end })
+	pill({ icon = "⭐", text = "RENACER", palette = UiKit.Palettes.orange, key = Enum.KeyCode.Z, order = 2, chip = "PRONTO", action = function() LobbyHud.open("rebirth") end })
+	pill({ icon = "🐧➕", text = "INVITAR", palette = UiKit.Palettes.blue, key = Enum.KeyCode.U, order = 3, action = function() LobbyHud.open("invite") end })
+	local wheelIcon = (wheelHolder:FindFirstChild("Button") :: Instance):FindFirstChild("Icon") :: TextLabel
+
+	local launchButton, launchHolder = UiKit.button({ parent = root, size = UDim2.fromOffset(460, 116), position = UDim2.new(0.5, 0, 1, -124), anchor = Vector2.new(0.5, 1), palette = UiKit.Palettes.gold, text = "¡LANZAR! [R]", radius = 58, textSize = 66, shadow = 9 })
+	UiKit.pulse(launchHolder, launchHolder:FindFirstChildOfClass("UIScale"), 0.05)
+	HudLife.launch(launchHolder, launchButton)
+	launchButton.MouseButton1Click:Connect(launch)
+	keyBindings[Enum.KeyCode.R] = launch
+	local friendButton = UiKit.button({ parent = root, size = UDim2.fromOffset(440, 80), position = UDim2.new(0.5, 0, 1, -18), anchor = Vector2.new(0.5, 1), palette = UiKit.Palettes.blue, text = "LANZARSE CON UN AMIGO [F] · x2 PECES", radius = 40, textSize = 28 })
+	friendButton.MouseButton1Click:Connect(function()
+		LobbyHud.open("friend")
+	end)
+	keyBindings[Enum.KeyCode.F] = function()
+		LobbyHud.open("friend")
+	end
+
+	local race = UiKit.new("Frame", { Size = UDim2.fromOffset(330, 124), Position = UDim2.new(1, -14, 1, -14), AnchorPoint = Vector2.new(1, 1), BackgroundColor3 = UiKit.White, Parent = root })
+	UiKit.corner(race, 22)
+	UiKit.border(race, 4)
+	UiKit.gradient(race, UiKit.Palettes.blue, 90)
+	UiKit.label(race, "PRÓXIMA CARRERA", { Size = UDim2.new(1, -20, 0, 30), Position = UDim2.fromOffset(10, 8), MaxTextSize = 28, ZIndex = 3 })
+	UiKit.label(race, "Carreras programadas · pronto", { Size = UDim2.new(1, -20, 0, 20), Position = UDim2.fromOffset(10, 40), MaxTextSize = 18, StrokeThickness = 2, ZIndex = 3 })
+	local raceButton = UiKit.button({ parent = race, size = UDim2.new(1, -24, 0, 42), position = UDim2.new(0, 12, 1, -54), palette = UiKit.Palettes.gold, text = "[N] ÚNETE A LA PRÓXIMA CARRERA", radius = 16, textSize = 20, shadow = 4 })
+	raceButton.MouseButton1Click:Connect(function()
+		LobbyHud.open("race")
+	end)
+	keyBindings[Enum.KeyCode.N] = function()
+		LobbyHud.open("race")
+	end
+
+	local shownFish: number? = nil
+	local function refresh()
+		local snapshot = ProfileStore.get()
+		if not snapshot then
+			return
+		end
+		if shownFish and snapshot.fish > shownFish then
+			local gain = snapshot.fish - shownFish
+			local pop = UiKit.label(root, "+" .. UiKit.formatNumber(gain) .. " 🐟", { Size = UDim2.fromOffset(140, 36), Position = UDim2.new(1, -170, 0, 70), MaxTextSize = 30, TextColor3 = rgb(125, 255, 122), ZIndex = 10 })
+			TweenService:Create(pop, TweenInfo.new(0.9), { Position = UDim2.new(1, -170, 0, 40), TextTransparency = 1 }):Play()
+			task.delay(1, function()
+				pop:Destroy()
+			end)
+		end
+		shownFish = snapshot.fish
+		moneyLabel.Text = UiKit.formatNumber(snapshot.fish)
+		local now = ProfileStore.now()
+		local freeRemaining = snapshot.lastFreeSpin + EconomyConfig.Wheel.FreeSpinCooldownSeconds - now
+		local spins = snapshot.extraSpins + (if freeRemaining <= 0 then 1 else 0)
+		wheelBadge.Visible = spins > 0
+		wheelBadgeLabel.Text = tostring(spins)
+		wheelChipLabel.Text = if freeRemaining <= 0 then "¡GIRO GRATIS!" else UiKit.formatClock(freeRemaining)
+		wheelChipFill.Size = UDim2.fromScale(if freeRemaining <= 0 then 1 else 1 - freeRemaining / EconomyConfig.Wheel.FreeSpinCooldownSeconds, 1)
+		giftBadge.Visible = now - snapshot.lastGift >= EconomyConfig.DailyGift.CooldownSeconds
+		local boostRemaining = snapshot.boostUntil - now
+		boostChip.Visible = boostRemaining > 0
+		boostLabel.Text = "⚡ x2 · " .. UiKit.formatClock(boostRemaining)
+	end
+	ProfileStore.Changed:Connect(refresh)
+	task.spawn(function()
+		while root.Parent do
+			refresh()
+			if wheelIcon then
+				wheelIcon.Rotation = (wheelIcon.Rotation + 6) % 360
+			end
+			task.wait(0.1)
+		end
+	end)
+	return root
+end
+
+local function applyVisibility()
+	local root = hudRoot
+	if not root then
+		return
+	end
+	local state = localPlayer:GetAttribute("RunState")
+	local visible = state == nil or VISIBLE_STATES[state] == true
+	root.Visible = visible
+	if not visible and host and host:isOpen() then
+		host:close()
+	end
+end
+
+function LobbyHud.init()
+	registerPanels()
+	local playerGui = localPlayer:WaitForChild("PlayerGui")
+	local screen = UiKit.new("ScreenGui", { Name = "LobbyHud", ResetOnSpawn = false, DisplayOrder = 10, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, Parent = playerGui })
+	hudRoot = buildHud(screen)
+	local panelScreen = UiKit.new("ScreenGui", { Name = "LobbyPanels", ResetOnSpawn = false, DisplayOrder = 20, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, Parent = playerGui })
+	local panelHost = PanelHost.new(panelScreen);
+	(panelHost :: any).openNamed = function(_self: any, name: string)
+		LobbyHud.open(name)
+	end
+	host = panelHost
+	localPlayer:GetAttributeChangedSignal("RunState"):Connect(applyVisibility)
+	applyVisibility()
+	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
+		if processed or UserInputService:GetFocusedTextBox() then
+			return
+		end
+		local root = hudRoot
+		if input.KeyCode == Enum.KeyCode.Escape and host and host:isOpen() then
+			host:close()
+			return
+		end
+		if not (root and root.Visible) then
+			return
+		end
+		local action = keyBindings[input.KeyCode]
+		if action then
+			action()
+		end
+	end)
+	ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt)
+		local panelName = prompt:GetAttribute(OPEN_PANEL_ATTRIBUTE)
+		if typeof(panelName) == "string" then
+			LobbyHud.open(panelName)
+		end
+	end)
+end
+
+return LobbyHud
+]]></ProtectedString></Properties></Item></roblox>

@@ -1,0 +1,889 @@
+<roblox version="4"><Item class="Folder" referent="R0"><Properties><string name="Name">AvalancheInstall</string></Properties><Item class="ModuleScript" referent="R1"><Properties><string name="Name">AvalancheCinematic</string><ProtectedString name="Source"><![CDATA[--!strict
+local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+
+local LevelRegistry = require(ReplicatedStorage.Shared.LevelRegistry)
+local RunState = require(ReplicatedStorage.Shared.RunState)
+
+local RENDER_STEP_NAME = "AvalancheCinematic"
+local MOUNTAIN_TAG = "AvalancheMountain"
+local SIREN_TAG = "AvalancheSiren"
+local BREAK_AT = 1.1
+local FOLLOW_AT = 1.9
+local BANNER_AT = 2.0
+local ARRIVE_AT = 4.2
+local RETURN_AT = 4.5
+local END_AT = 5.4
+local BANNER_SECONDS = 3
+local WAVE_WIDTH = 150
+local WAVE_BALLS = 18
+local CHASE_SECONDS = 9
+local CHASE_DISTANCE = 60
+local TRACK_FORWARD = Vector3.new(0, 0, -1)
+
+type Ball = { part: BasePart, offset: Vector3, phase: number }
+type Wave = { model: Model, balls: { Ball }, emitters: { ParticleEmitter } }
+type Saved = { part: BasePart, cframe: CFrame, transparency: number }
+
+local player = Players.LocalPlayer
+local random = Random.new()
+
+local active: { mountain: Instance, wave: Wave?, saved: { Saved }, sirens: { BasePart }, connections: { RBXScriptConnection }, guis: { Instance }, token: number }? = nil
+local token = 0
+
+local AvalancheCinematic = {}
+
+local function smooth(x: number): number
+	local t = math.clamp(x, 0, 1)
+	return t * t * (3 - 2 * t)
+end
+
+local function findMountain(levelId: number): Instance?
+	for _, mountain in CollectionService:GetTagged(MOUNTAIN_TAG) do
+		if LevelRegistry.levelOf(mountain) == levelId then
+			return mountain
+		end
+	end
+	return nil
+end
+
+local function markerFrame(mountain: Instance, name: string): CFrame?
+	local marker = mountain:FindFirstChild(name)
+	return if marker and marker:IsA("BasePart") then marker.CFrame else nil
+end
+
+local function newGui(name: string, order: number): ScreenGui
+	local gui = Instance.new("ScreenGui")
+	gui.Name = name
+	gui.IgnoreGuiInset = true
+	gui.ResetOnSpawn = false
+	gui.DisplayOrder = order
+	gui.Parent = player:WaitForChild("PlayerGui")
+	return gui
+end
+
+local function corner(parent: Instance, scale: number)
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(scale, 0)
+	c.Parent = parent
+end
+
+local function stroke(parent: Instance, color: Color3, thickness: number, transparency: number?)
+	local s = Instance.new("UIStroke")
+	s.Color = color
+	s.Thickness = thickness
+	s.Transparency = transparency or 0
+	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	s.Parent = parent
+	return s
+end
+
+local function textStroke(parent: Instance, color: Color3, thickness: number)
+	local s = Instance.new("UIStroke")
+	s.Color = color
+	s.Thickness = thickness
+	s.Parent = parent
+end
+
+local function buildWave(): Wave
+	local model = Instance.new("Model")
+	model.Name = "AvalancheWave"
+	local balls: { Ball } = {}
+	for index = 1, WAVE_BALLS do
+		local ball = Instance.new("Part")
+		ball.Shape = Enum.PartType.Ball
+		local size = random:NextNumber(16, 32)
+		ball.Size = Vector3.new(size, size, size)
+		ball.Material = Enum.Material.Snow
+		ball.Color = if index % 3 == 0 then Color3.fromRGB(214, 232, 248) else Color3.fromRGB(246, 250, 255)
+		ball.Anchored = true
+		ball.CanCollide = false
+		ball.CanQuery = false
+		ball.CanTouch = false
+		ball.CastShadow = false
+		ball.Parent = model
+		local lateral = (index - 1) / (WAVE_BALLS - 1) - 0.5
+		table.insert(balls, {
+			part = ball,
+			offset = Vector3.new(lateral * WAVE_WIDTH, random:NextNumber(-2, 10), random:NextNumber(0, 24) + math.abs(lateral) * 30),
+			phase = random:NextNumber(0, 6),
+		})
+	end
+	local emitters: { ParticleEmitter } = {}
+	for index = 0, 2 do
+		local anchor = Instance.new("Part")
+		anchor.Transparency = 1
+		anchor.Anchored = true
+		anchor.CanCollide = false
+		anchor.CanQuery = false
+		anchor.CanTouch = false
+		anchor.Size = Vector3.new(WAVE_WIDTH / 3, 8, 8)
+		anchor.Name = "Powder" .. index
+		anchor.Parent = model
+		local powder = Instance.new("ParticleEmitter")
+		powder.Texture = "rbxasset://textures/particles/smoke_main.dds"
+		powder.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(212, 230, 248))
+		powder.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.15), NumberSequenceKeypoint.new(0.6, 0.45), NumberSequenceKeypoint.new(1, 1) })
+		powder.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 18), NumberSequenceKeypoint.new(1, 48) })
+		powder.Lifetime = NumberRange.new(1.6, 2.6)
+		powder.Speed = NumberRange.new(8, 18)
+		powder.SpreadAngle = Vector2.new(70, 70)
+		powder.EmissionDirection = Enum.NormalId.Top
+		powder.Acceleration = Vector3.new(0, 5, 0)
+		powder.RotSpeed = NumberRange.new(-30, 30)
+		powder.Rotation = NumberRange.new(0, 360)
+		powder.LightInfluence = 0.5
+		powder.Rate = 26
+		powder.Shape = Enum.ParticleEmitterShape.Box
+		powder.Parent = anchor
+		table.insert(emitters, powder)
+	end
+	model.Parent = Workspace
+	return { model = model, balls = balls, emitters = emitters }
+end
+
+local function placeWave(wave: Wave, frame: CFrame, now: number, churn: number)
+	for _, ball in wave.balls do
+		local roll = math.sin(now * 6 + ball.phase) * 2.5 * churn
+		ball.part.CFrame = frame * CFrame.new(ball.offset + Vector3.new(0, roll, math.cos(now * 5 + ball.phase) * 3 * churn)) * CFrame.Angles(now * 2 + ball.phase, ball.phase, 0)
+	end
+	for index, emitter in wave.emitters do
+		local anchor = emitter.Parent :: BasePart
+		anchor.CFrame = frame * CFrame.new((index - 2) * WAVE_WIDTH / 3, 6, 10)
+	end
+end
+
+local function setWaveRate(wave: Wave, rate: number)
+	for _, emitter in wave.emitters do
+		emitter.Rate = rate
+	end
+end
+
+local function flashScreen(guis: { Instance })
+	local gui = newGui("AvalancheFlash", 39)
+	table.insert(guis, gui)
+	local flash = Instance.new("Frame")
+	flash.Size = UDim2.fromScale(1, 1)
+	flash.BackgroundColor3 = Color3.fromRGB(235, 245, 255)
+	flash.BackgroundTransparency = 0.35
+	flash.BorderSizePixel = 0
+	flash.Parent = gui
+	TweenService:Create(flash, TweenInfo.new(0.45), { BackgroundTransparency = 1 }):Play()
+end
+
+local function letterbox(guis: { Instance }): (() -> ())
+	local gui = newGui("AvalancheLetterbox", 38)
+	table.insert(guis, gui)
+	local bars = {}
+	for _, top in { true, false } do
+		local bar = Instance.new("Frame")
+		bar.BackgroundColor3 = Color3.fromRGB(6, 10, 22)
+		bar.BorderSizePixel = 0
+		bar.AnchorPoint = Vector2.new(0, if top then 0 else 1)
+		bar.Position = UDim2.fromScale(0, if top then 0 else 1)
+		bar.Size = UDim2.fromScale(1, 0)
+		bar.Parent = gui
+		TweenService:Create(bar, TweenInfo.new(0.45, Enum.EasingStyle.Quad), { Size = UDim2.fromScale(1, 0.1) }):Play()
+		table.insert(bars, bar)
+	end
+	return function()
+		for _, bar in bars do
+			TweenService:Create(bar, TweenInfo.new(0.45, Enum.EasingStyle.Quad), { Size = UDim2.fromScale(1, 0) }):Play()
+		end
+	end
+end
+
+local function showBanner(guis: { Instance }, title: string, subtitle: string, seconds: number, yPosition: number, scale: number)
+	local gui = newGui("AvalancheBanner", 40)
+	table.insert(guis, gui)
+	local holder = Instance.new("Frame")
+	holder.AnchorPoint = Vector2.new(0.5, 0.5)
+	holder.Position = UDim2.fromScale(0.5, yPosition)
+	holder.Size = UDim2.fromScale(0.62 * scale, 0.17 * scale)
+	holder.BackgroundTransparency = 1
+	holder.Parent = gui
+	local aspect = Instance.new("UIAspectRatioConstraint")
+	aspect.AspectRatio = 5.4
+	aspect.Parent = holder
+	local uiScale = Instance.new("UIScale")
+	uiScale.Scale = 0
+	uiScale.Parent = holder
+
+	local shadow = Instance.new("Frame")
+	shadow.Size = UDim2.fromScale(1, 1)
+	shadow.Position = UDim2.new(0, 0, 0, 8)
+	shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	shadow.BackgroundTransparency = 0.55
+	shadow.BorderSizePixel = 0
+	shadow.Parent = holder
+	corner(shadow, 0.5)
+
+	local pill = Instance.new("CanvasGroup")
+	pill.Size = UDim2.fromScale(1, 1)
+	pill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	pill.BorderSizePixel = 0
+	pill.Parent = holder
+	corner(pill, 0.5)
+	local body = Instance.new("UIGradient")
+	body.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(14, 26, 64)),
+		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(34, 96, 182)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 26, 64)),
+	})
+	body.Parent = pill
+
+	local frost = Instance.new("Frame")
+	frost.Size = UDim2.fromScale(0.86, 0.36)
+	frost.Position = UDim2.fromScale(0.07, 0.06)
+	frost.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	frost.BackgroundTransparency = 0.86
+	frost.BorderSizePixel = 0
+	frost.Parent = pill
+	corner(frost, 0.5)
+
+	local shimmer = Instance.new("Frame")
+	shimmer.Size = UDim2.fromScale(0.12, 1.6)
+	shimmer.AnchorPoint = Vector2.new(0.5, 0.5)
+	shimmer.Position = UDim2.fromScale(-0.2, 0.5)
+	shimmer.Rotation = 18
+	shimmer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	shimmer.BackgroundTransparency = 0.7
+	shimmer.BorderSizePixel = 0
+	shimmer.Parent = pill
+
+	local border = Instance.new("Frame")
+	border.Size = UDim2.fromScale(1, 1)
+	border.BackgroundTransparency = 1
+	border.Parent = holder
+	corner(border, 0.5)
+	stroke(border, Color3.fromRGB(196, 238, 255), 5)
+	local inner = Instance.new("Frame")
+	inner.AnchorPoint = Vector2.new(0.5, 0.5)
+	inner.Position = UDim2.fromScale(0.5, 0.5)
+	inner.Size = UDim2.new(1, -14, 1, -14)
+	inner.BackgroundTransparency = 1
+	inner.Parent = holder
+	corner(inner, 0.5)
+	stroke(inner, Color3.fromRGB(255, 255, 255), 2, 0.55)
+
+	local lights: { Frame } = {}
+	local glows: { Frame } = {}
+	for _, x in { 0.075, 0.925 } do
+		local glow = Instance.new("Frame")
+		glow.AnchorPoint = Vector2.new(0.5, 0.5)
+		glow.Position = UDim2.fromScale(x, 0.5)
+		glow.SizeConstraint = Enum.SizeConstraint.RelativeYY
+		glow.Size = UDim2.fromScale(0.95, 0.95)
+		glow.BorderSizePixel = 0
+		glow.BackgroundTransparency = 0.6
+		glow.Parent = holder
+		corner(glow, 0.5)
+		local light = Instance.new("Frame")
+		light.AnchorPoint = Vector2.new(0.5, 0.5)
+		light.Position = UDim2.fromScale(x, 0.5)
+		light.SizeConstraint = Enum.SizeConstraint.RelativeYY
+		light.Size = UDim2.fromScale(0.6, 0.6)
+		light.BorderSizePixel = 0
+		light.Parent = holder
+		corner(light, 0.5)
+		stroke(light, Color3.fromRGB(10, 16, 36), 3)
+		local shine = Instance.new("Frame")
+		shine.Size = UDim2.fromScale(0.35, 0.25)
+		shine.Position = UDim2.fromScale(0.22, 0.16)
+		shine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		shine.BackgroundTransparency = 0.35
+		shine.BorderSizePixel = 0
+		shine.Parent = light
+		corner(shine, 0.5)
+		table.insert(lights, light)
+		table.insert(glows, glow)
+	end
+
+	local flakes: { TextLabel } = {}
+	for _, x in { 0.2, 0.8 } do
+		local flake = Instance.new("TextLabel")
+		flake.AnchorPoint = Vector2.new(0.5, 0.5)
+		flake.Position = UDim2.fromScale(x, 0.42)
+		flake.SizeConstraint = Enum.SizeConstraint.RelativeYY
+		flake.Size = UDim2.fromScale(0.42, 0.42)
+		flake.BackgroundTransparency = 1
+		flake.Font = Enum.Font.FredokaOne
+		flake.TextScaled = true
+		flake.Text = "❄"
+		flake.TextColor3 = Color3.fromRGB(200, 240, 255)
+		flake.Parent = holder
+		table.insert(flakes, flake)
+	end
+
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	titleLabel.Position = UDim2.fromScale(0.5, 0.4)
+	titleLabel.Size = UDim2.fromScale(0.56, 0.5)
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Font = Enum.Font.FredokaOne
+	titleLabel.TextScaled = true
+	titleLabel.Text = title
+	titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	titleLabel.Parent = holder
+	local titleGradient = Instance.new("UIGradient")
+	titleGradient.Rotation = 90
+	titleGradient.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(160, 222, 255))
+	titleGradient.Parent = titleLabel
+	textStroke(titleLabel, Color3.fromRGB(8, 18, 48), 3)
+
+	local subtitleLabel = Instance.new("TextLabel")
+	subtitleLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	subtitleLabel.Position = UDim2.fromScale(0.5, 0.78)
+	subtitleLabel.Size = UDim2.fromScale(0.5, 0.2)
+	subtitleLabel.BackgroundTransparency = 1
+	subtitleLabel.Font = Enum.Font.GothamBold
+	subtitleLabel.TextScaled = true
+	subtitleLabel.Text = subtitle
+	subtitleLabel.TextColor3 = Color3.fromRGB(255, 214, 90)
+	subtitleLabel.Parent = holder
+	textStroke(subtitleLabel, Color3.fromRGB(8, 18, 48), 2)
+
+	TweenService:Create(uiScale, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	local started = os.clock()
+	local warm = Color3.fromRGB(255, 64, 64)
+	local cold = Color3.fromRGB(80, 206, 255)
+	local connection: RBXScriptConnection
+	connection = RunService.RenderStepped:Connect(function()
+		if not holder.Parent then
+			connection:Disconnect()
+			return
+		end
+		local t = os.clock() - started
+		local blink = math.floor(t / 0.16) % 2 == 0
+		lights[1].BackgroundColor3 = if blink then warm else cold
+		lights[2].BackgroundColor3 = if blink then cold else warm
+		glows[1].BackgroundColor3 = lights[1].BackgroundColor3
+		glows[2].BackgroundColor3 = lights[2].BackgroundColor3
+		local pulse = 0.45 + 0.25 * math.sin(t * 22)
+		glows[1].BackgroundTransparency = pulse
+		glows[2].BackgroundTransparency = pulse
+		holder.Rotation = math.sin(t * 38) * 1.6 * math.max(0, 1 - t / 0.7)
+		shimmer.Position = UDim2.fromScale(-0.2 + ((t * 0.9) % 1.4), 0.5)
+		for index, flake in flakes do
+			flake.Rotation = t * (if index == 1 then 90 else -90)
+		end
+		body.Offset = Vector2.new(math.sin(t * 2) * 0.15, 0)
+	end)
+	task.delay(seconds, function()
+		if not holder.Parent then
+			return
+		end
+		TweenService:Create(uiScale, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Scale = 0 }):Play()
+		task.delay(0.4, function()
+			gui:Destroy()
+		end)
+	end)
+end
+
+local function sirensOf(mountain: Instance): { BasePart }
+	local list: { BasePart } = {}
+	for _, siren in CollectionService:GetTagged(SIREN_TAG) do
+		if siren:IsA("BasePart") and siren:IsDescendantOf(mountain) then
+			table.insert(list, siren)
+		end
+	end
+	return list
+end
+
+local function animateSirens(sirens: { BasePart }, now: number)
+	for _, siren in sirens do
+		local on = math.floor(now / 0.25) % 2 == 0
+		siren.Color = if on then Color3.fromRGB(255, 70, 40) else Color3.fromRGB(255, 170, 40)
+		local light = siren:FindFirstChildOfClass("PointLight")
+		if light then
+			light.Brightness = if on then 4 else 1
+		end
+	end
+end
+
+local function cleanup()
+	local state = active
+	active = nil
+	RunService:UnbindFromRenderStep(RENDER_STEP_NAME)
+	if not state then
+		return
+	end
+	for _, connection in state.connections do
+		connection:Disconnect()
+	end
+	for _, saved in state.saved do
+		saved.part.CFrame = saved.cframe
+		saved.part.Transparency = saved.transparency
+	end
+	for _, siren in state.sirens do
+		siren.Color = Color3.fromRGB(255, 120, 30)
+		local light = siren:FindFirstChildOfClass("PointLight")
+		if light then
+			light.Brightness = 2
+		end
+	end
+	if state.wave then
+		state.wave.model:Destroy()
+	end
+	for _, gui in state.guis do
+		gui:Destroy()
+	end
+	local playerGui = player:FindFirstChild("PlayerGui")
+	local gameHud = playerGui and playerGui:FindFirstChild("GameHud")
+	if gameHud and gameHud:IsA("ScreenGui") then
+		gameHud.Enabled = true
+	end
+end
+
+local function saveCornice(mountain: Instance): ({ Saved }, { BasePart })
+	local saved: { Saved } = {}
+	local chunks: { BasePart } = {}
+	local cornice = mountain:FindFirstChild("Cornice")
+	if cornice then
+		for _, piece in cornice:GetDescendants() do
+			if piece:IsA("BasePart") then
+				table.insert(saved, { part = piece, cframe = piece.CFrame, transparency = piece.Transparency })
+				if piece.Name == "Chunk" then
+					table.insert(chunks, piece)
+				end
+			end
+		end
+	end
+	return saved, chunks
+end
+
+local function play(levelId: number)
+	cleanup()
+	local mountain = findMountain(levelId)
+	if not mountain then
+		return
+	end
+	local waveStart = markerFrame(mountain, "WaveStart")
+	local waveEnd = markerFrame(mountain, "WaveEnd")
+	local shot = markerFrame(mountain, "ShotCamera")
+	if not (waveStart and waveEnd and shot) then
+		return
+	end
+	token += 1
+	local myToken = token
+	local saved, chunks = saveCornice(mountain)
+	local guis: { Instance } = {}
+	local state = { mountain = mountain, wave = nil :: Wave?, saved = saved, sirens = sirensOf(mountain), connections = {}, guis = guis, token = myToken }
+	active = state
+
+	local playerGui = player:WaitForChild("PlayerGui")
+	local gameHud = playerGui:FindFirstChild("GameHud")
+	if gameHud and gameHud:IsA("ScreenGui") then
+		gameHud.Enabled = false
+	end
+	local closeLetterbox = letterbox(guis)
+	local started = os.clock()
+	local broken = false
+	local bannerShown = false
+	local returning = false
+	local lastCinematicFrame = shot
+	local chunkOrigins: { [BasePart]: CFrame } = {}
+	for _, chunk in chunks do
+		chunkOrigins[chunk] = chunk.CFrame
+	end
+
+	RunService:BindToRenderStep(RENDER_STEP_NAME, Enum.RenderPriority.Last.Value, function()
+		if not active or active.token ~= myToken then
+			return
+		end
+		local camera = Workspace.CurrentCamera
+		if not camera then
+			return
+		end
+		local now = os.clock()
+		local t = now - started
+		animateSirens(state.sirens, now)
+
+		if t >= BREAK_AT and not broken then
+			broken = true
+			state.wave = buildWave()
+			flashScreen(guis)
+			for _, entry in saved do
+				if entry.part.Name ~= "Chunk" then
+					entry.part.Transparency = 1
+				end
+			end
+		end
+
+		local progress = smooth((t - BREAK_AT) / (ARRIVE_AT - BREAK_AT))
+		local waveFrame = waveStart:Lerp(waveEnd, progress)
+		local wave = state.wave
+		if wave then
+			placeWave(wave, waveFrame, now, 1)
+			for index, chunk in chunks do
+				local origin = chunkOrigins[chunk]
+				local delayed = smooth((t - BREAK_AT - index * 0.04) / (ARRIVE_AT - BREAK_AT - 0.3))
+				local target = waveFrame * CFrame.new(((index - 1) / math.max(#chunks - 1, 1) - 0.5) * WAVE_WIDTH * 0.8, 4, -8)
+				chunk.CFrame = CFrame.new(origin.Position:Lerp(target.Position, delayed)) * CFrame.Angles(delayed * 9 + index, delayed * 4, delayed * 6)
+				chunk.Transparency = if delayed > 0.92 then 1 else 0
+			end
+		end
+
+		if t >= BANNER_AT and not bannerShown then
+			bannerShown = true
+			showBanner(guis, "¡SOBREVIVE A LA AVALANCHA!", "¡Lánzate antes de que te alcance!", BANNER_SECONDS, 0.24, 1)
+		end
+
+		local rumble = math.clamp(t / BREAK_AT, 0, 1) * 0.35 + (if t > BREAK_AT and t < ARRIVE_AT + 0.4 then 0.65 else 0)
+		local shake = CFrame.Angles(math.noise(now * 11, 1) * 0.02 * rumble, math.noise(2, now * 11) * 0.02 * rumble, 0)
+
+		local cinematicFrame: CFrame
+		if t < FOLLOW_AT then
+			cinematicFrame = shot * CFrame.new(0, 0, -t * 4)
+		else
+			local wavePosition = waveFrame.Position
+			local followPosition = wavePosition + waveFrame.LookVector * 85 + Vector3.yAxis * 30 + waveFrame.RightVector * 40
+			local follow = CFrame.lookAt(followPosition, wavePosition + Vector3.yAxis * 8)
+			local blendIn = smooth((t - FOLLOW_AT) / 0.7)
+			cinematicFrame = (shot * CFrame.new(0, 0, -FOLLOW_AT * 4)):Lerp(follow, blendIn)
+		end
+
+		if t < RETURN_AT then
+			lastCinematicFrame = cinematicFrame
+			camera.CameraType = Enum.CameraType.Scriptable
+			camera.CFrame = cinematicFrame * shake
+		elseif t < END_AT then
+			if not returning then
+				returning = true
+				closeLetterbox()
+			end
+			local blend = smooth((t - RETURN_AT) / (END_AT - RETURN_AT))
+			camera.CFrame = lastCinematicFrame:Lerp(camera.CFrame, blend) * shake
+		else
+			RunService:UnbindFromRenderStep(RENDER_STEP_NAME)
+			if gameHud and gameHud:IsA("ScreenGui") then
+				gameHud.Enabled = true
+			end
+			if wave then
+				setWaveRate(wave, 10)
+			end
+			table.insert(state.connections, RunService.RenderStepped:Connect(function()
+				local idleNow = os.clock()
+				animateSirens(state.sirens, idleNow)
+				if state.wave then
+					placeWave(state.wave, waveEnd, idleNow, 0.4)
+				end
+			end))
+		end
+	end)
+end
+
+local function chase()
+	local state = active
+	if not state or not state.wave then
+		cleanup()
+		return
+	end
+	RunService:UnbindFromRenderStep(RENDER_STEP_NAME)
+	for _, connection in state.connections do
+		connection:Disconnect()
+	end
+	table.clear(state.connections)
+	local playerGui = player:FindFirstChild("PlayerGui")
+	local gameHud = playerGui and playerGui:FindFirstChild("GameHud")
+	if gameHud and gameHud:IsA("ScreenGui") then
+		gameHud.Enabled = true
+	end
+	for _, gui in state.guis do
+		if gui.Name == "AvalancheLetterbox" then
+			gui:Destroy()
+		end
+	end
+	local wave = state.wave
+	setWaveRate(wave, 26)
+	showBanner(state.guis, "¡LA AVALANCHA VIENE DETRÁS!", "¡No te detengas!", 2.4, 0.16, 0.7)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.RespectCanCollide = true
+	local started = os.clock()
+	local current = wave.balls[1].part.Position
+	table.insert(state.connections, RunService.RenderStepped:Connect(function(deltaSeconds: number)
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if not (character and root and root:IsA("BasePart")) then
+			return
+		end
+		local t = os.clock() - started
+		if t > CHASE_SECONDS then
+			cleanup()
+			return
+		end
+		params.FilterDescendantsInstances = { character, wave.model }
+		local distance = CHASE_DISTANCE + math.max(0, t - 5) * 25
+		local target = root.Position - TRACK_FORWARD * distance
+		local ground = Workspace:Raycast(target + Vector3.yAxis * 80, Vector3.new(0, -200, 0), params)
+		local groundY = if ground then ground.Position.Y else root.Position.Y
+		local desired = Vector3.new(target.X, groundY + 6, target.Z)
+		current = current:Lerp(desired, 1 - math.exp(-4 * deltaSeconds))
+		placeWave(wave, CFrame.lookAt(current, current + TRACK_FORWARD), os.clock(), 1)
+		if t > CHASE_SECONDS - 1.5 then
+			setWaveRate(wave, 0)
+			for _, ball in wave.balls do
+				ball.part.Transparency = math.clamp((t - (CHASE_SECONDS - 1.5)) / 1.5, 0, 1)
+			end
+		end
+	end))
+end
+
+local function onRunStateChanged()
+	local runState = player:GetAttribute("RunState")
+	if runState == RunState.Aiming then
+		play(LevelRegistry.playerLevel(player))
+	elseif runState == RunState.Racing then
+		chase()
+	else
+		cleanup()
+	end
+end
+
+function AvalancheCinematic.init()
+	player:GetAttributeChangedSignal("RunState"):Connect(onRunStateChanged)
+end
+
+return AvalancheCinematic
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="R2"><Properties><string name="Name">BuildAvalancheMountains</string><ProtectedString name="Source"><![CDATA[return function()
+local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local SlingshotGeometry = require(ReplicatedStorage.Shared.SlingshotGeometry)
+
+local FOLDER_NAME = "AvalancheMountain"
+local V = Vector3.new
+local M = Enum.Material
+local rgb = Color3.fromRGB
+local BEHIND = V(0, 0, 1)
+local RIGHT = V(1, 0, 0)
+local UP = V(0, 1, 0)
+local SNOW = rgb(240, 246, 252)
+local SNOW_SHADE = rgb(214, 228, 242)
+local ROCK = rgb(110, 118, 132)
+local ROCK_DARK = rgb(78, 84, 98)
+local CRACK = rgb(44, 58, 86)
+local WOOD = rgb(120, 78, 46)
+local MOUNTAIN_WIDTH = 260
+local SLOPE_RISE = 190
+local SLOPE_RUN = 180
+local FOOT_DROP = 40
+local random = Random.new(404)
+
+local function part(parent, name, size, cframe, color, options)
+	options = options or {}
+	local p = Instance.new(options.className or "Part")
+	p.Name = name
+	p.Anchored = true
+	if options.shape then p.Shape = options.shape end
+	p.Size = size
+	p.CFrame = cframe
+	p.Color = color
+	p.Material = options.material or M.Snow
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	if options.transparency then p.Transparency = options.transparency end
+	if options.ghost then
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CanTouch = false
+		p.CastShadow = false
+	end
+	p.Parent = parent
+	return p
+end
+
+local function marker(parent, name, cframe)
+	return part(parent, name, V(1, 1, 1), cframe, SNOW, { transparency = 1, ghost = true })
+end
+
+local function groundBelow(position, ignore)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = ignore
+	params.RespectCanCollide = true
+	local hit = workspace:Raycast(position + V(0, 30, 0), V(0, -80, 0), params)
+	return hit and hit.Position.Y or nil
+end
+
+local function plateauEdge(origin, groundY, ignore)
+	local distance = 0
+	while distance < 320 do
+		distance += 5
+		local y = groundBelow(origin + BEHIND * distance, ignore)
+		if not y or math.abs(y - groundY) > 12 then
+			return distance - 5
+		end
+	end
+	return distance
+end
+
+local function frameAt(origin, behindDistance, rightOffset, height)
+	return origin + BEHIND * behindDistance + RIGHT * rightOffset + UP * height
+end
+
+local function buildPine(parent, position, scale)
+	local pine = Instance.new("Model")
+	pine.Name = "MountainPine"
+	pine.Parent = parent
+	part(pine, "Trunk", V(1.6, 7, 1.6) * scale, CFrame.new(position + UP * 3.5 * scale), WOOD, { material = M.Wood })
+	for tier = 0, 2 do
+		local width = (9 - tier * 2.6) * scale
+		part(pine, "Canopy", V(width, 5 * scale, width), CFrame.new(position + UP * (8 + tier * 4.2) * scale) * CFrame.Angles(0, tier * 0.7, 0), tier % 2 == 0 and rgb(38, 96, 66) or rgb(46, 112, 76), { material = M.Grass })
+		part(pine, "CanopySnow", V(width * 0.85, 0.7 * scale, width * 0.85), CFrame.new(position + UP * (10.7 + tier * 4.2) * scale) * CFrame.Angles(0, tier * 0.7, 0), SNOW, {})
+	end
+end
+
+local function buildMountain(levelRoot, slingshot)
+	local existing = levelRoot:FindFirstChild(FOLDER_NAME)
+	if existing then existing:Destroy() end
+	local origin = slingshot:GetPivot().Position
+	local groundY = groundBelow(origin, { slingshot }) or (origin.Y - 13)
+	local ground = V(origin.X, groundY, origin.Z)
+	local edge = plateauEdge(ground, groundY, { slingshot })
+
+	local root = Instance.new("Folder")
+	root.Name = FOLDER_NAME
+	root:SetAttribute("PlateauEdge", edge)
+	root.Parent = levelRoot
+
+	local footDistance = edge + 16
+	local topDistance = footDistance + SLOPE_RUN
+	local slopeCenter = frameAt(ground, (footDistance + topDistance) / 2, 0, (SLOPE_RISE - FOOT_DROP) / 2)
+	local facePlateau = CFrame.lookAt(slopeCenter, slopeCenter - BEHIND)
+	part(root, "Slope", V(MOUNTAIN_WIDTH, SLOPE_RISE + FOOT_DROP, SLOPE_RUN), facePlateau, SNOW, { className = "WedgePart" })
+	local summitCenter = frameAt(ground, topDistance + 45, 0, (SLOPE_RISE - FOOT_DROP) / 2)
+	part(root, "Massif", V(MOUNTAIN_WIDTH, SLOPE_RISE + FOOT_DROP, 90), CFrame.lookAt(summitCenter, summitCenter - BEHIND), SNOW_SHADE, {})
+	for _, side in ipairs({ -1, 1 }) do
+		local flankCenter = frameAt(ground, (footDistance + topDistance) / 2 + 20, side * (MOUNTAIN_WIDTH / 2 + 40), (SLOPE_RISE - FOOT_DROP) / 2 - FOOT_DROP / 2 - 30)
+		part(root, "Flank", V(80, SLOPE_RISE - 20, SLOPE_RUN + 60), CFrame.lookAt(flankCenter, flankCenter - RIGHT * side), SNOW_SHADE, { className = "WedgePart" })
+	end
+	for index = 0, 2 do
+		local peakHeight = 70 - index * 18
+		local peakCenter = frameAt(ground, topDistance + 40, (index - 1) * 80, SLOPE_RISE + peakHeight / 2 - 4)
+		local width = 90 - index * 10
+		part(root, "PeakFront", V(width, peakHeight, 40), CFrame.lookAt(peakCenter - BEHIND * 20, peakCenter - BEHIND * 60), SNOW, { className = "WedgePart" })
+		part(root, "PeakBack", V(width, peakHeight, 40), CFrame.lookAt(peakCenter + BEHIND * 20, peakCenter + BEHIND * 60), SNOW_SHADE, { className = "WedgePart" })
+	end
+	for index = 1, 16 do
+		local along = random:NextNumber(0.15, 0.95)
+		local lateral = random:NextNumber(-0.48, 0.48) * MOUNTAIN_WIDTH
+		local height = -FOOT_DROP + (SLOPE_RISE + FOOT_DROP) * along
+		local size = random:NextNumber(10, 26)
+		local rockFrame = CFrame.new(frameAt(ground, footDistance + SLOPE_RUN * along - 6, lateral, height)) * CFrame.Angles(random:NextNumber(0, 6), random:NextNumber(0, 6), random:NextNumber(0, 6))
+		part(root, "Rock", V(size, size * 0.7, size * 0.9), rockFrame, index % 3 == 0 and ROCK_DARK or ROCK, { material = M.Slate })
+	end
+	for index = 1, 14 do
+		local side = index % 2 == 0 and -1 or 1
+		local along = random:NextNumber(0.05, 0.45)
+		local lateral = side * random:NextNumber(0.3, 0.5) * MOUNTAIN_WIDTH
+		local height = -FOOT_DROP + (SLOPE_RISE + FOOT_DROP) * along
+		buildPine(root, frameAt(ground, footDistance + SLOPE_RUN * along - 4, lateral, height), random:NextNumber(1.2, 1.9))
+	end
+
+	local cornice = Instance.new("Model")
+	cornice.Name = "Cornice"
+	cornice.Parent = root
+	local lipHeight = SLOPE_RISE - 6
+	for index = 0, 9 do
+		local lateral = (index - 4.5) * 24
+		local chunkFrame = CFrame.lookAt(frameAt(ground, topDistance - 8, lateral, lipHeight + 6), frameAt(ground, topDistance - 40, lateral, lipHeight + 2)) * CFrame.Angles(math.rad(random:NextNumber(-8, 4)), 0, math.rad(random:NextNumber(-4, 4)))
+		local chunk = part(cornice, "Chunk", V(23, 14 + random:NextNumber(0, 6), 26), chunkFrame, index % 2 == 0 and SNOW or SNOW_SHADE, {})
+		chunk:SetAttribute("ChunkIndex", index)
+		part(cornice, "Crack", V(0.6, 10, 22), chunkFrame * CFrame.new(11.8, 0, 2), CRACK, { material = M.Slate, ghost = true })
+		part(cornice, "Overhang", V(22, 4, 10), chunkFrame * CFrame.new(0, -5, -16) * CFrame.Angles(math.rad(-25), 0, 0), SNOW, { ghost = true })
+	end
+	part(cornice, "CrackLine", V(MOUNTAIN_WIDTH - 20, 0.8, 1.4), CFrame.new(frameAt(ground, topDistance + 8, 0, lipHeight + 0.6)), CRACK, { material = M.Slate, ghost = true })
+
+	marker(root, "WaveStart", CFrame.lookAt(frameAt(ground, topDistance - 20, 0, lipHeight), frameAt(ground, edge, 0, 0)))
+	marker(root, "WaveEnd", CFrame.lookAt(frameAt(ground, edge + 4, 0, 6), frameAt(ground, 0, 0, 6)))
+	marker(root, "ShotCamera", CFrame.lookAt(frameAt(ground, edge - 40, 50, 16), frameAt(ground, topDistance, 0, lipHeight - 20)))
+
+	local towerBase = frameAt(ground, math.max(edge - 16, 20), -34, 0)
+	local towerGround = groundBelow(towerBase, { slingshot })
+	if towerGround and math.abs(towerGround - groundY) < 4 then
+		local tower = Instance.new("Model")
+		tower.Name = "WatchTower"
+		tower.Parent = root
+		local base = CFrame.lookAt(V(towerBase.X, towerGround, towerBase.Z), V(origin.X, towerGround, origin.Z))
+		for _, corner in ipairs({ { -3.5, -3.5 }, { -3.5, 3.5 }, { 3.5, -3.5 }, { 3.5, 3.5 } }) do
+			part(tower, "Post", V(1, 16, 1), base * CFrame.new(corner[1], 8, corner[2]), WOOD, { material = M.Wood })
+		end
+		part(tower, "Platform", V(10, 1, 10), base * CFrame.new(0, 16, 0), WOOD, { material = M.WoodPlanks })
+		for _, rail in ipairs({ { 0, -5, 10, 1 }, { 0, 5, 10, 1 }, { -5, 0, 1, 10 }, { 5, 0, 1, 10 } }) do
+			part(tower, "Rail", V(rail[3], 2.4, rail[4]), base * CFrame.new(rail[1], 17.7, rail[2]), WOOD, { material = M.Wood })
+		end
+		part(tower, "Roof", V(12, 2, 12), base * CFrame.new(0, 24, 0), rgb(196, 44, 40), { material = M.SmoothPlastic })
+		part(tower, "RoofSnow", V(12.6, 0.8, 12.6), base * CFrame.new(0, 25.3, 0), SNOW, {})
+		for _, corner in ipairs({ { -4.5, -4.5 }, { -4.5, 4.5 }, { 4.5, -4.5 }, { 4.5, 4.5 } }) do
+			part(tower, "RoofPost", V(0.6, 6, 0.6), base * CFrame.new(corner[1], 20, corner[2]), WOOD, { material = M.Wood })
+		end
+		local siren = part(tower, "Siren", V(2.4, 2.4, 2.4), base * CFrame.new(0, 27.2, 0), rgb(255, 120, 30), { material = M.Neon, shape = Enum.PartType.Ball, ghost = true })
+		local light = Instance.new("PointLight")
+		light.Color = rgb(255, 140, 50)
+		light.Brightness = 2
+		light.Range = 30
+		light.Parent = siren
+		CollectionService:AddTag(siren, "AvalancheSiren")
+		local board = part(tower, "WarningSign", V(9, 4.4, 0.4), base * CFrame.new(0, 9, -4.2), rgb(255, 196, 0), { material = M.SmoothPlastic })
+		local gui = Instance.new("SurfaceGui")
+		gui.Face = Enum.NormalId.Front
+		gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		gui.PixelsPerStud = 30
+		gui.LightInfluence = 0
+		gui.Parent = board
+		local label = Instance.new("TextLabel")
+		label.BackgroundTransparency = 1
+		label.Size = UDim2.fromScale(0.94, 0.9)
+		label.Position = UDim2.fromScale(0.03, 0.05)
+		label.Font = Enum.Font.FredokaOne
+		label.TextScaled = true
+		label.TextColor3 = rgb(30, 30, 40)
+		label.Text = "⚠️ PELIGRO\nDE AVALANCHA"
+		label.Parent = gui
+		local template
+		for _, candidate in ipairs(CollectionService:GetTagged("CheeringPenguin")) do
+			if candidate:IsA("Model") and candidate:IsDescendantOf(workspace) then
+				template = candidate
+				break
+			end
+		end
+		if template then
+			local lookout = template:Clone()
+			lookout.Name = "Lookout"
+			lookout:SetAttribute("CheerMode", "wave")
+			lookout:SetAttribute("Cheers", true)
+			lookout.Parent = tower
+			local spot = base * CFrame.new(0, 16.5, 0)
+			lookout:PivotTo(CFrame.lookAt(spot.Position + UP * 2.3, frameAt(ground, topDistance, 0, lipHeight)))
+		end
+	end
+
+	CollectionService:AddTag(root, "AvalancheMountain")
+	local count = 0
+	for _, descendant in ipairs(root:GetDescendants()) do
+		if descendant:IsA("BasePart") then count += 1 end
+	end
+	return edge, count
+end
+
+for _, levelRoot in ipairs(workspace:GetChildren()) do
+	local levelId = levelRoot:GetAttribute("LevelId")
+	if typeof(levelId) == "number" then
+		local slingshot = SlingshotGeometry.find(levelId)
+		if slingshot then
+			local edge, count = buildMountain(levelRoot, slingshot)
+			print(("Avalanche mountain level %d: edge %d, %d parts"):format(levelId, edge, count))
+		else
+			warn("No slingshot for level " .. levelId)
+		end
+	end
+end
+
+end
+]]></ProtectedString></Properties></Item></Item></roblox>
