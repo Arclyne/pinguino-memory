@@ -49,3 +49,6 @@ Si el hielo del arroyo cambia la física · estilo propio para el portal.
 
 ## Reconstrucción
 `archivo/construccion/BuildLevel2_v02.lua`, luego `ServerStorage.ClaudeBuild.BuildLevel2Festival` y `InstallBoostRamps_v01.lua`.
+
+## Suelo (D-025c)
+`GroundTexture`: parches sin colisión en tonos de blanco o azul hielo sobre la franja de la pista, hechos con `DevTools.GroundTexturer`.

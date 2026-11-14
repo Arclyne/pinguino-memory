@@ -23,9 +23,13 @@ Coordenadas reales: `grep -n "N5" place/mapa-place.md`.
 - Misma base que N4 (Y 1200). La meta está en Z 4546 y el portal en Z 4665: pista de ~4,550 studs, un 32 % más larga que la de N4.
 - El portal no tiene `DestinationLevel`: el nivel se repite (Q-03). El portal de N4 ahora lleva aquí.
 - Sin rampas de impulso.
+- Más rápido que los demás niveles y sus rampas no frenan; las del jardín te saltan el obstáculo del centro de cada casa (D-026c). Quedan para esquivar los del segundo cuarto (tren, regalos, trineo, banco).
 
 ## Sin saber
 Qué pidió ciervo, qué artefacto se aprobó, zonas y obstáculos previstos, y si las ventanas deben dar peces o puntos.
 
 ## Sin probar
-Todo: nadie ha registrado una bajada en este nivel (Q-10).
+Bajada completa jugada a mano (solo hubo bajadas de prueba sin girar, D-026c).
+
+## Suelo (D-025c)
+`GroundTexture`: parches sin colisión en tonos de blanco o azul hielo sobre la franja de la pista, hechos con `DevTools.GroundTexturer`.

@@ -13,7 +13,7 @@ Cada tarea es un archivo en `pendientes/tareas/`. No hay lista escrita a mano: s
 
 ## Elecciones de Claude sin aprobar
 Detalles que Claude eligió para que algo funcionara. Valen hasta que Angel los cambie; si los aprueba, pasan a "Angel decidió" en su decisión.
-- Rango y velocidades de la resortera; arrastre hacia arriba = más fuerza (D-002, D-005).
+- Rango y velocidades de la resortera; arrastre hacia atrás = más fuerza (D-002, D-022c).
 - Gravedad reducida y sin control en el vuelo de lanzamiento (D-007).
 - Toda la física del deslizamiento: tope, arrastre, giro, salto (`GameConfig.Slide`).
 - Una persona por resortera y tiempo límite para apuntar.

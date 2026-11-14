@@ -8,157 +8,16 @@
         "type": "tabs",
         "children": [
           {
-            "id": "907ace3c5f2a7eb5",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Sin título.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Sin título"
-            }
-          },
-          {
-            "id": "8c6171d703e8f830",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "02 Diseño/Lobby y skins.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Lobby y skins"
-            }
-          },
-          {
-            "id": "f9cfd51a5d7d2175",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "02 Diseño/Mecánicas/Deslizamiento.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Deslizamiento"
-            }
-          },
-          {
-            "id": "88d73aa8e5b7ddb3",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "02 Diseño/Mecánicas/Obstáculos.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Obstáculos"
-            }
-          },
-          {
-            "id": "aa65db9882fa1e06",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "03 Decisiones/Registro de decisiones.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Registro de decisiones"
-            }
-          },
-          {
-            "id": "acbd57e70633fc01",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "04 Planeación/Pendiente de agregar a Studio.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Pendiente de agregar a Studio"
-            }
-          },
-          {
-            "id": "22cbdd55b4400c43",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "04 Planeación/Preguntas abiertas.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Preguntas abiertas"
-            }
-          },
-          {
-            "id": "341eec990447a699",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "05 Técnico/Arquitectura.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Arquitectura"
-            }
-          },
-          {
             "id": "92d18a072fe653ff",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "06 Bitácora/2026-11-12.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "2026-11-12"
-            }
-          },
-          {
-            "id": "a881da6d027f65d5",
-            "type": "leaf",
-            "state": {
-              "type": "image",
-              "state": {
-                "file": "archivo/construccion/iconos/PinguinoIconos_v1.png"
-              },
-              "icon": "lucide-image",
-              "title": "PinguinoIconos_v1"
-            }
-          },
-          {
-            "id": "5fe4388fc485531e",
-            "type": "leaf",
-            "state": {
-              "type": "image",
-              "state": {
-                "file": "archivo/construccion/iconos/PinguinoIconos_v2_extra.png"
-              },
-              "icon": "lucide-image",
-              "title": "PinguinoIconos_v2_extra"
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Vista gráfica"
             }
           }
-        ],
-        "currentTab": 8
+        ]
       }
     ],
     "direction": "vertical"
@@ -328,15 +187,27 @@
   },
   "active": "92d18a072fe653ff",
   "lastOpenFiles": [
-    "Sin título.md",
-    "05 Técnico/Arquitectura.md",
-    "04 Planeación/Preguntas abiertas.md",
-    "04 Planeación/Pendiente de agregar a Studio.md",
-    "03 Decisiones/Registro de decisiones.md",
-    "02 Diseño/Mecánicas/Obstáculos.md",
-    "02 Diseño/Mecánicas/Deslizamiento.md",
-    "02 Diseño/Lobby y skins.md",
-    "00 Índice.md",
+    "decisiones/D-026c-nivel-5-mas-rapido-y-rampas.md",
+    "decisiones/D-025c-todo-nivel-lleva-el-suelo-texturizado.md",
+    "decisiones/D-024c-suelo-de-n1-con-tonos-de.md",
+    "decisiones/D-023c-nivel-1-un-35-mas-largo.md",
+    "pendientes/preguntas/Q-22-quien-es-slogter.md",
+    "decisiones/D-022c-tensar-la-resortera-arrastrando-hacia-atras.md",
+    "_por_borrar/06 Bitácora/2026-11-12.md",
+    "decisiones/D-021c-boton-lanzar-monta-directo-en-la.md",
+    "_por_borrar",
+    "_por_borrar",
+    "pendientes/tareas/T-12c-feedback-de-rainbow-paquete-inicial-botones.md",
+    "bitacora/2026-11-13-ciervo.md",
+    "_por_borrar/Sin título.md",
+    "_por_borrar/05 Técnico/Arquitectura.md",
+    "_por_borrar/04 Planeación/Preguntas abiertas.md",
+    "_por_borrar/04 Planeación/Pendiente de agregar a Studio.md",
+    "_por_borrar/03 Decisiones/Registro de decisiones.md",
+    "_por_borrar/02 Diseño/Mecánicas/Obstáculos.md",
+    "_por_borrar/02 Diseño/Mecánicas/Deslizamiento.md",
+    "_por_borrar/02 Diseño/Lobby y skins.md",
+    "_por_borrar/00 Índice.md",
     "archivo/construccion/iconos/PinguinoIconos_v1.png",
     "place/valores.md",
     "place/mapa-place.md",
@@ -346,26 +217,14 @@
     "diseno/nivel-4.md",
     "diseno/nivel-5.md",
     "diseno/nivel-1.md",
-    "diseno/nivel-3.md",
-    "diseno/nivel-2.md",
-    "diseno/juego.md",
-    "diseno/lobby-economia.md",
     "diseno",
     "archivo/construccion/iconos/PinguinoIconos_v2_extra.png",
-    "_Plantillas/Plantilla Decisión.md",
-    "pendientes/tareas/T-09-validacion-del-choque-y-la-velocidad.md",
-    "pendientes/tareas/T-11-limpiar-restos-de-serverstorage-y-workspace.md",
-    "pendientes/tareas/T-10-textura-de-studs-del-pinguino-en.md",
-    "pendientes/tareas/T-08-controles-de-celular-y-consola.md",
-    "pendientes/tareas/T-07-medir-rendimiento-de-la-decoracion-en.md",
     "pendientes/tareas",
     "pendientes/preguntas",
     "pendientes",
     "herramientas/verificar.py",
     "herramientas/parche.py",
     "herramientas/ver.py",
-    "herramientas/registros.py",
-    "herramientas/nuevo.py",
     "Sin título.canvas",
     "Sin título 1.canvas",
     "05 Técnico/iconos/PinguinoIconos_v2_extra.png",

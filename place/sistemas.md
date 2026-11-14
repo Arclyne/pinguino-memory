@@ -1,6 +1,6 @@
 ---
 tipo: sistemas
-verificado: 2026-11-13 (Studio; cada sistema dice si su código se leyó entero, por encima, o si viene del vault v1)
+verificado: 2026-11-13 (Studio; ProgressService y RaceService releídos enteros el 13 por ciervo; cada sistema dice si su código se leyó entero, por encima, o si viene del vault v1)
 ---
 # Sistemas de la place
 
@@ -25,8 +25,8 @@ Rutas base: `Shared` = `ReplicatedStorage.Shared` · `Services` = `ServerScriptS
 - `LevelService`: pone `LevelId = 1` al entrar; al reaparecer en otro nivel pide streaming y mueve al personaje a su meseta.
 - `ReturnService`: al tocar un `ReturnPortal`, si el jugador está en Finished dispara `PortalEnteredAfterFinish`; si no, lo manda al destino del portal. `sendToLevel` solo actúa en Idle o Finished.
 - `LevelFlowService`: al entrar a Finished espera `GameConfig.Race.AutoAdvanceSeconds` y monta al jugador en la resortera del siguiente nivel (`SlingshotService.mountAtLevel`); si no puede, lo manda a la meseta. El portal adelanta el avance (D-016).
-- `ProgressService`: al terminar guarda `finishes` y `bestTimes` del nivel y suma `weekRuns`. `isUnlocked`: el nivel 1 siempre; el N si terminó el N-1. Atiende `LevelTravelRequested` (panel de niveles) y `LaunchPadRequested` (botón ¡LANZAR!).
-- Para agregar un nivel: Folder con `LevelId`, y dentro `PlateauSpawn`, `Slingshot` (con `SeatPosition`, `DismountPosition`, `LaunchForward`), `FinishLine` y `ReturnPortal`; poner `DestinationLevel` en el portal del nivel anterior; agregarlo a `LEVELS` en `LevelsPanel`.
+- `ProgressService`: al terminar guarda `finishes` y `bestTimes` del nivel y suma `weekRuns`. `isUnlocked`: el nivel 1 siempre; el N si terminó el N-1. Atiende `LevelTravelRequested` (panel de niveles) y `LaunchPadRequested` (botón ¡LANZAR!: monta al jugador en la resortera de su nivel con `SlingshotService.mountAtLevel`; si está ocupada lo deja al lado en Idle) (D-021c).
+- Para agregar un nivel: Folder con `LevelId`, y dentro `PlateauSpawn`, `Slingshot` (con `SeatPosition`, `DismountPosition`, `LaunchForward`), `FinishLine` y `ReturnPortal`; poner `DestinationLevel` en el portal del nivel anterior; agregarlo a `LEVELS` en `LevelsPanel`; al final, texturizar el suelo con `require(ServerStorage.DevTools.GroundTexturer:Clone())(nivel, semilla)` (obligatorio, D-025c).
 
 ## Resortera (servidor por encima; cliente del vault v1)
 - `Shared.SlingshotGeometry` encuentra la resortera de un nivel y su asiento. `Shared.LaunchMath` calcula dirección, velocidad y trayectoria (lo usan servidor y cliente).
@@ -35,9 +35,10 @@ Rutas base: `Shared` = `ReplicatedStorage.Shared` · `Services` = `ServerScriptS
 
 ## Carrera (servidor leído entero; cliente del vault v1)
 - La física corre en el cliente, dueño de su personaje. `RacingMode` coordina vuelo y deslizamiento con `SlideMotor` (velocidad, giro, salto, impulso), `GroundProbe`, `MoveInput`, `CrashSensor`, `BoostRampSensor`, `BodyMover` (control del cuerpo y ragdoll), `PenguinOrientation`. `RaceModel` lleva tiempo y velocidad para el HUD. `LocalCharacter` da acceso al personaje.
-- `RaceService` (servidor): al entrar a Racing guarda la hora y el avance de meta del nivel. Cada `TrackerIntervalSeconds` revisa a cada corredor: si su avance sobre `TrackForward` pasa el de la `FinishLine` → Finished con el tiempo (o reinicio si tardó menos de `MinimumPlausibleSeconds`); si está bajo `KillHeight` o sobre una parte `Hazard` → eliminado.
+- `RaceService` (servidor): al entrar a Racing guarda la hora y el avance de meta del nivel. Cada `TrackerIntervalSeconds` revisa a cada corredor: si su avance sobre `TrackForward` pasa el de la `FinishLine` → Finished con el tiempo (o reinicio si tardó menos de `MinimumPlausibleSeconds`); si está bajo la altura mínima o sobre una parte `Hazard` → eliminado. La altura mínima es el atributo `KillHeight` del folder del nivel si lo tiene (N1: -220, D-023c), o `GameConfig.Race.KillHeight`.
 - Eliminación: avisa por `RaceNotice` ("Eliminated", con `hazardKind`) y, tras `Crash.RagdollSeconds`, hace `LoadCharacter`. Tipos: `Fall`, `Crash`, o el `HazardKind` de la parte (`Pit`, `Water`).
 - Choques: los detecta el cliente y los reporta por `CrashReported`; el servidor no valida el choque, solo limita la frecuencia.
+- Ajustes por nivel y rampas (D-026c): `SlideMotor` toma `Slide.LevelTuning[nivel]` si existe (N5). Una cuña con atributo `KeepSpeed` no frena (sin arrastre; conserva y repone la velocidad al aterrizar); con `JumpDistance` además calcula el salto para caer a esa distancia.
 - Rampas de impulso: `BoostRampSensor` lanza un rayo hacia abajo; si pisa una parte `BoostRamp`, `SlideMotor.boost()` sube velocidad y tope según `GameConfig.Boost` (D-017).
 - La etiqueta `LandingZone` existe en N1 pero ningún script la lee.
 
@@ -114,6 +115,7 @@ Solo cliente. `DecorationController` inicia un módulo por etiqueta; para animar
 - `ClaudeBuild.BuildLobby`, `ClaudeBuild.BuildLevel2Festival`, `BuildStalls`, `BuildAvalancheMountains`: constructores de mapa de un solo uso.
 - `ClaudeScriptDump`: volcado de texto de scripts del cliente, de una versión anterior.
 - `PluginCurves`: carpeta vacía.
-- `MountainLookBackup`, `CuteReplacedBackup`: respaldos de piezas reemplazadas el 2026-11-13. `CuteModels`: modelos fuente de la decoración "cute".
+- `MountainLookBackup`, `CuteReplacedBackup`, `LobbyDecorBackup`, `LobbyQuitado`: respaldos de piezas reemplazadas o quitadas del lobby el 2026-11-13 (Q-14). `CuteModels`: modelos fuente de la decoración "cute" y de Blender.
 - `DevTools.PlaceMap`: generador de [[mapa-place]] y [[valores]]. Se queda.
+- `DevTools.GroundTexturer`: pone parches de tonos de blanco o azul hielo, sin colisión, en el suelo de la pista de un nivel (carpeta `GroundTexture`, franja de ±100 alrededor de la resortera). Se queda; se usa en cada nivel nuevo (D-025c).
 - En Workspace, fuera de los niveles: `Baseplate` y un `SpawnLocation` desactivado.

@@ -49,3 +49,6 @@ La pista completa y los saltos de las grietas → Q-10. Animar los ciervos → Q
 
 ## Reconstrucción
 `archivo/construccion/BuildLevel4_v01.lua`. La resortera se clona con +600 en Y y sus atributos de asiento llevan el mismo desplazamiento.
+
+## Suelo (D-025c)
+`GroundTexture`: parches sin colisión en tonos de blanco o azul hielo sobre la franja de la pista, hechos con `DevTools.GroundTexturer`.

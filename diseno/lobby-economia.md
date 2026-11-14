@@ -36,7 +36,7 @@ Posiciones: `grep -n "Lobby:" place/mapa-place.md`. Construido por `ServerStorag
 ## HUD del lobby (visible solo en `Idle` y `Finished`)
 | Botón | Tecla | Panel | Estado |
 |---|---|---|---|
-| ¡LANZAR! | R | — | funciona: lleva junto a la resortera |
+| ¡LANZAR! | R | — | funciona: monta en la resortera (D-021c); botón verde |
 | Ruleta | P | `wheel` | funciona |
 | Tienda | G | `shop` | funciona con peces (impulso, giros); Robux = "pronto" |
 | Skins | K | `skins` | funciona: vista 3D, comprar y equipar |

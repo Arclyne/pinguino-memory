@@ -7,8 +7,8 @@ generado: sí (ServerStorage.DevTools.PlaceMap, sección valores; no editar a ma
 Copia de los módulos de configuración. El código manda: para cambiar un valor se edita el módulo en Studio y se regenera esta nota. Tiempos en segundos, velocidades en studs/s.
 
 # huella
-place=Place2 placeId=76340917059535 universeId=10776032682 generado=2026-11-13 06:57
-huella: scripts=136 lineas=18439 codigo=79f4e2ab instancias=61499 mundo=aead3f96
+place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-13 19:08
+huella: scripts=137 lineas=18693 codigo=84963883 instancias=68418 mundo=ff604c2e
 # valores
 GameConfig.Boost.CapRecoverySeconds=0.8
 GameConfig.Boost.DragMultiplier=0.25
@@ -48,8 +48,15 @@ GameConfig.Slide.DownhillMinimumSlope=0.08
 GameConfig.Slide.GroundProbeLength=1.8
 GameConfig.Slide.JumpBufferSeconds=0.15
 GameConfig.Slide.JumpCooldownSeconds=0.25
+GameConfig.Slide.JumpDistanceAttribute=JumpDistance
 GameConfig.Slide.JumpSpeed=50
+GameConfig.Slide.KeepSpeedAttribute=KeepSpeed
 GameConfig.Slide.LandingPoseSeconds=0.35
+GameConfig.Slide.LevelTuning.5.DownhillBoost=2.2
+GameConfig.Slide.LevelTuning.5.MaxSpeed=165
+GameConfig.Slide.LevelTuning.5.QuadraticDrag=0.0035
+GameConfig.Slide.LevelTuning.5.SteerAcceleration=200
+GameConfig.Slide.MaxRampLift=65
 GameConfig.Slide.MaxSpeed=145
 GameConfig.Slide.MaxTurnRate=1.7
 GameConfig.Slide.MinimumSteerReferenceSpeed=25
@@ -57,7 +64,7 @@ GameConfig.Slide.QuadraticDrag=0.0065
 GameConfig.Slide.SteerAcceleration=150
 GameConfig.Slingshot.AimTimeoutSeconds=45
 GameConfig.Slingshot.DefaultPitchDegrees=22
-GameConfig.Slingshot.DragForwardIncreasesPower=true
+GameConfig.Slingshot.DragForwardIncreasesPower=false
 GameConfig.Slingshot.FullPowerDragScreenFraction=0.35
 GameConfig.Slingshot.LaunchValidationDistance=30
 GameConfig.Slingshot.MaxLaunchSpeed=110

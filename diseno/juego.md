@@ -27,7 +27,7 @@ Lobby (Idle) --E en la resortera--> Aiming --soltar--> Racing --meta--> Finished
 | Lobby | P G K Y Q B L H X C Z U F N | Paneles (tabla en [[lobby-economia]]) | `LobbyHud` |
 | Lobby | Esc | Cierra el panel abierto | `LobbyHud` |
 | Resortera | Mover mouse | Dirección: izquierda/derecha gira, arriba/abajo cambia la elevación (D-005) | `AimInput` |
-| Resortera | Clic sostenido y arrastrar hacia arriba | Fuerza; soltar = lanzar | `AimInput` |
+| Resortera | Clic sostenido y arrastrar hacia atrás (abajo) | Fuerza; soltar = lanzar | `AimInput` |
 | Resortera | X | Bajarse | `AimInput` → `DismountRequested` |
 | Carrera | A / D, flechas, stick izquierdo | Moverse de lado | `MoveInput` |
 | Carrera | Espacio | Salto de panza | `SlideMotor.requestJump` |
@@ -35,7 +35,7 @@ Lobby (Idle) --E en la resortera--> Aiming --soltar--> Racing --meta--> Finished
 - Celular y consola: sin controles táctiles; el control solo gira y salta → Q-07.
 
 ## Resortera
-- Angel decidió: solo apunta hacia adelante (D-002); mouse y arrastre (D-005).
+- Angel decidió: solo apunta hacia adelante (D-002); mouse y arrastre hacia atrás (D-005, D-022c).
 - Claude eligió: rango de giro y elevación, velocidad mínima y máxima de lanzamiento, una persona a la vez por resortera, se baja sola si no lanza en `GameConfig.Slingshot.AimTimeoutSeconds`. Trayectoria predicha con puntos (`TrajectoryPreview`). Claves: `GameConfig.Slingshot.*`.
 - El servidor valida distancia al subirse y al lanzar ([[sistemas]] § Resortera).
 - Diseño visual v0.2 y medidas: [[nivel-1]] § Resortera.

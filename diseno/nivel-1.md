@@ -5,7 +5,7 @@ nombre: Pico Pingüino
 folder: Workspace.PenguinSlingshotMap_v01
 origen_x: 0
 base_y: 600
-verificado: 2026-11-13 (existencia y coordenadas en Studio; no se jugó completo)
+verificado: 2026-11-13 (existencia y coordenadas en Studio; zonas nuevas vistas en Studio; no se jugó completo)
 ---
 # Nivel 1 · Pico Pingüino
 
@@ -27,12 +27,19 @@ Plano: https://claude.ai/artifact/SGTq2gWD7CCYxDYdQzFZW3 · medidas en studs · 
 | Río de témpanos | 900–1000 | plano | 120 | río de 70, 3 filas de témpanos 10 × 10 |
 | Cañón de hielo | 1000–1400 | 22° | 80 | rocas grandes, picos de hielo, grietas |
 | Campamento abandonado | 1400–1650 | 15° | 120 | cercas rotas, barriles, trineo, muñecos de nieve |
-| Meta y frenado | 1650–1800 | 5° | 120 | arco de meta en Z 1700 |
-| Zona plana final (Angel decidió) | 1800–1870 | plano | 120 | portal en Z 1850; muro y cerca al final |
+| Pinar (D-023c) | 1650–1910 | 16° | 120 | 7 pinos, 4 tocones, arbusto, tronco a lo ancho al final |
+| Lago congelado (D-023c) | 1910–2050 | 3° | 120 | 3 filas de témpanos (3, 4 y 3) |
+| Paso de rocas (D-023c) | 2050–2280 | 15° | 120 | 3 peñascos, 3 rocas, 4 picos de hielo |
+| Meta y frenado | 2280–2430 | 5° | 120 | arco de meta en Z 2330 |
+| Zona plana final (Angel decidió) | 2430–2500 | plano | 120 | portal en Z 2479; muro y cerca al final |
 
-- Pista de ~1,780 studs en horizontal, 532 de desnivel.
+- Pista de ~2,410 studs en horizontal, ~676 de desnivel. La meta quedó en Y ≈ -108: N1 tiene `KillHeight = -220` (D-023c).
+- Ciervo pidió alargarlo un 35 % (D-023c): se agregaron 630 studs; la meta, la plaza, el portal, la fiesta de meta, 22 pinos de borde y el castillo de hielo se movieron con ella. Las cordilleras del fondo (`Landscape`) no se movieron.
 - Los checkpoints del plano v0.1 se quitaron (D-008).
 - Peligros: el río (`HazardKind = Water`) y 2 grietas (`Pit`).
+
+## Suelo (D-024c)
+`GroundTexture`: parches sin colisión en tonos de blanco (azul hielo en el Lago congelado) sobre cada pendiente de la pista. Para quitarlo basta borrar el folder.
 
 ## Resortera (modelo v0.2, se clona a los demás niveles)
 - Prototipo: https://claude.ai/artifact/DZuHEQHahKa4aUhb15QQTH

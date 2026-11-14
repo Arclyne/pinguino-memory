@@ -44,3 +44,6 @@ Los huecos de 20–22 studs con la física real → Q-10.
 
 ## Reconstrucción
 `archivo/construccion/BuildLevel3_v01.lua`, luego `InstallBoostRamps_v01.lua`. Al construirlo hubo que bajar los edificios de relleno: quedaban más altos que la pista.
+
+## Suelo (D-025c)
+`GroundTexture`: parches sin colisión en tonos de blanco o azul hielo sobre la franja de la pista, hechos con `DevTools.GroundTexturer`.
