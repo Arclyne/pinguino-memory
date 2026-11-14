@@ -3,7 +3,7 @@ tipo: decision
 id: D-024c
 fecha: 2026-11-13
 autor: ciervo
-estado: vigente
+estado: reemplazada por D-027c
 tema: decoracion
 ---
 # D-024c · Suelo de N1 con tonos de blanco

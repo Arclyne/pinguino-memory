@@ -9,7 +9,7 @@ verificado: 2026-11-14 (el folder del nivel está en ServerStorage.Respaldo_Mapa
 ---
 # Nivel 4 · Valle del Avión
 
-**Fuera del juego desde el 2026-11-14:** el folder se movió a `ServerStorage.Respaldo_MapaViejo.Niveles2a5` cuando la pista navideña reemplazó a N1–N5 (Q-26c). Esta ficha describe cómo era.
+**Descartado (D-027c):** desde el 2026-11-14 el juego solo tiene la pista navideña. El folder sigue guardado en `ServerStorage.Respaldo_MapaViejo.Niveles2a5`. Esta ficha describe cómo era.
 
 Coordenadas reales: `grep -n "N4" place/mapa-place.md`. Prototipo v0.1: https://claude.ai/artifact/Bxwqqn5e8k3QCZm88kLtTZ · ciervos: https://claude.ai/artifact/2L3DA96QXd9at5psH9EU9n
 

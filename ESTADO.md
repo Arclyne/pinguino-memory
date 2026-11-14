@@ -4,7 +4,7 @@ verificado: 2026-11-14 (Studio, por inspección de la place en modo edición; la
 ---
 # Estado
 
-Prototipo jugable en **PINGUINO TEST** (placeId 76340917059535, universeId 10776032682): un solo nivel, la pista navideña larga (desde el 2026-11-14, sin registro → Q-26c), lobby en su meseta y economía de peces con datos guardados. Sin publicar y sin monetización.
+Prototipo jugable en **PINGUINO TEST** (placeId 76340917059535, universeId 10776032682): un solo nivel, la pista navideña larga (D-027c), lobby en su meseta y economía de peces con datos guardados. Sin publicar y sin monetización.
 
 Esta nota solo cambia cuando cambia lo que existe en el juego. Lo que se mueve cada sesión (huella, bitácoras, tareas urgentes, preguntas) lo arma `python3 herramientas/ver.py inicio`.
 
@@ -16,8 +16,8 @@ Esta nota solo cambia cuando cambia lo que existe en el juego. Lo que se mueve c
 - **Lobby** en la meseta de N1: camino de flechas, ruleta, salón de la fama, pedestal del evento, podio, portal de niveles (un solo nivel), tienda, fogatas. → [[lobby-economia]]
 - **Economía:** peces en la pista (5 carriles), regalo diario, impulso x2, ruleta, 5 skins, tabla semanal. Datos con DataKit (D-015).
 
-## En respaldo (fuera del juego, en `ServerStorage.Respaldo_MapaViejo`)
-N2–N5 (`Niveles2a5`), la pista vieja de N1 y casi toda su decoración festiva (D-013), y la avalancha (Q-02). Las fichas [[nivel-2]], [[nivel-3]], [[nivel-4]] y [[nivel-5]] describen cómo eran. Si se descartan o se reusan → Q-26c.
+## Descartado (D-027c; sigue guardado en `ServerStorage.Respaldo_MapaViejo`)
+N2–N5 (`Niveles2a5`), la pista vieja de N1 y casi toda su decoración festiva (D-013), y la avalancha (Q-02). Las fichas [[nivel-2]], [[nivel-3]], [[nivel-4]] y [[nivel-5]] describen cómo eran.
 
 ## Solo fachada (botón con panel "próximamente")
 Personalizar, Pack inicial, VIP, Renacer, Lanzarse con un amigo, Próxima carrera, Evento Avalancha. No hay ninguna compra con Robux.

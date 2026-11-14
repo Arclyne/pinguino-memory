@@ -7,8 +7,8 @@ generado: sí (ServerStorage.DevTools.PlaceMap, sección valores; no editar a ma
 Copia de los módulos de configuración. El código manda: para cambiar un valor se edita el módulo en Studio y se regenera esta nota. Tiempos en segundos, velocidades en studs/s.
 
 # huella
-place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-14 06:41
-huella: scripts=144 lineas=22294 codigo=69f5fafc instancias=90545 mundo=e7464201
+place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-14 06:52
+huella: scripts=144 lineas=22092 codigo=cfc6ac8f instancias=90545 mundo=e7464201
 # valores
 GameConfig.Boost.CapRecoverySeconds=0.8
 GameConfig.Boost.DragMultiplier=0.25

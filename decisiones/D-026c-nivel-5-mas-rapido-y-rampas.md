@@ -3,7 +3,7 @@ tipo: decision
 id: D-026c
 fecha: 2026-11-13
 autor: ciervo
-estado: vigente
+estado: reemplazada por D-027c
 tema: niveles
 ---
 # D-026c · Nivel 5 más rápido y rampas que no frenan

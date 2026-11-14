@@ -102,11 +102,11 @@ Solo cliente. `DecorationController` inicia un módulo por etiqueta; para animar
 | `ChaseBulb` | `ChaseLights` | foquitos que corren | `ChaseIndex` |
 | `ChevronArrow`, `DragonParade` | `ParadeMotion` | flechas del camino en ola; dragón que recorre una elipse | `ChevronIndex`, `PathCenter`, `PathRadiusX`, `PathRadiusZ`, `PathSpeed`, `SegmentIndex` |
 
-## Pista navideña (ChristmasTrack y ChristmasRunService leídos enteros; ChristmasRunClient por encima; sin aprobar → Q-26c)
+## Pista navideña (ChristmasTrack y ChristmasRunService leídos enteros; ChristmasRunClient por encima; D-027c)
 - `Shared.ChristmasTrack`: una sola definición de la pista que usan el constructor, el servidor y el cliente. Zonas (`Zones`: nombre, ícono, inicio, pendiente, color, premio), caídas (`Drops`), curvas (`xAt`), altura (`heightAt`), ancho (`widthAt`), marco y normal, progreso, zona en una Z, punto de rescate (`rescueFrame`) y atajos (`Shortcuts`, calculados al cargar el módulo donde cortan curva y ahorran distancia). Vida y daños: `MaxHealth`, `CrashDamage`, `FallDamage`, `ZoneHeal`, `FinishReward`.
 - `ChristmasRunService` (servidor): al entrar a Racing crea la carrera con vida llena; cada 0.1 s mira la Z del jugador para dar premio de peces y curar al entrar a una zona, y si cae más de 45 studs bajo la pista lo rescata (resta vida y manda `RaceNotice` "Rescue" con el punto). Publica `PenguinHealth`, `PenguinMaxHealth` y `RunZone` en el jugador. Al terminar da `FinishReward` más la mitad de la vida. `absorbCrash` y `absorbHazard` los llama `RaceService`.
 - `ChristmasRunClient` (LocalScript suelto): HUD de la pista (zona, tiempo, progreso, velocidad, vida, avisos de premio) y efectos de tráfico y patrulla. Escucha `RaceNotice` (Zone, Damage, Rescue, FinishReward, OutOfHealth).
-- `FishService` ahora usa `ChristmasTrack` para colocar los peces en los carriles de `EconomyConfig.Fish.Lanes` (cambio no releído).
+- `FishService` ahora usa `ChristmasTrack`: los peces de los carriles (`EconomyConfig.Fish.Lanes`) siguen las curvas y cada atajo lleva una fila de peces (cambio leído por encima).
 - Constructores (no corren): `ServerStorage.ClaudeBuild.ChristmasKit`, `ChristmasBuild`, `ChristmasBuild2`.
 
 ## Avalancha (en respaldo desde el 2026-11-14; sin decisión de Angel → Q-02)
@@ -121,7 +121,7 @@ Solo cliente. `DecorationController` inicia un módulo por etiqueta; para animar
 
 ## Restos en ServerStorage (no corren en el juego → Q-14)
 - `ClaudeBuild.BuildLobby`, `ClaudeBuild.BuildLevel2Festival`, `BuildStalls`, `BuildAvalancheMountains`: constructores de mapa de un solo uso. `ClaudeBuild.ChristmasKit`, `ChristmasBuild` y `ChristmasBuild2` construyeron la pista navideña (§ Pista navideña).
-- `Respaldo_MapaViejo` (desde el 2026-11-14): N2–N5 (`Niveles2a5`), la pista vieja de N1 (`Nivel1_Bajada`, `Nivel1_Bajada_Terrain`), la decoración festiva quitada (`Nivel1_Festive_*`), `Avalancha` y `ChristmasTrack_v1_old` (primera versión del módulo de la pista). Q-26c.
+- `Respaldo_MapaViejo` (desde el 2026-11-14): N2–N5 (`Niveles2a5`), la pista vieja de N1 (`Nivel1_Bajada`, `Nivel1_Bajada_Terrain`), la decoración festiva quitada (`Nivel1_Festive_*`), `Avalancha` y `ChristmasTrack_v1_old` (primera versión del módulo de la pista). Todo descartado (D-027c); se puede borrar.
 - `ClaudeScriptDump`: volcado de texto de scripts del cliente, de una versión anterior.
 - `PluginCurves`: carpeta vacía.
 - `MountainLookBackup`, `CuteReplacedBackup`, `LobbyDecorBackup`, `LobbyQuitado`: respaldos de piezas reemplazadas o quitadas del lobby el 2026-11-13 (Q-14). `CuteModels`: modelos fuente de la decoración "cute" y de Blender.

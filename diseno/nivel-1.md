@@ -11,7 +11,7 @@ verificado: 2026-11-14 (leído en Studio en modo edición: ChristmasTrack, Chris
 
 Coordenadas reales, etiquetas y carpetas: `grep -n "N1" place/mapa-place.md`. Z del plano = -Z del mundo.
 
-Desde el 2026-11-14 el N1 es una sola bajada larga, `ChristmasRun`, hecha sin registro en el vault (Q-26c). La pista anterior "Pico Pingüino" (D-009, D-023c) está en `ServerStorage.Respaldo_MapaViejo.Nivel1_Bajada`. Nada de esta ficha está aprobado todavía.
+Desde el 2026-11-14 el N1 es una sola bajada larga, `ChristmasRun` (D-027c). La hizo ciervo con otra sesión de Claude; los números y el diseño de zonas los eligió Claude (sin aprobar). La pista anterior "Pico Pingüino" (D-009, D-023c) se descartó; sigue guardada en `ServerStorage.Respaldo_MapaViejo.Nivel1_Bajada`.
 
 ## Lo que hay en Studio
 - La meseta de spawn, el lobby (D-014), la resortera y el portal no cambiaron. La bajada empieza en Z -20 (Y 556) y la meta está en Z -16370 (Y ≈ -3569): ~16,350 studs de largo y ~4,100 de desnivel. Portal en Z -16648; lleva al mismo N1.
@@ -33,7 +33,7 @@ Desde el 2026-11-14 el N1 es una sola bajada larga, `ChristmasRun`, hecha sin re
 - Cada zona tiene carpeta `Zona<N>_<Nombre>` con edificios, faroles, pinos, puestos, `Obstaculos` y `Gameplay` (pads de turbo `BoostRamp`). 4,527 partes con atributo `Bumper` (rebotan sin chocar).
 - `Atajos`: 10 caminos rectos de 22 de ancho que cortan por dentro de las curvas (pinos, hielo, callejón, parque, juguetes, salto), algunos con turbo y rampas de salto. Ninguno en el Garaje ni en el Puente.
 - Vida: 100; choque −25, caída −20 (te rescata sobre la pista), +35 al entrar a cada zona. Sin vida, eliminado.
-- Peces en 5 carriles (`EconomyConfig.Fish.Lanes`).
+- Peces en 5 carriles (`EconomyConfig.Fish.Lanes`) que siguen las curvas, y una fila de peces a lo largo de cada atajo como premio.
 
 ## Suelo
 Sin `GroundTexture`: la ladera `Ground` y la calle son lisas → T-13c (D-025c).
@@ -55,7 +55,7 @@ Todo: no hay una bajada registrada → T-14c.
 - Estilo Hielo: https://claude.ai/artifact/N9dQzZxestQoVsSauFWXXW · `ReturnPortalGate`. Ahora está al final de la pista navideña y lleva al mismo N1.
 
 ## Avalancha
-- La montaña, la sirena y la cinemática están en `ServerStorage.Respaldo_MapaViejo.Avalancha`: ya no corren (Q-02, Q-26c).
+- Descartada (D-027c): la montaña, la sirena y la cinemática siguen guardadas en `ServerStorage.Respaldo_MapaViejo.Avalancha` y no corren.
 
 ## Lobby
 Objetos y paneles: [[lobby-economia]].

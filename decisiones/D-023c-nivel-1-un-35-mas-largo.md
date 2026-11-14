@@ -3,7 +3,7 @@ tipo: decision
 id: D-023c
 fecha: 2026-11-13
 autor: ciervo
-estado: vigente
+estado: reemplazada por D-027c
 tema: niveles
 ---
 # D-023c · Nivel 1 un 35 % más largo

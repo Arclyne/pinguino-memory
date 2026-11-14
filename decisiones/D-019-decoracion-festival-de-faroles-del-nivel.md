@@ -3,7 +3,7 @@ tipo: decision
 id: D-019
 fecha: 2026-11-12
 autor: v1
-estado: vigente
+estado: reemplazada por D-027c
 tema: decoracion
 ---
 # D-019 · Decoración "Festival de Faroles" del nivel 2
