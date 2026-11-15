@@ -32,5 +32,5 @@ Detalles que Claude eligió para que algo funcionara. Valen hasta que Angel los 
 | 1. Planeación | concepto, ciclo, mecánicas, alcance del MVP | falta objetivo, multijugador y MVP (Q-15, Q-16, Q-17) |
 | 2. Prototipo | resortera + deslizamiento jugable | hecho: 5 niveles, lobby y economía |
 | 3. Vertical slice | un nivel completo con arte y feedback, probado | falta jugarlo y ajustar (T-01) |
-| 4. Contenido y progresión | más pistas, mejoras, guardado | guardado hecho; progresión sin definir |
+| 4. Contenido y progresión | más pistas, mejoras, guardado | guardado hecho; progresión definida en D-038a a D-044a, en tres partes (frío + huevos + incubación + tienda → nivel y evolución → tradeo); falta el mapa (Q-28a) |
 | 5. Lanzamiento | pulido, monetización, publicación | sin empezar |
