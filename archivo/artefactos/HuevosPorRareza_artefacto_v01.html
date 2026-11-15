@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Huevos por rareza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* noche de vitrina: el huevo brilla sobre un pedestal y el catálogo va en tarjetas oscuras con borde de su rareza */
+  --night: #0b1220;
+  --panel: #121b2c;
+  --panel-2: #18233a;
+  --ink: #eef3fb;
+  --muted: #93a2bb;
+  --line: rgba(238, 243, 251, 0.10);
+  --font-display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--night); color: var(--ink); font-family: var(--font-body); }
+.viewer { position: relative; height: min(68vh, 640px); min-height: 440px; }
+#stage { position: absolute; inset: 0; }
+#stage canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+#stage canvas:active { cursor: grabbing; }
+.card {
+  position: absolute; top: 16px; left: 16px;
+  width: min(320px, calc(100% - 32px));
+  background: rgba(14, 21, 35, 0.78);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--rc, #fff);
+  border-radius: 18px;
+  padding: 16px;
+  display: grid; gap: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+.rarity { font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: 0.1em; color: var(--rc); }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: 28px; line-height: 1.05; margin: -6px 0 0; text-wrap: balance; }
+.hatch { font-size: 13px; font-weight: 800; }
+.hatch span { color: var(--muted); font-weight: 700; }
+p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--muted); }
+.tabs { display: flex; gap: 4px; background: rgba(238, 243, 251, 0.06); padding: 4px; border-radius: 12px; }
+.tabs button { flex: 1; border: 0; border-radius: 9px; padding: 7px 4px; font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--muted); background: transparent; cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--panel-2); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.effect { font-size: 13px; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 0; }
+.effect dt { color: var(--muted); }
+.effect dd { margin: 0; font-weight: 700; }
+.hint { position: absolute; bottom: 12px; right: 16px; font-size: 12px; color: var(--muted); background: rgba(14, 21, 35, 0.7); padding: 6px 12px; border-radius: 999px; }
+main { max-width: 1120px; margin: 0 auto; padding: 28px 16px 72px; display: grid; gap: 36px; }
+.ladder { display: grid; grid-template-columns: repeat(auto-fit, minmax(136px, 1fr)); gap: 8px; }
+.step { background: var(--panel); border-radius: 12px; padding: 10px 12px; border: 1px solid var(--line); border-top: 3px solid var(--c); display: grid; gap: 2px; }
+.step b { font-family: var(--font-display); font-weight: 600; font-size: 15px; color: var(--c); }
+.step span { font-size: 12px; color: var(--muted); line-height: 1.35; }
+#catalog { display: grid; gap: 36px; }
+section h2 { font-family: var(--font-display); font-weight: 700; font-size: 24px; margin: 0 0 2px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+section h2 em { font-style: normal; color: var(--muted); font-size: 18px; }
+section h2 small { font-family: var(--font-body); font-size: 13px; font-weight: 700; color: var(--muted); }
+section > p { margin-bottom: 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap: 12px; }
+.egg {
+  background: radial-gradient(120% 80% at 50% 35%, color-mix(in srgb, var(--c) 16%, var(--panel)), var(--panel) 70%);
+  border: 2.5px solid var(--c);
+  border-radius: 16px;
+  padding: 8px 8px 12px;
+  display: grid; justify-items: center; gap: 3px;
+  cursor: pointer; text-align: center; font: inherit; color: inherit;
+  box-shadow: 0 0 var(--g, 0px) color-mix(in srgb, var(--c) 55%, transparent);
+  transition: transform 0.15s ease;
+}
+.egg:hover { transform: translateY(-3px); }
+.egg[aria-current="true"] { outline: 3px solid color-mix(in srgb, var(--c) 45%, transparent); outline-offset: 3px; }
+.egg img { width: 128px; height: 128px; }
+.egg .r { font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: 0.08em; color: var(--c); text-transform: uppercase; }
+.egg .n { font-weight: 800; font-size: 14px; line-height: 1.2; }
+.egg .h { font-size: 12px; color: var(--muted); }
+.egg.secret { border-image: linear-gradient(135deg, #ffffff, #7f8ba3, #ffffff, #2a2f3d) 1; border-radius: 0; }
+@media (max-width: 560px) {
+  .viewer { height: 500px; }
+  .card { top: auto; bottom: 12px; padding: 12px; gap: 8px; }
+  .card p, .effect, .hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .egg { transition: none; } }
+</style>
+</head>
+<body>
+<div class="viewer">
+  <div id="stage"></div>
+  <aside class="card" id="card">
+    <div class="rarity" id="rarity-label"></div>
+    <h1 id="egg-name"></h1>
+    <div class="hatch"><span>Nace:</span> <b id="egg-hatch"></b></div>
+    <p id="egg-desc"></p>
+    <div class="tabs" role="group" aria-label="Dónde verlo">
+      <button id="tab-show" type="button" aria-pressed="true">Vitrina</button>
+      <button id="tab-nest" type="button" aria-pressed="false">Nido</button>
+      <button id="tab-track" type="button" aria-pressed="false">Pista</button>
+    </div>
+    <dl class="effect">
+      <dt>Bioma</dt><dd id="egg-biome"></dd>
+      <dt>Efecto</dt><dd id="egg-effect"></dd>
+    </dl>
+  </aside>
+  <div class="hint">Arrastra para girar · rueda para acercar</div>
+</div>
+
+<main>
+  <div class="ladder" id="ladder"></div>
+  <div id="catalog"></div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script>
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const LAYER = 0.5, LAYERS = 12, SQUARENESS = 2.5, MAX_WIDTH = 4.4, TOP = LAYERS * LAYER;
+const TAU = Math.PI * 2;
+
+const RARITIES = {
+  comun: { label: "Común", color: "#aab4c1", glow: 0, step: "Color fuerte y un patrón. Casi quieto." },
+  raro: { label: "Raro", color: "#3fa9ff", glow: 6, step: "+ un detalle propio y destellos." },
+  epico: { label: "Épico", color: "#b06bff", glow: 10, step: "+ accesorio que se mueve y partículas." },
+  legendario: { label: "Legendario", color: "#ffbf2e", glow: 16, step: "+ oro, pieza grande, flota y aura." },
+  mitico: { label: "Mítico", color: "#ff4fa3", glow: 20, step: "Se sale de la silueta del huevo." },
+  celestial: { label: "Celestial", color: "#4ff0ff", glow: 24, step: "Luz propia, columna de luz y órbitas." },
+  secreto: { label: "Secreto", color: "#f4f6fb", glow: 26, step: "Rompe las reglas: el huevo se deshace." },
+};
+
+const BIOMES = [
+  { name: "Navideño", note: "Solo comunes (D-040a). Colores de Navidad fuertes sobre la forma base." },
+  { name: "Ciudad Nevada", note: "Comunes y raros. Ladrillo, taxis y luces de ciudad de noche." },
+  { name: "Valle del Avión", note: "De raro a legendario. Hélices, alas y turbinas." },
+  { name: "Cueva de Cristal", note: "De raro a mítico. Piedra, hielo y cristales que brillan desde adentro." },
+  { name: "Bosque de Auroras", note: "De épico a celestial. Animales del bosque polar y luces de aurora." },
+  { name: "Volcán Helado", note: "De épico a celestial. Fuego contra hielo: grietas de lava, obsidiana y fénix." },
+  { name: "Abismo Polar", note: "De legendario a secreto. Criaturas del mar bajo el hielo, bioluminiscencia." },
+  { name: "Cosmos Glaciar", note: "De legendario a secreto. El espacio: cometas, planetas y estrellas." },
+];
+
+const hash = (a, b, c) => { const x = Math.sin(a * 127.1 + b * 311.7 + c * 74.7) * 43758.5453; return x - Math.floor(x); };
+const mid = (c, n, span) => Math.abs(c - (n - 1) / 2) <= span;
+const spots = (list) => (i, f, c, n) => list.some(([li, lf, fr]) => li === i && lf === f && Math.min(n - 1, Math.floor(fr * n)) === c);
+const diag = (i, f, c, n, period, width) => ((c + f * n + i) % period + period) % period < width;
+const glow = (color) => ({ color, glow: true });
+
+const EGGS = [
+  // 1 · Navideño
+  { id: "nevado", biome: 0, rarity: "comun", name: "Huevo Nevado", hatch: "Pingüino Nevado",
+    desc: "El común aprobado convertido en muñeco de nieve: ojos de carbón, nariz de zanahoria, brazos de rama y nieve amontonada en la base.",
+    effect: "Se mece; los brazos saludan",
+    shell: [0xE6DAC5, 0xFBF7EF], tip: 0xFBF7EF,
+    tile: (i, f, c, n) => spots([[3, 1, 0.75], [5, 2, 0.4], [8, 3, 0.85], [4, 2, 0.6], [9, 1, 0.15], [6, 3, 0.3]])(i, f, c, n) ? 0xC2AD86 : null,
+    extras: (api) => {
+      api.face({ layer: 8, gap: 0.7, size: 0.5, eye: 0x1C1C22 });
+      const z = api.widthAt(7) / 2;
+      [[0.55, 0.5, 0xF07A1A], [0.42, 0.45, 0xF58A2A], [0.28, 0.4, 0xFF9C3A]].forEach(([s, d, c], k) => api.box(s, s, d, c, { y: api.yAt(7), z: z + 0.2 + k * 0.42 }));
+      [-1.0, -0.5, 0, 0.5, 1.0].forEach((x) => api.box(0.24, 0.24, 0.16, 0x1C1C22, { x, y: api.yAt(5.6) - Math.abs(x) * -0.2 - 0.15, z: api.widthAt(6) / 2 + 0.06 }));
+      [0, 1].forEach((k) => api.box(0.32, 0.32, 0.16, 0x1C1C22, { y: api.yAt(4 - k * 1.6), z: api.widthAt(3) / 2 + 0.06 }));
+      for (const s of [-1, 1]) {
+        const arm = new THREE.Group();
+        arm.position.set(s * api.widthAt(6) / 2, api.yAt(6), 0);
+        arm.add(api.make(1.9, 0.2, 0.2, 0x6B4423, { x: s * 0.95, rz: s * 0.35 }));
+        arm.add(api.make(0.7, 0.16, 0.16, 0x6B4423, { x: s * 1.75, y: 0.85, rz: s * 1.1 }));
+        arm.add(api.make(0.6, 0.16, 0.16, 0x6B4423, { x: s * 2.0, y: 0.45, rz: s * -0.2 }));
+        api.add(arm);
+        api.update((t) => { arm.rotation.z = s * (Math.sin(t * 2.2) * 0.12 + (s > 0 ? Math.max(0, Math.sin(t * 1.1)) * 0.25 : 0)); });
+      }
+      for (let k = 0; k < 9; k++) { const a = k / 9 * TAU + 0.3; api.box(0.9 + hash(k, 1, 1) * 0.6, 0.5, 0.9, 0xFFFFFF, { x: Math.cos(a) * 2.3, y: 0.15, z: Math.sin(a) * 2.3, ry: a }); }
+    } },
+  { id: "galleta", biome: 0, rarity: "comun", name: "Huevo de Galleta", hatch: "Pingüino Galleta",
+    desc: "Hombre de jengibre: cara y sonrisa de glaseado, tres gomitas de botón, bracitos con puños glaseados y glaseado que escurre de la punta.",
+    effect: "Se mece; los bracitos se mueven",
+    shell: [0x8A4A1E, 0xCC8C4C], tip: 0xFFFFFF,
+    tile: (i, f, c, n) => {
+      if (i === 11 || (i === 10 && c % 2 === 0)) return 0xFFFFFF;
+      if (f !== 0 && ((i === 2 && c % 2 === 0) || (i === 3 && c % 2 === 1))) return 0xFFFFFF;
+      if (f === 0 && i === 6 && !mid(c, n, 0.5) && Math.abs(c - (n - 1) / 2) < 2.1) return 0xFFFFFF;
+      return null;
+    },
+    extras: (api) => {
+      api.face({ layer: 8, gap: 0.7, size: 0.55, eye: 0x3A1E0E, ring: 0xFFFFFF });
+      const z = api.widthAt(4) / 2 + 0.2;
+      [[0xE5383B, 5], [0x2DB25B, 3.6], [0xFFFFFF, 2.2]].forEach(([c, l]) => { api.box(0.6, 0.55, 0.35, c, { y: api.yAt(l) - 0.1, z }); api.box(0.25, 0.15, 0.37, 0xFFFFFF, { x: -0.1, y: api.yAt(l) + 0.1, z: z + 0.01, outline: false }); });
+      for (const s of [-1, 1]) {
+        const arm = new THREE.Group();
+        arm.position.set(s * api.widthAt(5) / 2, api.yAt(5), 0);
+        arm.add(api.make(1.3, 0.9, 0.8, 0xB97A3E, { x: s * 0.55, rz: s * -0.5 }));
+        arm.add(api.make(0.22, 0.95, 0.85, 0xFFFFFF, { x: s * 0.95, y: -0.3, rz: s * -0.5 }));
+        api.add(arm);
+        api.update((t) => { arm.rotation.z = s * Math.sin(t * 2 + s) * 0.15; });
+      }
+      for (let k = 0; k < 6; k++) { const a = k / 6 * TAU; api.box(0.3, 0.55, 0.3, 0xFFFFFF, { x: Math.cos(a) * 1.15, y: api.yAt(10) - 0.35, z: Math.sin(a) * 1.15 }); }
+    } },
+  { id: "baston", biome: 0, rarity: "comun", name: "Huevo de Bastón", hatch: "Pingüino Bastón",
+    desc: "Bastón de caramelo con rayas en espiral, el gancho del bastón saliendo de la punta y un moño verde de listón al frente.",
+    effect: "Se mece; el gancho gira despacio",
+    shell: [0xEFE9E1, 0xFFFFFF], tip: 0xE5383B,
+    tile: (i, f, c, n) => diag(i, f, c, n, 4, 2) ? (diag(i, f, c, n, 4, 1) ? 0xE5383B : 0xC21F2A) : null,
+    extras: (api) => {
+      const hook = new THREE.Group();
+      hook.position.y = TOP + 0.2;
+      for (let k = 0; k < 11; k++) {
+        const a = k / 10 * Math.PI * 1.1;
+        const x = k < 3 ? 0 : -(1 - Math.cos(a - 0.3)) * 0.9, y = k < 3 ? k * 0.45 : 0.9 + Math.sin(a - 0.3) * 0.9 + 0.3;
+        hook.add(api.make(0.6, 0.48, 0.6, k % 2 ? 0xFFFFFF : 0xE5383B, { x, y, rz: k < 3 ? 0 : (a - 0.3) }));
+      }
+      api.add(hook);
+      api.update((t) => { hook.rotation.y = Math.sin(t * 0.6) * 0.6; });
+      const z = api.widthAt(6) / 2 + 0.2, y = api.yAt(6);
+      api.box(1.1, 0.75, 0.4, 0x1F9A4E, { x: -0.6, y, z, rz: 0.4 });
+      api.box(1.1, 0.75, 0.4, 0x1F9A4E, { x: 0.6, y, z, rz: -0.4 });
+      api.box(0.45, 0.45, 0.5, 0x187A3D, { y, z: z + 0.05 });
+      api.box(0.35, 1.0, 0.2, 0x1F9A4E, { x: -0.35, y: y - 0.75, z, rz: -0.25 });
+      api.box(0.35, 1.0, 0.2, 0x1F9A4E, { x: 0.35, y: y - 0.75, z, rz: 0.25 });
+    } },
+  { id: "bufanda", biome: 0, rarity: "comun", name: "Huevo de Bufanda", hatch: "Pingüino Bufanda",
+    desc: "Niño de invierno: gorro tejido rojo con pompón, carita con cachetes rosados y pico, y bufanda a rayas que cuelga.",
+    effect: "Se mece; el pompón rebota",
+    shell: [0x3E6A9E, 0x7FA6D6], tip: 0x7FA6D6,
+    tile: (i, f, c) => i >= 1 && i <= 5 && hash(i, f, c) < 0.14 ? 0xFFFFFF : null,
+    extras: (api) => {
+      for (const i of [8, 9, 10, 11]) api.ring(api.widthAt(i) + 0.2, 0.3, LAYER, api.yAt(i), i === 8 ? 0xFFFFFF : (i % 2 ? 0xD7263D : 0xB81D32));
+      api.box(1.6, 0.4, 1.6, 0xD7263D, { y: TOP + 0.2 });
+      const pom = api.box(1.2, 1.1, 1.2, 0xFFFFFF, { y: TOP + 0.95 });
+      api.update((t) => { pom.position.y = TOP + 0.95 + Math.abs(Math.sin(t * 2.4)) * 0.2; });
+      api.face({ layer: 6.6, gap: 0.65, size: 0.45, eye: 0x111111, beak: 0xFFA21F, cheeks: 0xFF8FA8 });
+      const w = api.widthAt(4) + 0.36, y = api.yAt(4);
+      api.ring(w, 0.36, 0.8, y, 0xFFC93C);
+      api.ring(w + 0.02, 0.38, 0.18, y, 0x2F80ED);
+      api.box(0.95, 2.0, 0.28, 0xFFC93C, { x: 0.7, y: y - 1.1, z: w / 2, rz: 0.1 });
+      api.box(0.97, 0.18, 0.3, 0x2F80ED, { x: 0.72, y: y - 1.0, z: w / 2, rz: 0.1 });
+    } },
+  { id: "regalo", biome: 0, rarity: "comun", name: "Huevo de Regalo", hatch: "Pingüino Regalo",
+    desc: "Caja de regalo: tapa que sobresale, papel verde con lunares, listón dorado en cruz, moño enorme de cuatro lazos y etiqueta colgando.",
+    effect: "Se mece; la etiqueta se balancea",
+    shell: [0x1A6E3C, 0x36A862], tip: 0xF2C14E, layers: { 6: 0xF2C14E },
+    tile: (i, f, c, n) => mid(c, n, 0.5) ? 0xF2C14E : (hash(i, f, c) < 0.14 ? 0xE5383B : null),
+    extras: (api) => {
+      api.ring(api.widthAt(9) + 0.4, 0.4, 0.7, api.yAt(9), 0x166234);
+      for (let k = 0; k < 4; k++) {
+        const a = k * Math.PI / 2 + Math.PI / 4;
+        api.box(1.5, 0.7, 0.55, k % 2 ? 0xF2C14E : 0xE0A92E, { x: Math.cos(a) * 0.65, y: TOP + 0.65, z: Math.sin(a) * 0.65, ry: -a, rz: 0.45 });
+      }
+      api.box(0.6, 0.6, 0.6, 0xE0A92E, { y: TOP + 0.6 });
+      const tag = new THREE.Group();
+      tag.position.set(0.6, TOP + 0.4, 0.6);
+      tag.add(api.make(0.06, 1.2, 0.06, 0xE0A92E, { y: -0.6, outline: false }), api.make(0.9, 0.6, 0.08, 0xFFF6E0, { y: -1.4 }), api.make(0.3, 0.26, 0.1, 0xE5383B, { y: -1.4, z: 0.02, outline: false }));
+      api.add(tag);
+      api.update((t) => { tag.rotation.z = Math.sin(t * 1.8) * 0.25; });
+    } },
+
+  // 2 · Ciudad Nevada
+  { id: "ladrillo", biome: 1, rarity: "comun", name: "Huevo de Ladrillo", hatch: "Pingüino Albañil",
+    desc: "Casita de ladrillo: puerta con picaporte dorado, ventana encendida con postigos verdes, nieve que escurre y chimenea echando humo.",
+    effect: "Humo de chimenea, ventana encendida",
+    shell: [0x8F3524, 0xC0583F], tip: 0xFFFFFF, layers: { 10: 0xFFFFFF, 11: 0xFFFFFF },
+    tile: (i, f, c) => i === 9 && c % 2 === 0 ? 0xFFFFFF : (i >= 1 && i < 9 && (c + i) % 2 === 0 ? 0x9E3F2C : null),
+    extras: (api) => {
+      const zf = (i) => api.widthAt(i) / 2;
+      api.box(1.2, 1.7, 0.2, 0x5B3420, { y: 0.9, z: zf(1) + 0.1 });
+      api.box(0.2, 0.2, 0.25, 0xFFC93C, { x: 0.35, y: 0.9, z: zf(1) + 0.2, outline: false });
+      api.box(1.0, 0.9, 0.18, 0xFFD36B, { y: api.yAt(6.5), z: zf(6) + 0.08, glow: true, dim: 1.2 });
+      api.box(0.1, 0.9, 0.22, 0x5B3420, { y: api.yAt(6.5), z: zf(6) + 0.1, outline: false });
+      for (const s of [-1, 1]) api.box(0.45, 1.0, 0.16, 0x2E7D4F, { x: s * 0.78, y: api.yAt(6.5), z: zf(6) + 0.1 });
+      api.box(1.3, 0.15, 0.4, 0xFFFFFF, { y: api.yAt(6.5) - 0.55, z: zf(6) + 0.18 });
+      api.box(0.75, 1.4, 0.75, 0x7A3324, { x: 0.8, y: TOP + 0.4, z: -0.5 });
+      api.box(0.9, 0.25, 0.9, 0xFFFFFF, { x: 0.8, y: TOP + 1.15, z: -0.5 });
+      const puffs = [0, 1, 2, 3].map(() => api.box(0.55, 0.55, 0.55, 0xC9CED6, { x: 0.8, y: TOP + 1.5, z: -0.5, translucent: 0.85, outline: false }));
+      api.update((t) => puffs.forEach((p, k) => { const l = (t * 0.35 + k / 4) % 1; p.position.set(0.8 + l * 0.8, TOP + 1.5 + l * 3, -0.5 - l * 0.4); p.scale.setScalar(0.6 + l * 1.4); p.material[0].opacity = 0.85 * (1 - l); }));
+    } },
+  { id: "taxi", biome: 1, rarity: "comun", name: "Huevo de Taxi", hatch: "Pingüino Taxista",
+    desc: "Un taxi entero: parabrisas, faros encendidos, parrilla cromada, defensas, espejos, cuatro llantas, calavera trasera y el letrero TAXI en el techo.",
+    effect: "Faros y letrero encendidos, llantas que giran",
+    shell: [0xE3A10F, 0xFFD23F], tip: 0x222222,
+    tile: (i, f, c) => (i === 5) ? ((c + i) % 2 === 0 ? 0x161616 : 0xFFFFFF) : (f % 2 === 1 && (i === 3 || i === 4) && c === 2 ? 0xC98A0A : null),
+    extras: (api) => {
+      const zf = (i) => api.widthAt(i) / 2;
+      api.box(api.widthAt(8) * 0.82, 1.05, 0.2, 0x1E3A5F, { y: api.yAt(7.5), z: zf(7) + 0.1, glow: true, dim: 0.25 });
+      api.box(0.25, 0.9, 0.22, 0xBFE4FF, { x: -0.6, y: api.yAt(7.5), z: zf(7) + 0.12, rz: 0.4, outline: false, glow: true, dim: 0.8 });
+      for (const s of [-1, 1]) api.box(0.2, 0.95, api.widthAt(8) * 0.6, 0x1E3A5F, { x: s * (zf(7) + 0.1), y: api.yAt(7.5) });
+      for (const s of [-1, 1]) api.box(0.75, 0.55, 0.22, 0xFFF6C8, { x: s * 1.15, y: api.yAt(3), z: zf(3) + 0.1, glow: true, dim: 1.6 });
+      api.box(1.1, 0.5, 0.2, 0x2B2B2B, { y: api.yAt(3), z: zf(3) + 0.1 });
+      [-0.3, 0, 0.3].forEach((x) => api.box(0.08, 0.42, 0.22, 0xD9DEE5, { x, y: api.yAt(3), z: zf(3) + 0.12, outline: false }));
+      for (const z of [1, -1]) api.box(api.widthAt(1) + 0.3, 0.32, 0.36, 0xD9DEE5, { y: api.yAt(1.2), z: z * (zf(1) + 0.15), metal: true });
+      for (const s of [-1, 1]) api.box(0.6, 0.45, 0.2, 0xFF2E2E, { x: s * 1.1, y: api.yAt(3), z: -(zf(3) + 0.1), glow: true, dim: 1.3 });
+      for (const s of [-1, 1]) api.box(0.5, 0.35, 0.3, 0xE3A10F, { x: s * (zf(6) + 0.3), y: api.yAt(6), z: zf(6) - 0.5 });
+      const wheels = [];
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+        const g = new THREE.Group();
+        g.position.set(sx * (zf(1) + 0.05), 0.55, sz * 1.15);
+        g.add(api.make(0.6, 1.15, 1.15, 0x1A1A1A), api.make(0.62, 0.55, 0.55, 0xC9CED6, { metal: true }), api.make(0.64, 0.15, 0.6, 0x8A9099, { outline: false }));
+        api.add(g);
+        wheels.push(g);
+      }
+      api.update((t) => wheels.forEach((w) => { w.rotation.x = t * 2.5; }));
+      api.box(1.9, 0.7, 0.8, 0xFFF4C2, { y: TOP + 0.6, glow: true, dim: 1.1 });
+      [-0.6, -0.2, 0.2, 0.6].forEach((x) => api.box(0.22, 0.35, 0.1, 0x161616, { x, y: TOP + 0.6, z: 0.42, outline: false }));
+      api.box(2.0, 0.14, 0.9, 0x222222, { y: TOP + 0.22 });
+    } },
+  { id: "edificio", biome: 1, rarity: "comun", name: "Huevo de Edificio", hatch: "Pingüino Vecino",
+    desc: "Edificio de noche: ventanas encendidas, toldo rojo en la puerta, escalera de incendios, aire acondicionado, tinaco y antena con luz roja.",
+    effect: "Ventanas encendidas, luz que parpadea, ventilador",
+    shell: [0x1B2338, 0x3A4A70], tip: 0x1B2338,
+    tile: (i, f, c) => i >= 2 && i <= 10 && hash(i, f, c) < 0.36 ? glow(hash(c, i, f) < 0.5 ? 0xFFD36B : 0xFFB347) : null,
+    extras: (api) => {
+      const zf = (i) => api.widthAt(i) / 2;
+      api.box(1.1, 1.3, 0.2, 0x2B1A10, { y: 0.65, z: zf(1) + 0.1 });
+      api.box(1.7, 0.2, 0.8, 0xD7263D, { y: 1.45, z: zf(2) + 0.4, rx: 0.25 });
+      for (let k = 0; k < 4; k++) api.box(0.36, 0.08, 0.86, k % 2 ? 0xFFFFFF : 0xD7263D, { x: -0.6 + k * 0.4, y: 1.47, z: zf(2) + 0.41, rx: 0.25, outline: false });
+      for (let k = 0; k < 3; k++) {
+        const y = api.yAt(3 + k * 2.6);
+        api.box(0.1, 0.1, 1.6, 0x2A2F3A, { x: zf(5) + 0.35, y, z: 0 });
+        api.box(0.1, 1.3, 0.1, 0x2A2F3A, { x: zf(5) + 0.35, y: y + 0.65, z: k % 2 ? 0.7 : -0.7, rx: k % 2 ? 0.5 : -0.5 });
+      }
+      api.box(0.8, 0.6, 0.6, 0xBFC6D1, { x: -(zf(6) + 0.3), y: api.yAt(6) });
+      const fan = api.box(0.06, 0.45, 0.08, 0x2A2F3A, { x: -(zf(6) + 0.62), y: api.yAt(6), outline: false });
+      api.update((t) => { fan.rotation.x = t * 10; });
+      api.box(1.0, 0.9, 1.0, 0x6B4A2E, { x: -0.6, y: TOP + 0.9, z: -0.4 });
+      api.box(1.1, 0.2, 1.1, 0x4A3220, { x: -0.6, y: TOP + 1.4, z: -0.4 });
+      api.box(0.18, 1.8, 0.18, 0x9AA3B5, { x: 0.6, y: TOP + 1.0 });
+      const light = api.box(0.36, 0.36, 0.36, 0xFF3B30, { x: 0.6, y: TOP + 2.0, glow: true });
+      api.update((t) => api.setGlow(light, Math.floor(t * 1.5) % 2 ? 2.4 : 0.1));
+    } },
+  { id: "escarcha", biome: 1, rarity: "raro", name: "Huevo de Escarcha", hatch: "Pingüino Escarcha",
+    desc: "Azul hielo con un copo de nieve encendido al frente, corona y hombreras de cristal, carámbanos colgando y escarcha.",
+    effect: "Copo que brilla, corona y hombreras de hielo, 3 destellos",
+    shell: [0x6FB2E6, 0xD4EEFF], tip: 0xD4EEFF, layers: { 4: 0x2F86D1 },
+    tile: (i, f, c, n) => spots([[2, 0, 0.2], [8, 1, 0.75], [9, 2, 0.4], [10, 3, 0.85], [2, 1, 0.3], [8, 3, 0.2], [3, 2, 0.8]])(i, f, c, n) ? 0xFFFFFF : null,
+    sparkles: { count: 3, color: 0xFFFFFF }, light: 0x8FD0FF, beam: "150,210,255",
+    extras: (api) => {
+      const z = api.widthAt(7) / 2 + 0.12, y = api.yAt(7);
+      api.box(0.22, 2.0, 0.16, 0xE8FAFF, { y, z, glow: true, dim: 1.6, outline: false });
+      for (const r of [Math.PI / 3, -Math.PI / 3]) api.box(0.22, 2.0, 0.16, 0xE8FAFF, { y, z, rz: r, glow: true, dim: 1.6, outline: false });
+      api.box(0.5, 0.5, 0.2, 0xFFFFFF, { y, z: z + 0.02, rz: Math.PI / 4, glow: true, dim: 2.2, outline: false });
+      [[0, 1.4], [0.7, 0.9], [-0.7, 0.9], [0, 0.9, 0.7], [0, 0.9, -0.7]].forEach(([x, h, zz = 0]) => api.crystal(x, TOP + 0.2, zz, h, 0xBFE8FF, { glow: true, dim: 1.1 }));
+      for (const s of [-1, 1]) for (let k = 0; k < 3; k++) api.crystal(s * (api.widthAt(8) / 2), api.yAt(8) + k * 0.15, (k - 1) * 0.6, 1.1 - k * 0.15, 0xBFE8FF, { glow: true, dim: 1.0, rz: s * -1.2 });
+      for (let k = 0; k < 8; k++) { const a = k / 8 * TAU; api.crystal(Math.cos(a) * api.widthAt(4) / 2, api.yAt(4) - 0.2, Math.sin(a) * api.widthAt(4) / 2, -(0.5 + hash(k, 2, 3) * 0.7), 0xD8F4FF, { glow: true, dim: 0.9 }); }
+    } },
+  { id: "neon", biome: 1, rarity: "raro", name: "Huevo de Neón", hatch: "Pingüino Neón",
+    desc: "Rey de la noche: lentes oscuros con marco rosa, aros de neón, un letrero de corazón que parpadea a un lado y una flecha de luces al otro.",
+    effect: "Neón que parpadea, flecha de luces, 3 destellos",
+    shell: [0x0F1120, 0x2A2D4A], tip: 0xFF4FD8,
+    tile: (i, f, c) => ((i === 3 && c % 2 === 0) || (i === 2 && c % 2 === 1)) ? glow(0x31F2FF) : null,
+    sparkles: { count: 3, color: 0x7FF6FF }, light: 0xFF4FD8, beam: "255,120,240",
+    extras: (api) => {
+      const ringA = api.ring(api.widthAt(5) + 0.3, 0.12, 0.12, api.yAt(5), 0x31F2FF, { glow: true, dim: 2.2, outline: false });
+      const ringB = api.ring(api.widthAt(9) + 0.3, 0.12, 0.12, api.yAt(9), 0xFF4FD8, { glow: true, dim: 2.2, outline: false });
+      const z = api.widthAt(8) / 2 + 0.12, y = api.yAt(8);
+      api.box(3.0, 0.2, 0.2, 0xFF4FD8, { y: y + 0.4, z, glow: true, dim: 1.6 });
+      for (const s of [-1, 1]) { api.box(1.2, 0.8, 0.2, 0xFF4FD8, { x: s * 0.75, y, z, glow: true, dim: 1.6 }); api.box(1.0, 0.6, 0.24, 0x0A0A12, { x: s * 0.75, y, z: z + 0.02, outline: false }); api.box(0.3, 0.12, 0.26, 0xFFFFFF, { x: s * 0.75 - 0.25, y: y + 0.15, z: z + 0.03, outline: false, glow: true, dim: 1.5 }); }
+      const sx = api.widthAt(6) / 2 + 0.25;
+      api.box(0.2, 2.2, 2.2, 0x15182A, { x: sx, y: api.yAt(6) });
+      const heart = [];
+      [[1, 0], [3, 0], [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [1, 2], [2, 2], [3, 2], [2, 3]].forEach(([cx, cy]) => heart.push(api.box(0.12, 0.3, 0.3, 0xFF3B7A, { x: sx + 0.14, y: api.yAt(6) + 0.6 - cy * 0.32, z: (cx - 2) * 0.32, glow: true, dim: 2, outline: false })));
+      api.update((t) => { const on = (t % 2.6) > 0.2 && !((t % 2.6) > 0.45 && (t % 2.6) < 0.6); heart.forEach((m) => api.setGlow(m, on ? 2.2 : 0.05)); });
+      const arrow = [0, 1, 2, 3].map((k) => api.box(0.12, 0.35, 0.35, 0xFFE14D, { x: -(api.widthAt(6) / 2 + 0.1), y: api.yAt(9) - k * 0.55, glow: true, dim: 2, outline: false }));
+      api.update((t) => arrow.forEach((m, k) => api.setGlow(m, Math.floor(t * 4) % 4 === k ? 2.6 : 0.15)));
+      api.update((t) => { api.setGlow(ringA, 1.6 + Math.sin(t * 3) * 0.8); api.setGlow(ringB, 1.6 + Math.cos(t * 3) * 0.8); });
+    } },
+  { id: "semaforo", biome: 1, rarity: "raro", name: "Huevo de Semáforo", hatch: "Pingüino Semáforo",
+    desc: "Semáforo con viseras al frente, panel de peatón con un pingüino verde caminando, franjas de cruce en la base y foco en la punta.",
+    effect: "Luces que cambian, peatón que camina, 3 destellos",
+    shell: [0x24272C, 0x4A4F57], tip: 0x24272C, layers: { 11: 0xF2C230, 0: 0xF2C230 },
+    tile: (i, f, c) => i === 1 && c % 2 === 0 ? 0xFFFFFF : null,
+    sparkles: { count: 3, color: 0xFFFFFF }, beam: "255,240,200",
+    extras: (api) => {
+      const z = api.widthAt(5) / 2 + 0.12;
+      api.box(1.8, 4.3, 0.26, 0x15171A, { y: 3.4, z });
+      const lights = [0xFF3B30, 0xFFC52E, 0x3DDC6A].map((c, k) => {
+        api.box(1.35, 0.16, 0.7, 0x15171A, { y: 4.75 - k * 1.25 + 0.64, z: z + 0.32, rx: 0.2 });
+        return api.box(1.0, 1.0, 0.18, c, { y: 4.75 - k * 1.25, z: z + 0.18, glow: true });
+      });
+      api.update((t) => { const on = Math.floor(t / 1.3) % 3; lights.forEach((m, k) => api.setGlow(m, k === on ? 2.6 : 0.06)); });
+      const sx = api.widthAt(5) / 2 + 0.15;
+      api.box(0.2, 1.8, 1.6, 0x15171A, { x: sx, y: api.yAt(5) });
+      const walker = new THREE.Group();
+      walker.position.set(sx + 0.12, api.yAt(5), 0);
+      [[0, 0.45, 0.3, 0.3], [0, 0.05, 0.36, 0.55], [-0.12, -0.45, 0.14, 0.4], [0.12, -0.45, 0.14, 0.4]].forEach(([zz, y, w, h]) => walker.add(api.make(0.08, h, w, 0x3DDC6A, { y, z: zz, glow: true, dim: 2, outline: false })));
+      api.add(walker);
+      api.update((t) => { walker.children[2].position.z = -0.12 + Math.sin(t * 6) * 0.1; walker.children[3].position.z = 0.12 - Math.sin(t * 6) * 0.1; });
+      api.box(0.6, 0.35, 0.6, 0xFFF4C2, { y: TOP + 0.45, glow: true, dim: 1.6 });
+    } },
+
+  // 3 · Valle del Avión
+  { id: "piloto", biome: 2, rarity: "raro", name: "Huevo de Piloto", hatch: "Pingüino Piloto",
+    desc: "Casco de aviador con orejeras, goggles subidos en la frente, carita con pico, insignia de alas dorada y bufanda blanca que ondea.",
+    effect: "Bufanda al viento, goggles que brillan, 3 destellos",
+    shell: [0x2E3E55, 0x4F6888], tip: 0x4A2C18,
+    sparkles: { count: 3, color: 0xFFFFFF }, beam: "255,220,170",
+    extras: (api) => {
+      for (const i of [8, 9, 10, 11]) api.ring(api.widthAt(i) + 0.22, 0.26, LAYER, api.yAt(i), i % 2 ? 0x7A4A28 : 0x6A3E20);
+      api.box(1.4, 0.35, 1.4, 0x6A3E20, { y: TOP + 0.15 });
+      for (const s of [-1, 1]) api.box(0.3, 1.6, 1.0, 0x6A3E20, { x: s * (api.widthAt(7) / 2 + 0.2), y: api.yAt(6.5) });
+      const zg = api.widthAt(9) / 2 + 0.3, yg = api.yAt(9);
+      api.ring(api.widthAt(9) + 0.36, 0.14, 0.32, yg, 0x222222);
+      for (const x of [-0.6, 0.6]) { api.box(1.0, 0.85, 0.3, 0xD6AE62, { x, y: yg, z: zg }); api.box(0.7, 0.55, 0.12, 0x7FE0FF, { x, y: yg, z: zg + 0.18, glow: true, dim: 1.2 }); }
+      api.face({ layer: 6.6, gap: 0.6, size: 0.42, eye: 0x111111, beak: 0xFFA21F });
+      const zb = api.widthAt(4) / 2 + 0.1;
+      api.box(1.4, 0.3, 0.12, 0xF2B82E, { y: api.yAt(4), z: zb, metal: true });
+      api.box(0.35, 0.35, 0.16, 0xE5383B, { y: api.yAt(4), z: zb + 0.03 });
+      const sw = api.widthAt(5) + 0.3, sy = api.yAt(5.2);
+      api.ring(sw, 0.3, 0.55, sy, 0xFFFFFF);
+      const tail = new THREE.Group();
+      tail.position.set(-sw / 2, sy, 0.4);
+      for (let k = 0; k < 5; k++) tail.add(api.make(0.9, 0.44 - k * 0.05, 0.12, 0xFFFFFF, { x: -0.45 - k * 0.85 }));
+      api.add(tail);
+      api.update((t) => { tail.rotation.y = 0.5 + Math.sin(t * 4) * 0.25; tail.children.forEach((s, k) => { s.position.z = Math.sin(t * 6 + k) * 0.15 * k; }); });
+    } },
+  { id: "nube", biome: 2, rarity: "raro", name: "Huevo de Nube", hatch: "Pingüino Nube",
+    desc: "Nube dormilona con ojitos cerrados y cachetes rosados, sentada en nubes, con un arcoíris que la cruza por detrás y una nubecita que llueve encima.",
+    effect: "Nubecita que llueve, arcoíris, nubes que respiran, 3 destellos",
+    shell: [0xDDE9F5, 0xFFFFFF], tip: 0xFFFFFF,
+    sparkles: { count: 3, color: 0x9FD8FF }, particles: [{ mode: "fall", color: 0x6FC4FF, count: 10, from: [0, TOP + 2.2, 0], size: 0.14 }], light: 0xE8F6FF, beam: "220,240,255",
+    extras: (api) => {
+      const z = api.widthAt(7) / 2 + 0.08;
+      for (const s of [-1, 1]) { api.box(0.6, 0.14, 0.12, 0x334055, { x: s * 0.7, y: api.yAt(7.2), z, outline: false }); api.box(0.55, 0.3, 0.1, 0xFF9AB8, { x: s * 1.15, y: api.yAt(6.2), z, outline: false }); }
+      api.box(0.4, 0.14, 0.12, 0x334055, { y: api.yAt(5.8), z, outline: false });
+      const arc = new THREE.Group();
+      arc.position.set(0, 1.2, -1.6);
+      [0xFF5A5F, 0xFFB13B, 0xFFE14D, 0x4CD37B, 0x3FA9FF, 0x9B6BFF].forEach((c, band) => {
+        const r = 4.2 - band * 0.32;
+        for (let k = 0; k <= 12; k++) { const a = k / 12 * Math.PI; arc.add(api.make(0.36, 0.34, 0.36, c, { x: Math.cos(a) * r, y: Math.sin(a) * r, rz: a, outline: false })); }
+      });
+      api.add(arc);
+      const puffs = [[0.3, 1.0, 1.6], [1.5, 0.7, 1.3], [2.7, 1.2, 1.7], [3.9, 0.8, 1.3], [5.1, 1.3, 1.5], [5.9, 0.6, 1.1]].map(([a, y, s]) => {
+        const r = api.widthAt(Math.round(y / LAYER)) / 2 + 0.15;
+        return api.box(s, s * 0.8, s, 0xFFFFFF, { x: Math.cos(a) * r, y, z: Math.sin(a) * r, ry: a });
+      });
+      const rain = new THREE.Group();
+      rain.position.y = TOP + 2.4;
+      [[0, 0, 1.4], [0.8, 0.1, 1.0], [-0.8, 0.05, 1.1]].forEach(([x, y, s]) => rain.add(api.make(s, s * 0.7, s, 0xBFC9D6, { x, y })));
+      api.add(rain);
+      api.update((t) => { puffs.forEach((p, k) => p.scale.setScalar(1 + Math.sin(t * 1.4 + k) * 0.06)); rain.position.x = Math.sin(t * 0.7) * 0.4; });
+    } },
+  { id: "paracaidas", biome: 2, rarity: "raro", name: "Huevo de Paracaídas", hatch: "Pingüino Paracaidista",
+    desc: "Gajos naranja y blanco, arnés con hebilla plateada y un paracaídas a rayas encima que se balancea con el viento.",
+    effect: "Paracaídas que se balancea, viento, 3 destellos",
+    shell: [0xE9E9E9, 0xFFFFFF], tip: 0xFF7A1A,
+    tile: (i, f) => f % 2 === 0 ? (i < 2 ? 0xD9600F : 0xFF7A1A) : null,
+    sparkles: { count: 3, color: 0xFFFFFF }, particles: [{ mode: "streak", color: 0xFFFFFF, count: 6 }], beam: "255,205,160",
+    extras: (api) => {
+      api.ring(api.widthAt(4) + 0.2, 0.22, 0.4, api.yAt(4), 0x2B3A4A);
+      for (const x of [-0.7, 0.7]) api.box(0.4, 3.2, 0.2, 0x2B3A4A, { x, y: api.yAt(6), z: api.widthAt(6) / 2 + 0.1 });
+      api.box(0.7, 0.6, 0.26, 0xC9CED6, { y: api.yAt(4), z: api.widthAt(4) / 2 + 0.2, metal: true });
+      const chute = new THREE.Group();
+      chute.position.y = TOP + 2.6;
+      [[4.6, 0], [3.6, 1], [2.4, 0], [1.2, 1]].forEach(([s, k], j) => {
+        const layer = new THREE.Group();
+        layer.position.y = j * 0.38;
+        for (let q = 0; q < 6; q++) layer.add(api.make(s / 6, 0.38, s, q % 2 ? 0xFFFFFF : 0xFF7A1A, { x: (q - 2.5) * s / 6, outline: false }));
+        chute.add(layer);
+      });
+      for (const [x, z] of [[1.9, 1.9], [-1.9, 1.9], [1.9, -1.9], [-1.9, -1.9]]) chute.add(api.make(0.06, 2.6, 0.06, 0xEEEEEE, { x: x * 0.7, y: -1.3, z: z * 0.7, rx: -z * 0.22, rz: x * 0.22, outline: false }));
+      api.add(chute);
+      api.update((t) => { chute.rotation.z = Math.sin(t * 1.2) * 0.08; chute.rotation.x = Math.cos(t * 0.9) * 0.06; });
+    } },
+  { id: "helice", biome: 2, rarity: "epico", name: "Huevo de Hélice", hatch: "Pingüino Mecánico",
+    desc: "Avioneta: nariz roja con hélice al frente que gira, cabina de cristal encendida, alas cortas, aleta de cola, remaches y tren de aterrizaje.",
+    effect: "Hélice que gira, cabina encendida, viento, 4 destellos",
+    shell: [0x5E6978, 0xC2CCD6], tip: 0x3A3D42, layers: { 6: 0x5E6978 },
+    tile: (i, f, c) => i === 6 && c % 2 === 0 ? 0xE6ECF2 : null,
+    sparkles: { count: 4, color: 0xD7B8FF }, particles: [{ mode: "streak", color: 0xFFFFFF, count: 12 }], light: 0xB48CFF, beam: "200,170,255",
+    extras: (api) => {
+      const zf = (i) => api.widthAt(i) / 2;
+      api.box(2.2, 2.0, 0.6, 0xD7263D, { y: api.yAt(5), z: zf(5) + 0.3 });
+      api.box(1.2, 1.2, 0.5, 0xB81D32, { y: api.yAt(5), z: zf(5) + 0.8 });
+      const prop = new THREE.Group();
+      prop.position.set(0, api.yAt(5), zf(5) + 1.15);
+      prop.add(api.make(0.5, 0.5, 0.35, 0x2B2E33), api.make(0.45, 4.2, 0.12, 0x2B2E33), api.make(4.2, 0.45, 0.12, 0x2B2E33));
+      prop.add(api.make(0.5, 0.5, 0.14, 0xFFD23F, { y: 1.9 }), api.make(0.5, 0.5, 0.14, 0xFFD23F, { y: -1.9 }));
+      api.add(prop);
+      api.update((t) => { prop.rotation.z = t * 14; });
+      api.box(2.0, 1.1, 1.8, 0x7FE0FF, { y: TOP - 0.3, z: 0.4, glow: true, dim: 0.9, translucent: 0.85 });
+      for (const s of [-1, 1]) { api.box(2.4, 0.26, 1.4, 0xC2CCD6, { x: s * (zf(5) + 1.1), y: api.yAt(4.5), metal: true }); api.box(0.5, 0.28, 1.42, 0xD7263D, { x: s * (zf(5) + 2.1), y: api.yAt(4.5) }); }
+      api.box(0.28, 1.8, 1.3, 0xD7263D, { y: api.yAt(9), z: -(zf(9) + 0.5) });
+      for (const s of [-1, 1]) { api.box(0.14, 0.9, 0.14, 0x2B2E33, { x: s * 1.0, y: -0.2, z: 0.6 }); api.box(0.4, 0.6, 0.6, 0x1A1A1A, { x: s * 1.0, y: -0.7, z: 0.6 }); }
+    } },
+  { id: "baron", biome: 2, rarity: "epico", name: "Huevo del Barón Rojo", hatch: "Pingüino Barón",
+    desc: "Biplano rojo: dos pares de alas con postes, insignias, hélice de madera al frente, goggles de piloto arriba y aleta de cola.",
+    effect: "Alas que aletean, hélice, viento, 4 destellos",
+    shell: [0x8E1B17, 0xE0413B], tip: 0x8E1B17,
+    tile: (i, f, c, n) => (f === 1 || f === 3) && i >= 5 && i <= 8 && mid(c, n, 1.5) ? ((i === 6 || i === 7) && mid(c, n, 0.5) ? 0x1F4FA8 : 0xFFFFFF) : null,
+    sparkles: { count: 4, color: 0xD7B8FF }, particles: [{ mode: "streak", color: 0xFFFFFF, count: 12 }], light: 0xFF6B60, beam: "255,180,170",
+    extras: (api) => {
+      const w = api.widthAt(6);
+      const wings = new THREE.Group();
+      for (const y of [api.yAt(3.5), api.yAt(8.5)]) for (const s of [-1, 1]) {
+        wings.add(api.make(3.0, 0.24, 1.6, 0xE0413B, { x: s * (w / 2 + 1.5), y }), api.make(0.55, 0.26, 1.62, 0xFFFFFF, { x: s * (w / 2 + 2.75), y }));
+      }
+      for (const s of [-1, 1]) for (const zz of [-0.55, 0.55]) wings.add(api.make(0.1, api.yAt(8.5) - api.yAt(3.5), 0.1, 0x5A3A22, { x: s * (w / 2 + 2.2), y: (api.yAt(8.5) + api.yAt(3.5)) / 2, z: zz }));
+      api.add(wings);
+      api.update((t) => { wings.position.y = Math.sin(t * 2) * 0.12; wings.rotation.z = Math.sin(t * 1.4) * 0.05; });
+      const prop = new THREE.Group();
+      prop.position.set(0, api.yAt(6), w / 2 + 0.4);
+      prop.add(api.make(0.5, 0.5, 0.4, 0x2B2E33), api.make(0.3, 3.4, 0.12, 0x8A5A3A, { z: 0.15 }));
+      api.add(prop);
+      api.update((t) => { prop.rotation.z = t * 14; });
+      const zg = api.widthAt(10) / 2 + 0.2;
+      for (const x of [-0.5, 0.5]) { api.box(0.8, 0.7, 0.25, 0xD6AE62, { x, y: api.yAt(10), z: zg }); api.box(0.55, 0.45, 0.1, 0x7FE0FF, { x, y: api.yAt(10), z: zg + 0.15, glow: true, dim: 1 }); }
+      api.box(0.28, 1.9, 1.3, 0xE0413B, { y: api.yAt(8), z: -(api.widthAt(8) / 2 + 0.5) });
+    } },
+  { id: "jet", biome: 2, rarity: "legendario", name: "Huevo Jet Dorado", hatch: "Pingüino Jet",
+    desc: "Jet de oro: cabina de cristal azul, alas en flecha con puntas blancas, doble aleta de cola y turbina que escupe fuego. Flota dentro de un aro dorado.",
+    effect: "Flota, cabina encendida, turbina de fuego, aura dorada, 6 destellos",
+    shell: [0xB07A12, 0xFFD45C], tip: 0xFFFFFF, layers: { 6: 0xFFFFFF }, hover: true, metal: true,
+    sparkles: { count: 6, color: 0xFFE07A }, particles: [{ mode: "fall", color: 0xFF9A2E, count: 18 }], light: 0xFFC94D, aura: 0xFFC94D, beam: "255,210,110",
+    extras: (api) => {
+      const w = api.widthAt(5), y = api.yAt(5);
+      api.box(2.0, 1.2, 2.0, 0x4FC8FF, { y: api.yAt(9.5), z: 0.5, glow: true, dim: 1.1, translucent: 0.85 });
+      api.box(0.3, 0.9, 1.6, 0xFFFFFF, { x: -0.5, y: api.yAt(9.5), z: 0.5, glow: true, dim: 1.2, outline: false, translucent: 0.5 });
+      for (const s of [-1, 1]) for (let k = 0; k < 5; k++) api.box(0.9, 0.24, 1.8 - k * 0.25, k === 4 ? 0xFFFFFF : 0xF2B82E, { x: s * (w / 2 + 0.45 + k * 0.82), y: y - k * 0.08, z: -k * 0.5, metal: true });
+      for (const s of [-1, 1]) api.box(0.26, 1.9, 1.4, 0xF2B82E, { x: s * 0.7, y: 4.6, z: -(api.widthAt(9) / 2 + 0.6), rz: s * 0.25, metal: true });
+      api.box(1.9, 0.7, 1.9, 0x2B2E33, { y: -0.25 });
+      api.ring(1.9, 0.18, 0.3, -0.55, 0xF2B82E, { metal: true });
+      const flames = [[1.4, 1.0, 0xFF6A10], [0.95, 1.5, 0xFFAA2E], [0.5, 2.0, 0xFFF4B0]].map(([s, h, c]) => api.box(s, h, s, c, { y: -0.65 - h / 2, glow: true, dim: 1.8, outline: false }));
+      api.update((t) => flames.forEach((f, k) => { f.scale.y = 0.75 + Math.abs(Math.sin(t * 15 + k * 1.7)) * 0.45; }));
+    } },
+
+  // 4 · Cueva de Cristal
+  { id: "estalactita", biome: 3, rarity: "raro", name: "Huevo de Estalactita", hatch: "Pingüino Cavernario",
+    desc: "Piedra gris violeta con un cinturón de carámbanos de hielo que cuelgan y brillan.",
+    effect: "Carámbanos que brillan, 3 destellos",
+    shell: [0x3B3550, 0x7A7095], tip: 0x5A5272,
+    tile: (i, f, c) => hash(i, f, c) < 0.18 ? 0x2E2940 : null,
+    sparkles: { count: 3, color: 0xCFEFFF }, light: 0x9FD8FF, beam: "180,200,255",
+    extras: (api) => {
+      api.face({ layer: 6, gap: 0.6, size: 0.45, eye: 0x6FF6FF, glowEyes: true });
+      const w = api.widthAt(8) + 0.3, y = api.yAt(8);
+      api.ring(w, 0.3, 0.5, y, 0x5A5272);
+      for (let f = 0; f < 4; f++) for (let k = 0; k < 3; k++) {
+        const a = f * Math.PI / 2, along = (k - 1) * w * 0.3, len = 0.7 + hash(f, k, 1) * 1.1;
+        const nx = Math.sin(a), nz = Math.cos(a);
+        api.crystal(nx * w / 2 + nz * along, y - 0.2, nz * w / 2 - nx * along, -len, 0xBFE8FF, { glow: true, dim: 1.0 });
+      }
+    } },
+  { id: "geoda", biome: 3, rarity: "raro", name: "Huevo de Geoda", hatch: "Pingüino Geoda",
+    desc: "Roca café por fuera, abierta al frente: adentro un nido de amatista que brilla.",
+    effect: "Amatista encendida, 3 destellos morados",
+    shell: [0x4A3426, 0x8A6A52], tip: 0x6E513D,
+    tile: (i, f, c, n) => {
+      if (f !== 0 || i < 3 || i > 9) return hash(i, f, c) < 0.2 ? 0x3B291E : null;
+      const d = Math.abs(c - (n - 1) / 2) + Math.abs(i - 6) * 0.7;
+      return d < 1.2 ? glow(0xE07BFF) : d < 2.1 ? glow(0x9A4FE0) : d < 2.7 ? 0xEDE3F5 : null;
+    },
+    sparkles: { count: 3, color: 0xE9B8FF }, light: 0xC678FF, beam: "220,170,255",
+    extras: (api) => {
+      const z = api.widthAt(6) / 2 + 0.05;
+      [[0, 0.9], [-0.5, 0.6], [0.5, 0.7]].forEach(([x, h]) => api.crystal(x, api.yAt(6), z, h, 0xF0B8FF, { glow: true, dim: 1.4, rx: 1.2 }));
+    } },
+  { id: "cristal", biome: 3, rarity: "epico", name: "Huevo de Cristal", hatch: "Pingüino de Cristal",
+    desc: "Todo de cristal cian que se transparenta, con racimos de cristales brotando de los lados y luz que sube.",
+    effect: "Cristal translúcido, racimos, partículas que suben, 4 destellos",
+    shell: [0x3FC7E8, 0xBFF6FF], tip: 0xE8FFFF, translucent: 0.72, glowShell: 0.35,
+    sparkles: { count: 4, color: 0xFFFFFF }, particles: [{ mode: "rise", color: 0x8FF4FF, count: 14 }], light: 0x4FE8FF, beam: "120,240,255",
+    extras: (api) => {
+      const clusters = [[0, 3, 1.4], [1.6, 5, 1.1], [3.1, 2, 1.3], [4.7, 7, 1.0]];
+      const group = new THREE.Group();
+      for (const [a, layer, h] of clusters) {
+        const r = api.widthAt(layer) / 2;
+        for (let k = 0; k < 3; k++) {
+          const tilt = 0.6 + k * 0.25;
+          api.crystal(Math.cos(a + k * 0.3) * r, api.yAt(layer) + k * 0.2, Math.sin(a + k * 0.3) * r, h * (1 - k * 0.2), k === 1 ? 0xFFFFFF : 0x7FF0FF, { glow: true, dim: 1.3, rx: Math.sin(a) * tilt, rz: -Math.cos(a) * tilt, parent: group });
+        }
+      }
+      api.crystal(0, TOP, 0, 1.6, 0xFFFFFF, { glow: true, dim: 1.5, parent: group });
+      api.add(group);
+    } },
+  { id: "murcielago", biome: 3, rarity: "epico", name: "Huevo de Murciélago Glaciar", hatch: "Pingüino Murciélago",
+    desc: "Azul noche con orejas puntiagudas, ojos de hielo y alas de murciélago que aletean. Cae nieve a su alrededor.",
+    effect: "Alas que aletean, ojos de hielo, nieve, 4 destellos",
+    shell: [0x141C3D, 0x34407A], tip: 0x141C3D,
+    tile: (i, f, c, n) => f === 0 && i === 8 && (c === Math.floor(n / 2) - 1 || c === Math.ceil(n / 2)) ? glow(0x7FF6FF) : (i < 4 && hash(i, f, c) < 0.25 ? 0x0D1330 : null),
+    sparkles: { count: 4, color: 0xBFE8FF }, particles: [{ mode: "snow", color: 0xFFFFFF, count: 18 }], light: 0x5FA8FF, beam: "140,170,255",
+    extras: (api) => {
+      for (const s of [-1, 1]) {
+        api.box(0.5, 1.0, 0.5, 0x141C3D, { x: s * 0.9, y: TOP + 0.35, rz: s * -0.3 });
+        api.box(0.3, 0.6, 0.12, 0x6B7BC4, { x: s * 0.9, y: TOP + 0.35, z: 0.27, rz: s * -0.3, outline: false });
+      }
+      api.wings({ y: api.yAt(7), color: 0x1E2754, edge: 0x5FA8FF, span: 3.4, membrane: true, flap: 4, amount: 0.35 });
+    } },
+  { id: "gema", biome: 3, rarity: "legendario", name: "Huevo de Gema", hatch: "Pingüino Joya",
+    desc: "Marco de oro con filigrana, un diamante magenta gigante al frente y gemas que le dan vueltas. Flota en su aura.",
+    effect: "Flota, diamante, gemas en órbita, aura dorada, 6 destellos",
+    shell: [0x6A1B4D, 0xB0367A], tip: 0xFFD45C, layers: { 2: 0xF2B82E, 9: 0xF2B82E }, hover: true,
+    tile: (i, f, c) => (i === 2 || i === 9) && c % 2 === 0 ? 0xFFF0B0 : (hash(i, f, c) < 0.1 ? glow(0xFF8AD8) : null),
+    sparkles: { count: 6, color: 0xFFE07A }, light: 0xFF4FB8, aura: 0xFFC94D, beam: "255,140,220",
+    extras: (api) => {
+      const z = api.widthAt(6) / 2 + 0.5;
+      api.box(1.9, 1.9, 0.5, 0xF2B82E, { y: api.yAt(6), z: z - 0.2, rz: Math.PI / 4, metal: true });
+      api.box(1.4, 1.4, 0.7, 0xFF3FB8, { y: api.yAt(6), z, rz: Math.PI / 4, glow: true, dim: 1.6 });
+      api.box(0.6, 0.6, 0.72, 0xFFC4EC, { y: api.yAt(6) + 0.2, z: z + 0.05, rz: Math.PI / 4, glow: true, dim: 2.2, outline: false });
+      api.orbit({ count: 5, radius: 3.6, y: 3.2, size: 0.5, colors: [0x4FE8FF, 0x3DDC6A, 0xFF3FB8, 0xFFD23F, 0xB06BFF], speed: 0.8, gem: true, wave: 0.6 });
+    } },
+  { id: "golem", biome: 3, rarity: "mitico", name: "Huevo de Gólem de Hielo", hatch: "Pingüino Gólem",
+    desc: "Ya no es liso: bloques de hielo desacomodados con un núcleo cian que late entre las grietas y piedras que flotan como puños.",
+    effect: "Bloques que se mueven, núcleo que late, rocas flotando, escarcha",
+    shell: [0x4E8DB8, 0xB8E6FF], tip: 0xCFF2FF, glowLayers: { 5: 0x3FF4FF },
+    layerMotion: (i, t) => ({ dx: (hash(i, 1, 1) - 0.5) * 0.8 + Math.sin(t * 1.2 + i) * 0.06, dz: (hash(i, 2, 2) - 0.5) * 0.8, ry: (hash(i, 3, 3) - 0.5) * 0.5 }),
+    tile: (i, f, c) => hash(i, f, c) < 0.12 ? glow(0x7FF6FF) : (hash(c, f, i) < 0.2 ? 0xEAF8FF : null),
+    sparkles: { count: 5, color: 0xFFFFFF }, particles: [{ mode: "rise", color: 0xBFF6FF, count: 18 }], light: 0x3FF4FF, aura: 0x6FE8FF, beam: "120,230,255", pulse: true,
+    extras: (api) => {
+      api.face({ layer: 8, gap: 0.7, size: 0.5, eye: 0x3FF4FF, glowEyes: true, mouth: { color: 0x3FF4FF, glow: true, w: 1.2 } });
+      const fists = [];
+      for (const s of [-1, 1]) {
+        const fist = new THREE.Group();
+        fist.position.set(s * 4.0, 2.6, 0.3);
+        fist.add(api.make(1.6, 1.6, 1.6, 0x7FB4D9), api.make(1.0, 0.6, 1.7, 0xB8E6FF, { y: 0.9 }), api.make(0.5, 0.5, 0.2, 0x3FF4FF, { z: 0.85, glow: true, dim: 1.6 }));
+        api.add(fist);
+        fists.push([fist, s]);
+      }
+      api.update((t) => fists.forEach(([g, s], k) => { g.position.y = 2.6 + Math.sin(t * 1.5 + k * 2) * 0.35; g.rotation.y = s * 0.3 + Math.sin(t + k) * 0.1; }));
+      for (let k = 0; k < 6; k++) api.box(0.5 + hash(k, 1, 0) * 0.5, 0.4, 0.5, 0x9CC8E6, { x: Math.cos(k) * 3.0, y: 0.2, z: Math.sin(k) * 3.0, ry: k });
+    } },
+
+  // 5 · Bosque de Auroras
+  { id: "buho", biome: 4, rarity: "epico", name: "Huevo de Búho Polar", hatch: "Pingüino Búho",
+    desc: "Plumas blancas con motas grises, penachos en la cabeza, ojos ámbar enormes y alitas que aletean.",
+    effect: "Ojos que parpadean, alas, nieve, 4 destellos",
+    shell: [0xCFD6DE, 0xFFFFFF], tip: 0xFFFFFF,
+    tile: (i, f, c) => i < 8 && (c + i) % 3 === 0 && hash(i, f, c) < 0.6 ? 0x8E99A6 : null,
+    sparkles: { count: 4, color: 0xFFE7A8 }, particles: [{ mode: "snow", color: 0xFFFFFF, count: 16 }], light: 0xFFD27A, beam: "255,230,170",
+    extras: (api) => {
+      const z = api.widthAt(8) / 2 + 0.15, y = api.yAt(8);
+      const lids = [];
+      for (const s of [-1, 1]) {
+        api.box(1.4, 1.4, 0.24, 0x2B2E33, { x: s * 0.8, y, z });
+        api.box(1.0, 1.0, 0.28, 0xFFB020, { x: s * 0.8, y, z: z + 0.04, glow: true, dim: 1.4 });
+        api.box(0.42, 0.42, 0.3, 0x111111, { x: s * 0.8, y, z: z + 0.08, outline: false });
+        lids.push(api.box(1.42, 0.1, 0.36, 0xFFFFFF, { x: s * 0.8, y: y + 0.66, z: z + 0.04, outline: false }));
+        api.box(0.45, 1.1, 0.45, 0xE4E9EE, { x: s * 0.95, y: TOP + 0.45, rz: s * -0.45 });
+      }
+      api.box(0.4, 0.5, 0.4, 0xFFB020, { y: y - 0.85, z: z + 0.1 });
+      api.update((t) => { const blink = (t % 3.2) < 0.15; lids.forEach((l) => { l.scale.y = blink ? 12 : 1; l.position.y = blink ? y : y + 0.66; }); });
+      api.wings({ y: api.yAt(5), color: 0xE4E9EE, edge: 0x8E99A6, span: 2.2, flap: 3, amount: 0.25 });
+    } },
+  { id: "zorro", biome: 4, rarity: "epico", name: "Huevo de Zorro Ártico", hatch: "Pingüino Zorro",
+    desc: "Blanco plata con orejas puntiagudas, ojos azules y una cola esponjosa que le rodea la base y se mueve.",
+    effect: "Cola que se mueve, orejas, nieve, 4 destellos",
+    shell: [0xBFC9D6, 0xF7FAFF], tip: 0xF7FAFF,
+    tile: (i, f, c, n) => f === 0 && i === 8 && (c === Math.floor(n / 2) - 1 || c === Math.ceil(n / 2)) ? glow(0x4FB8FF) : (f === 0 && i >= 4 && i <= 6 && mid(c, n, 1) ? 0xFFFFFF : null),
+    sparkles: { count: 4, color: 0xCFE8FF }, particles: [{ mode: "snow", color: 0xFFFFFF, count: 16 }], light: 0xAEDCFF, beam: "200,225,255",
+    extras: (api) => {
+      for (const s of [-1, 1]) {
+        api.box(0.9, 1.3, 0.5, 0xF7FAFF, { x: s * 0.85, y: TOP + 0.5, rz: s * -0.25 });
+        api.box(0.5, 0.8, 0.12, 0x8EA3BC, { x: s * 0.85, y: TOP + 0.45, z: 0.28, rz: s * -0.25, outline: false });
+      }
+      api.face({ layer: 8, gap: 0.7, size: 0.45, eye: 0x2F8BFF, glowEyes: true, cheeks: 0xFFB8C8 });
+      api.box(1.6, 0.9, 0.5, 0xFFFFFF, { y: api.yAt(6.4), z: api.widthAt(6) / 2 + 0.2 });
+      api.box(0.45, 0.35, 0.3, 0x2B2E33, { y: api.yAt(6.9), z: api.widthAt(6) / 2 + 0.5 });
+      const tail = new THREE.Group();
+      tail.position.set(0, 0.5, 0);
+      for (let k = 0; k < 7; k++) {
+        const a = -0.6 + k * 0.45, r = 2.7, s = 1.0 + Math.sin(k / 6 * Math.PI) * 0.6;
+        tail.add(api.make(s, s * 0.9, s, k === 6 ? 0xFFFFFF : 0xE4EAF2, { x: Math.cos(a) * r, y: k * 0.12, z: Math.sin(a) * r, ry: -a }));
+      }
+      api.add(tail);
+      api.update((t) => { tail.rotation.y = Math.sin(t * 1.6) * 0.18; });
+    } },
+  { id: "reno", biome: 4, rarity: "legendario", name: "Huevo de Reno Aurora", hatch: "Pingüino Reno",
+    desc: "Café con manchas claras, cornamenta enorme que brilla verde aurora y nariz roja. Flota con aura dorada.",
+    effect: "Flota, astas de aurora, nariz que brilla, aura, 6 destellos",
+    shell: [0x5C3A22, 0xA87A52], tip: 0xA87A52, hover: true,
+    tile: (i, f, c) => i > 2 && i < 10 && hash(i, f, c) < 0.14 ? 0xF0DEC4 : null,
+    sparkles: { count: 6, color: 0xA8FFCF }, particles: [{ mode: "rise", color: 0x6BFFB0, count: 12 }], light: 0x4FFFA8, aura: 0xFFC94D, beam: "140,255,190",
+    extras: (api) => {
+      for (const s of [-1, 1]) {
+        const antler = new THREE.Group();
+        antler.position.set(s * 0.9, TOP - 0.1, 0);
+        const c = (k) => k % 2 ? 0x7DFFCF : 0x4FE8A0;
+        antler.add(api.make(0.35, 1.6, 0.35, c(0), { y: 0.8, rz: s * -0.35, glow: true, dim: 1.2 }));
+        antler.add(api.make(0.3, 1.3, 0.3, c(1), { x: s * 0.9, y: 1.9, rz: s * -0.9, glow: true, dim: 1.2 }));
+        antler.add(api.make(0.3, 1.0, 0.3, c(0), { x: s * 0.3, y: 2.2, rz: s * 0.2, glow: true, dim: 1.2 }));
+        antler.add(api.make(0.28, 0.9, 0.28, c(1), { x: s * 1.6, y: 2.6, rz: s * -0.2, glow: true, dim: 1.2 }));
+        antler.add(api.make(0.26, 0.8, 0.26, c(0), { x: s * 0.6, y: 1.3, z: 0.2, rz: s * -1.2, glow: true, dim: 1.2 }));
+        api.add(antler);
+      }
+      const nose = api.box(0.6, 0.6, 0.4, 0xFF2E2E, { y: api.yAt(6), z: api.widthAt(6) / 2 + 0.2, glow: true, dim: 2 });
+      api.update((t) => api.setGlow(nose, 1.4 + Math.sin(t * 3) * 0.8));
+      for (const s of [-1, 1]) api.box(0.35, 0.35, 0.2, 0x111111, { x: s * 0.75, y: api.yAt(8), z: api.widthAt(8) / 2 + 0.1 });
+    } },
+  { id: "luciernaga", biome: 4, rarity: "legendario", name: "Huevo de Luciérnaga", hatch: "Pingüino Luciérnaga",
+    desc: "Verde bosque con la panza que se enciende amarilla, alas de cristal que zumban y luciérnagas que le dan vueltas.",
+    effect: "Flota, panza que se enciende, alas que zumban, enjambre, aura",
+    shell: [0x163A24, 0x3E7A4E], tip: 0x163A24, glowLayers: { 0: 0xFFE14D, 1: 0xFFE14D, 2: 0xFFD020 }, hover: true,
+    sparkles: { count: 5, color: 0xFFF3A0 }, particles: [{ mode: "orbit", color: 0xFFF06A, count: 18 }], light: 0xFFE14D, aura: 0xFFC94D, beam: "255,240,140", pulse: true,
+    extras: (api) => {
+      for (const s of [-1, 1]) {
+        api.box(0.12, 1.4, 0.12, 0x163A24, { x: s * 0.6, y: TOP + 0.7, rz: s * -0.4 });
+        api.box(0.35, 0.35, 0.35, 0xFFF06A, { x: s * 0.9, y: TOP + 1.35, glow: true, dim: 2 });
+      }
+      api.face({ layer: 9, gap: 0.65, size: 0.55, eye: 0x111111, cheeks: 0xFF9AB8 });
+      const wings = [];
+      for (const s of [-1, 1]) {
+        const g = new THREE.Group();
+        g.position.set(0, api.yAt(8), -api.widthAt(8) / 2);
+        g.add(api.make(2.8, 0.08, 1.3, 0xDFFBFF, { x: s * 1.4, z: -0.4, translucent: 0.45, outline: false }));
+        api.add(g);
+        wings.push([g, s]);
+      }
+      api.update((t) => wings.forEach(([g, s]) => { g.rotation.z = s * (0.3 + Math.sin(t * 40) * 0.25); }));
+    } },
+  { id: "espiritu", biome: 4, rarity: "mitico", name: "Huevo del Espíritu del Bosque", hatch: "Pingüino Espíritu",
+    desc: "El huevo se separa en rebanadas que flotan y respiran, con una máscara de madera al frente, luz verde por dentro y hojas que lo rodean.",
+    effect: "Capas que se separan, máscara, hojas en órbita, luz que sube",
+    shell: [0x1F6F5A, 0x7FE0B8], tip: 0xBFFFE4, glowShell: 0.35,
+    layerMotion: (i, t) => ({ dy: (i - 5.5) * (0.12 + Math.sin(t * 1.4) * 0.1), ry: Math.sin(t * 0.8 + i * 0.4) * 0.25 }),
+    sparkles: { count: 5, color: 0xBFFFE4 }, particles: [{ mode: "rise", color: 0x7FFFC8, count: 16 }], light: 0x4FFFB8, aura: 0x6BFFC8, beam: "140,255,210",
+    extras: (api) => {
+      const z = api.widthAt(7) / 2 + 0.35;
+      api.box(2.2, 2.4, 0.3, 0xC8A36E, { y: api.yAt(7), z });
+      for (const s of [-1, 1]) api.box(0.5, 0.35, 0.34, 0x7FFFC8, { x: s * 0.5, y: api.yAt(8), z: z + 0.02, glow: true, dim: 2 });
+      api.box(1.0, 0.18, 0.34, 0x4A3420, { y: api.yAt(6) - 0.1, z: z + 0.02 });
+      api.box(0.3, 1.0, 0.34, 0x4A3420, { x: 0, y: api.yAt(9) + 0.2, z: z + 0.02 });
+      api.orbit({ count: 8, radius: 3.8, y: 3, size: 0.55, colors: [0x5FD38A, 0x9BE86A, 0x3FA86E], speed: 0.5, wave: 1.4, leaf: true });
+    } },
+  { id: "aurora", biome: 4, rarity: "celestial", name: "Huevo de Aurora", hatch: "Pingüino Aurora",
+    desc: "Bandas de aurora que pasan de verde a violeta y brillan solas, cintas de luz que lo envuelven, estrellas alrededor y una columna de luz.",
+    effect: "Luz propia, cintas de aurora en órbita, columna de luz, estrellas",
+    shell: [0x1B1F4A, 0x2A2F6E], tip: 0xFFFFFF, hover: true,
+    glowLayers: { 3: 0x3DFF9E, 4: 0x3DF7C8, 5: 0x3DD8FF, 6: 0x5FA8FF, 7: 0x8F7BFF, 8: 0xC46BFF },
+    sparkles: { count: 7, color: 0xFFFFFF }, particles: [{ mode: "orbit", color: 0xFFFFFF, count: 14, radius: 4.2 }], light: 0x6BFFD8, aura: 0x4FF0FF, pillar: 0x6BFFD8, beam: "120,255,220", pulse: true,
+    extras: (api) => {
+      [[0x3DFF9E, 0.5, 3.6], [0xC46BFF, -0.6, 4.3]].forEach(([color, tilt, r], k) => {
+        const ribbon = new THREE.Group();
+        ribbon.position.y = 3.2;
+        ribbon.rotation.x = tilt;
+        for (let s = 0; s < 22; s++) {
+          const a = s / 22 * TAU;
+          ribbon.add(api.make(0.9, 0.5 + Math.sin(s * 0.8) * 0.25, 0.12, color, { x: Math.cos(a) * r, z: Math.sin(a) * r, ry: -a + Math.PI / 2, glow: true, dim: 1.4, outline: false, translucent: 0.75 }));
+        }
+        api.add(ribbon);
+        api.update((t) => { ribbon.rotation.y = t * (k ? -0.5 : 0.4); });
+      });
+    } },
+
+  // 6 · Volcán Helado
+  { id: "brasa", biome: 5, rarity: "epico", name: "Huevo de Brasa", hatch: "Pingüino Brasa",
+    desc: "Carbón negro con grietas naranjas que laten como brasas vivas y chispas que suben.",
+    effect: "Grietas que laten, chispas, 4 destellos",
+    shell: [0x1A1414, 0x3A2E2A], tip: 0x2A2020, pulse: true,
+    tile: (i, f, c) => (hash(i, f, c) < 0.22 || (diag(i, f, c, 0, 5, 1) && hash(c, i, f) < 0.6)) ? glow(i < 5 ? 0xFF4A10 : 0xFF8A20) : null,
+    sparkles: { count: 4, color: 0xFFC46B }, particles: [{ mode: "rise", color: 0xFF7A1A, count: 18, size: 0.16 }], light: 0xFF5A1A, beam: "255,140,80",
+    extras: (api) => { api.face({ layer: 8, gap: 0.7, size: 0.5, eye: 0xFFB020, glowEyes: true, mouth: { color: 0xFF6A10, glow: true, w: 1.3 } }); for (let k = 0; k < 5; k++) { const a = k / 5 * TAU; api.box(0.5, 0.8, 0.5, 0x2A2020, { x: Math.cos(a) * 0.7, y: TOP + 0.3, z: Math.sin(a) * 0.7, rz: Math.cos(a) * 0.3, rx: -Math.sin(a) * 0.3 }); } } },
+  { id: "magma", biome: 5, rarity: "legendario", name: "Huevo de Magma", hatch: "Pingüino Magma",
+    desc: "Roca volcánica con ríos de lava que bajan por los lados, lava que gotea de la base y una corona de fuego. Flota en su aura.",
+    effect: "Flota, ríos de lava que fluyen, gotas, corona de fuego, aura",
+    shell: [0x241818, 0x4A3530], tip: 0xFF6A10, hover: true, flow: true,
+    tile: (i, f, c, n) => (c === Math.floor(n / 3) + (i % 2) || c === Math.floor(n * 2 / 3) + ((i + 1) % 2)) ? glow(0xFF5A10) : null,
+    sparkles: { count: 6, color: 0xFFC46B }, particles: [{ mode: "fall", color: 0xFF6A10, count: 12 }, { mode: "rise", color: 0xFFAA3B, count: 10, size: 0.14 }], light: 0xFF6A10, aura: 0xFF8A2E, beam: "255,150,80",
+    extras: (api) => {
+      const flames = [];
+      for (let k = 0; k < 6; k++) {
+        const a = k / 6 * TAU;
+        flames.push(api.box(0.45, 1.0, 0.45, k % 2 ? 0xFFB020 : 0xFF5A10, { x: Math.cos(a) * 0.7, y: TOP + 0.5, z: Math.sin(a) * 0.7, glow: true, dim: 1.8, outline: false }));
+      }
+      api.update((t) => flames.forEach((f, k) => { f.scale.y = 0.6 + Math.abs(Math.sin(t * 9 + k)) * 0.8; }));
+    } },
+  { id: "obsidiana", biome: 5, rarity: "legendario", name: "Huevo de Obsidiana", hatch: "Pingüino Obsidiana",
+    desc: "Vidrio volcánico negro y brillante con vetas moradas encendidas y esquirlas filosas que flotan alrededor.",
+    effect: "Flota, vetas que pulsan, esquirlas en órbita, aura",
+    shell: [0x0A0A12, 0x2A2440], tip: 0x0A0A12, hover: true, metal: true, pulse: true,
+    tile: (i, f, c, n) => diag(i, f, c, n, 6, 1) || diag(i + 3, f + 2, c, n, 7, 1) ? glow(0xB04FFF) : null,
+    sparkles: { count: 6, color: 0xE0B8FF }, light: 0xA04FFF, aura: 0xFFC94D, beam: "200,140,255",
+    extras: (api) => api.orbit({ count: 7, radius: 3.7, y: 3, size: 0.9, colors: [0x1A1426, 0x2E2448], speed: 0.6, wave: 0.8, shard: true, edge: 0xB04FFF }) },
+  { id: "fenix", biome: 5, rarity: "mitico", name: "Huevo de Fénix de Hielo", hatch: "Pingüino Fénix",
+    desc: "Hielo azul con alas enormes de plumas de fuego frío que aletean, cresta en la cabeza y una cola larga que ondea.",
+    effect: "Alas de fuego frío, cresta, cola, chispas que suben",
+    shell: [0x1F6FB8, 0xA8E6FF], tip: 0xFFFFFF, hover: true, glowShell: 0.25,
+    tile: (i, f, c) => hash(i, f, c) < 0.15 ? glow(0xFFFFFF) : null,
+    sparkles: { count: 6, color: 0xBFF6FF }, particles: [{ mode: "rise", color: 0x8FF4FF, count: 20 }], light: 0x4FC8FF, aura: 0x6FE8FF, beam: "120,220,255",
+    extras: (api) => {
+      api.wings({ y: api.yAt(7), color: 0x6FE8FF, edge: 0xFFFFFF, span: 5, feathers: 6, flap: 2.2, amount: 0.4, glow: true });
+      const crest = new THREE.Group();
+      crest.position.y = TOP;
+      [[0, 1.6, 0x6FE8FF], [-0.4, 1.1, 0xBFF6FF], [0.4, 1.1, 0xBFF6FF], [0, 0.9, 0xFFFFFF]].forEach(([z, h, c]) => crest.add(api.make(0.3, h, 0.4, c, { y: h / 2, z, rx: -z * 0.6, glow: true, dim: 1.4 })));
+      api.add(crest);
+      const tail = new THREE.Group();
+      tail.position.set(0, 1.4, -api.widthAt(3) / 2);
+      for (let k = 0; k < 5; k++) tail.add(api.make(0.5 - k * 0.05, 0.25, 1.0, k % 2 ? 0xFFFFFF : 0x6FE8FF, { z: -0.5 - k * 0.95, glow: true, dim: 1.3 }));
+      api.add(tail);
+      api.update((t) => { tail.children.forEach((s, k) => { s.position.y = Math.sin(t * 3 - k * 0.7) * 0.25 * k; }); });
+    } },
+  { id: "dragon", biome: 5, rarity: "mitico", name: "Huevo de Dragón de Lava", hatch: "Pingüino Dragón",
+    desc: "Escamas rojas y negras, cuernos curvos, ojos de fuego, alas de membrana y fuego que le sale por las grietas.",
+    effect: "Alas de dragón, cuernos, ojos de fuego, fuego que sube",
+    shell: [0x3A0A0A, 0xA3241F], tip: 0x1A0A0A, hover: true,
+    tile: (i, f, c) => (c + i) % 2 === 0 && i > 1 ? 0x6A1410 : (hash(i, f, c) < 0.08 ? glow(0xFF8A20) : null),
+    sparkles: { count: 6, color: 0xFFC46B }, particles: [{ mode: "rise", color: 0xFF5A10, count: 22 }], light: 0xFF3A10, aura: 0xFF6A2E, beam: "255,110,70",
+    extras: (api) => {
+      for (const s of [-1, 1]) {
+        const horn = new THREE.Group();
+        horn.position.set(s * 0.8, TOP - 0.2, -0.2);
+        [[0.5, 0.8, 0], [0.4, 0.7, -0.5], [0.3, 0.6, -0.9]].forEach(([w, h, rot], k) => horn.add(api.make(w, h, w, k === 2 ? 0xF0E0C0 : 0x2A2020, { x: s * k * 0.35, y: 0.35 + k * 0.55, rz: s * (rot - 0.3) })));
+        api.add(horn);
+      }
+      for (const s of [-1, 1]) api.box(0.55, 0.3, 0.2, 0xFFB020, { x: s * 0.75, y: api.yAt(8), z: api.widthAt(8) / 2 + 0.1, glow: true, dim: 2.2 });
+      api.wings({ y: api.yAt(7), color: 0x5A1410, edge: 0xFF6A2E, span: 4.6, membrane: true, flap: 1.8, amount: 0.35 });
+      for (let k = 0; k < 4; k++) api.box(0.4, 0.6, 0.4, 0x2A2020, { y: api.yAt(4 + k * 2), z: -(api.widthAt(4 + k * 2) / 2 + 0.2), rx: -0.4 });
+    } },
+  { id: "volcan", biome: 5, rarity: "celestial", name: "Huevo del Volcán", hatch: "Pingüino Volcán",
+    desc: "Mitad hielo, mitad roca: un volcán con forma de huevo que hace erupción por la punta, ríos de lava, rocas en órbita y columna de fuego.",
+    effect: "Erupción, mitad hielo y mitad lava, rocas en órbita, columna de luz",
+    shell: [0x2A1A18, 0x4A3530], tip: null, hover: true,
+    tile: (i, f, c, n) => f === 3 || (f === 0 && c >= n / 2) || (f === 2 && c < n / 2) ? (hash(i, f, c) < 0.25 ? 0xFFFFFF : 0xA8E0FF) : ((c + i) % 4 === 0 ? glow(0xFF5A10) : null),
+    sparkles: { count: 7, color: 0xFFE0A0 }, particles: [{ mode: "fountain", color: 0xFF7A1A, count: 26 }, { mode: "orbit", color: 0xBFF6FF, count: 10, radius: 4.4 }], light: 0xFF6A10, aura: 0xFF8A2E, pillar: 0xFF7A3B, beam: "255,150,90",
+    extras: (api) => {
+      api.ring(1.4, 0.35, 0.5, TOP + 0.1, 0x2A1A18);
+      api.box(1.0, 0.3, 1.0, 0xFFC020, { y: TOP, glow: true, dim: 2.4 });
+      api.orbit({ count: 6, radius: 4.0, y: 3.4, size: 0.8, colors: [0x3A2A26, 0x5A4540], speed: 0.45, wave: 0.9, rock: true, edge: 0xFF6A10 });
+    } },
+
+  // 7 · Abismo Polar
+  { id: "medusa", biome: 6, rarity: "legendario", name: "Huevo de Medusa", hatch: "Pingüino Medusa",
+    desc: "Cúpula rosa que se transparenta y brilla, con tentáculos que ondean abajo y burbujas que suben.",
+    effect: "Flota, translúcido, tentáculos que ondean, burbujas, aura",
+    shell: [0xB03FD8, 0xFFB8F0], tip: 0xFFD8F8, hover: true, translucent: 0.7, glowShell: 0.45,
+    sparkles: { count: 6, color: 0xFFD8F8 }, particles: [{ mode: "bubbles", color: 0xD8F6FF, count: 16 }], light: 0xFF6BE0, aura: 0xFFC94D, beam: "255,150,240",
+    extras: (api) => { api.face({ layer: 7, gap: 0.7, size: 0.5, eye: 0x2A0A3A, cheeks: 0xFF5AB8 }); api.tentacles({ count: 8, segments: 7, radius: 1.5, y: 0, color: 0xFF8AE8, glow: true, down: true, length: 0.55 }); } },
+  { id: "narval", biome: 6, rarity: "legendario", name: "Huevo de Narval", hatch: "Pingüino Narval",
+    desc: "Gris azulado con manchas, un cuerno en espiral larguísimo que brilla blanco y burbujas a su alrededor.",
+    effect: "Flota, cuerno en espiral que brilla, burbujas, aura",
+    shell: [0x2E4A66, 0x7FA6C8], tip: 0x7FA6C8, hover: true,
+    tile: (i, f, c) => hash(i, f, c) < 0.22 ? 0x203650 : (hash(c, i, f) < 0.08 ? 0xE6F2FF : null),
+    sparkles: { count: 6, color: 0xE6F6FF }, particles: [{ mode: "bubbles", color: 0xD8F6FF, count: 14 }], light: 0x9FD8FF, aura: 0xFFC94D, beam: "180,220,255",
+    extras: (api) => {
+      api.face({ layer: 7, gap: 0.75, size: 0.45, eye: 0x111111, cheeks: 0xFF9AB8 });
+      const horn = new THREE.Group();
+      horn.position.y = TOP;
+      for (let k = 0; k < 10; k++) horn.add(api.make(0.5 - k * 0.04, 0.42, 0.5 - k * 0.04, k % 2 ? 0xFFFFFF : 0xE6EEF8, { y: k * 0.42, ry: k * 0.45, glow: true, dim: 0.9 }));
+      horn.rotation.x = 0.2;
+      api.add(horn);
+      api.update((t) => { horn.rotation.y = t * 0.6; });
+      for (const s of [-1, 1]) api.box(1.4, 0.25, 0.8, 0x2E4A66, { x: s * (api.widthAt(4) / 2 + 0.6), y: api.yAt(4), rz: s * 0.3 });
+    } },
+  { id: "orca", biome: 6, rarity: "mitico", name: "Huevo de Orca", hatch: "Pingüino Orca",
+    desc: "Negro y blanco con la mancha de orca, una aleta dorsal enorme, cola de ballena y un aro de agua que salpica.",
+    effect: "Aleta y cola, aro de agua, salpicaduras, burbujas",
+    shell: [0x0E0E14, 0x23232E], tip: 0x0E0E14, hover: true,
+    tile: (i, f, c, n) => (f === 0 && i < 6) || (i < 3) || ((f === 1 || f === 3) && i >= 7 && i <= 8 && mid(c, n, 0.8)) ? 0xF4F6FA : null,
+    sparkles: { count: 6, color: 0xFFFFFF }, particles: [{ mode: "orbit", color: 0x6FD8FF, count: 22, radius: 3.9, size: 0.26 }, { mode: "bubbles", color: 0xD8F6FF, count: 10 }], light: 0x4FB8FF, aura: 0x4FB8FF, beam: "120,200,255",
+    extras: (api) => {
+      for (const s of [-1, 1]) api.box(0.9, 0.6, 0.12, 0xF4F6FA, { x: s * 0.8, y: api.yAt(8.6), z: api.widthAt(9) / 2 + 0.06, outline: false });
+      api.face({ layer: 7.6, gap: 0.8, size: 0.35, eye: 0x0E0E14 });
+      api.box(0.4, 2.6, 1.6, 0x0E0E14, { y: TOP + 0.8, z: -0.6, rx: -0.35 });
+      const tail = new THREE.Group();
+      tail.position.set(0, 1.2, -api.widthAt(2) / 2 - 0.4);
+      tail.add(api.make(0.6, 0.6, 1.2, 0x0E0E14, { z: -0.5 }), api.make(3.0, 0.25, 0.9, 0x0E0E14, { z: -1.3 }));
+      api.add(tail);
+      api.update((t) => { tail.rotation.x = Math.sin(t * 2.4) * 0.3; });
+      const ring = api.ring(6.2, 0.28, 0.2, 0.4, 0x3FA9FF, { glow: true, dim: 1.2, translucent: 0.8 });
+      api.update((t) => { ring.rotation.y = -t * 0.8; ring.position.y = 0.4 + Math.sin(t * 2) * 0.15; });
+    } },
+  { id: "kraken", biome: 6, rarity: "mitico", name: "Huevo de Kraken Helado", hatch: "Pingüino Kraken",
+    desc: "Morado profundo con un ojo gigante que mira, ventosas que brillan y tentáculos que suben enroscándose por fuera.",
+    effect: "Tentáculos que se enroscan, ojo que mira, burbujas",
+    shell: [0x2A0E4A, 0x6A2EA0], tip: 0x2A0E4A, hover: true,
+    tile: (i, f, c) => hash(i, f, c) < 0.12 ? glow(0x4FF0FF) : null,
+    sparkles: { count: 6, color: 0xD8B8FF }, particles: [{ mode: "bubbles", color: 0xBFF6FF, count: 18 }], light: 0x8F4FFF, aura: 0xB06BFF, beam: "190,140,255",
+    extras: (api) => {
+      const z = api.widthAt(7) / 2 + 0.12;
+      api.box(2.0, 1.6, 0.24, 0xFFE14D, { y: api.yAt(7), z, glow: true, dim: 1.2 });
+      const pupil = api.box(0.5, 1.3, 0.3, 0x111111, { y: api.yAt(7), z: z + 0.05, outline: false });
+      api.update((t) => { pupil.position.x = Math.sin(t * 0.7) * 0.6; });
+      api.tentacles({ count: 6, segments: 8, radius: 2.4, y: 0.2, color: 0x7A3EB8, glow: false, down: false, length: 0.75, suckers: 0x4FF0FF });
+    } },
+  { id: "leviatan", biome: 6, rarity: "celestial", name: "Huevo del Leviatán", hatch: "Pingüino Leviatán",
+    desc: "Verde abismo con puntos bioluminiscentes y una serpiente marina que se enrosca a su alrededor en espiral. Columna de luz.",
+    effect: "Serpiente en espiral, bioluminiscencia, columna de luz, burbujas",
+    shell: [0x06302E, 0x0F5A55], tip: 0x0F5A55, hover: true, pulse: true,
+    tile: (i, f, c) => hash(i, f, c) < 0.16 ? glow(0x3DFFE0) : null,
+    sparkles: { count: 7, color: 0xBFFFF4 }, particles: [{ mode: "bubbles", color: 0xBFFFF4, count: 16 }], light: 0x3DFFE0, aura: 0x4FF0FF, pillar: 0x3DFFE0, beam: "90,255,220",
+    extras: (api) => {
+      const serpent = new THREE.Group();
+      const n = 34;
+      for (let k = 0; k < n; k++) {
+        const u = k / n, a = u * TAU * 2.2, r = 3.2 - u * 0.8, s = 0.95 - u * 0.5;
+        serpent.add(api.make(s, s, s * 1.4, k % 3 === 0 ? 0x3DFFE0 : 0x0B7A70, { x: Math.cos(a) * r, y: 0.4 + u * 6.4, z: Math.sin(a) * r, ry: -a, glow: k % 3 === 0, dim: 1.5 }));
+      }
+      const head = serpent.children[n - 1];
+      head.scale.set(1.8, 1.4, 1.8);
+      api.add(serpent);
+      api.update((t) => { serpent.rotation.y = t * 0.35; });
+    } },
+  { id: "abismo", biome: 6, rarity: "secreto", name: "Huevo del Abismo", hatch: "Pingüino del Abismo",
+    desc: "Rompe todo: negro vacío con el contorno encendido en blanco, un ojo que se abre y la luz de alrededor cayendo hacia adentro.",
+    effect: "Contorno de luz, ojo que se abre, todo cae hacia él, anillos",
+    shell: [0x000000, 0x07070C], tip: 0x000000, hover: true, outline: 0xFFFFFF, outlineGlow: true,
+    sparkles: { count: 8, color: 0xFFFFFF }, particles: [{ mode: "inward", color: 0xFFFFFF, count: 30 }], light: 0x7F8BFF, aura: 0xFFFFFF, pillar: 0x9FA8FF, beam: "200,210,255",
+    extras: (api) => {
+      const z = api.widthAt(7) / 2 + 0.1;
+      const lid = api.box(2.4, 1.6, 0.2, 0xFFFFFF, { y: api.yAt(7), z, glow: true, dim: 2 });
+      api.box(0.8, 0.8, 0.26, 0x000000, { y: api.yAt(7), z: z + 0.04, outline: false });
+      api.update((t) => { lid.scale.y = 0.05 + Math.max(0, Math.sin(t * 0.8)) * 0.95; });
+      [[4.4, 0.4], [5.2, -0.5]].forEach(([s, tilt], k) => {
+        const r = api.ring(s, 0.1, 0.1, 3.2, 0xFFFFFF, { glow: true, dim: 1.6, outline: false });
+        r.rotation.x = tilt;
+        api.update((t) => { r.rotation.y = t * (k ? -0.7 : 0.5); });
+      });
+    } },
+
+  // 8 · Cosmos Glaciar
+  { id: "cometa", biome: 7, rarity: "legendario", name: "Huevo de Cometa", hatch: "Pingüino Cometa",
+    desc: "Núcleo de hielo azul que deja atrás una cola larga de polvo de estrellas. Flota en su aura.",
+    effect: "Flota, cola de estrellas, núcleo que brilla, aura",
+    shell: [0x2F6FC8, 0xBFE8FF], tip: 0xFFFFFF, hover: true, glowShell: 0.3,
+    tile: (i, f, c) => hash(i, f, c) < 0.2 ? glow(0xFFFFFF) : null,
+    sparkles: { count: 6, color: 0xFFFFFF }, particles: [{ mode: "trail", color: 0xBFE8FF, count: 30 }, { mode: "trail", color: 0xFFE07A, count: 12, size: 0.14 }], light: 0x8FD0FF, aura: 0xFFC94D, beam: "170,215,255" },
+  { id: "saturno", biome: 7, rarity: "mitico", name: "Huevo de Saturno", hatch: "Pingüino Saturno",
+    desc: "Un planeta: bandas de colores, un anillo inclinado de rocas que gira y dos lunas que le dan vueltas.",
+    effect: "Anillo de rocas, lunas en órbita, bandas del planeta",
+    shell: [0xC88A4A, 0xF6D8A0], tip: 0xF6D8A0, hover: true, layers: { 3: 0xE0A060, 4: 0xB06A3A, 7: 0xF2C890, 8: 0xD08850, 10: 0xE8B878 },
+    sparkles: { count: 6, color: 0xFFF0C0 }, light: 0xFFC890, aura: 0xFF9AD0, beam: "255,210,160",
+    extras: (api) => {
+      const ring = new THREE.Group();
+      ring.position.y = 3.2;
+      ring.rotation.x = 0.45; ring.rotation.z = 0.2;
+      for (let k = 0; k < 44; k++) {
+        const a = k / 44 * TAU, r = 4.0 + (k % 3) * 0.35;
+        ring.add(api.make(0.5, 0.18, 0.5, k % 4 === 0 ? 0xFFFFFF : (k % 2 ? 0xE8C890 : 0xC89A6A), { x: Math.cos(a) * r, z: Math.sin(a) * r, ry: a, outline: false }));
+      }
+      api.add(ring);
+      api.update((t) => { ring.rotation.y = t * 0.4; });
+      api.orbit({ count: 2, radius: 5.4, y: 3.4, size: 0.9, colors: [0xE6E6EE, 0x9FA8C8], speed: 0.3, wave: 1.6 });
+    } },
+  { id: "astronauta", biome: 7, rarity: "mitico", name: "Huevo de Astronauta", hatch: "Pingüino Astronauta",
+    desc: "Traje espacial blanco con visor de cristal que deja ver estrellas, mochila con propulsores, antena y una banderita.",
+    effect: "Visor con estrellas, propulsores, antena que parpadea",
+    shell: [0xC8CED8, 0xFFFFFF], tip: 0xFFFFFF, hover: true, layers: { 3: 0xFF7A1A },
+    tile: (i, f, c, n) => f === 0 && i >= 6 && i <= 9 && mid(c, n, 1.5) ? (hash(i, f, c) < 0.25 ? glow(0xFFFFFF) : glow(0x1A2A6A)) : (f === 0 && i === 4 && mid(c, n, 0.5) ? 0x3FA9FF : null),
+    sparkles: { count: 6, color: 0xFFFFFF }, particles: [{ mode: "fall", color: 0x7FE0FF, count: 14, from: [-0.8, 1.5, -2.6] }, { mode: "fall", color: 0x7FE0FF, count: 14, from: [0.8, 1.5, -2.6] }], light: 0x7FB8FF, aura: 0xFF8AC8, beam: "200,220,255",
+    extras: (api) => {
+      const z = api.widthAt(7) / 2;
+      api.box(2.6, 2.4, 0.2, 0xD8DEE8, { y: api.yAt(7.5), z: z + 0.05 });
+      api.box(2.2, 2.0, 0.22, 0x0D1638, { y: api.yAt(7.5), z: z + 0.1, glow: true, dim: 0.5 });
+      [[-0.5, 0.4], [0.6, -0.3], [0.1, 0.6], [-0.2, -0.5], [0.7, 0.5]].forEach(([x, y]) => api.box(0.16, 0.16, 0.24, 0xFFFFFF, { x, y: api.yAt(7.5) + y, z: z + 0.14, glow: true, dim: 2.5, outline: false }));
+      api.box(2.4, 2.6, 1.0, 0xD8DEE8, { y: 2.8, z: -(api.widthAt(5) / 2 + 0.4) });
+      for (const s of [-1, 1]) api.box(0.6, 0.9, 0.6, 0x7A8494, { x: s * 0.8, y: 1.3, z: -(api.widthAt(5) / 2 + 0.6) });
+      api.box(0.12, 1.4, 0.12, 0x9AA3B5, { x: 1.0, y: TOP + 0.6 });
+      const tipLight = api.box(0.3, 0.3, 0.3, 0xFF3B30, { x: 1.0, y: TOP + 1.4, glow: true });
+      api.update((t) => api.setGlow(tipLight, Math.floor(t * 2) % 2 ? 2.4 : 0.1));
+      api.box(0.08, 1.2, 0.08, 0xDDDDDD, { x: -1.1, y: TOP + 0.5 });
+      api.box(0.8, 0.5, 0.06, 0x3FA9FF, { x: -0.68, y: TOP + 0.85 });
+    } },
+  { id: "constelacion", biome: 7, rarity: "celestial", name: "Huevo de Constelación", hatch: "Pingüino Constelación",
+    desc: "Cielo de noche que se transparenta, con estrellas encendidas unidas por líneas de luz, un halo y columna de luz.",
+    effect: "Estrellas unidas por líneas, halo, columna de luz, órbita de estrellas",
+    shell: [0x0A1030, 0x1A2460], tip: 0x1A2460, hover: true, translucent: 0.85, glowShell: 0.15,
+    sparkles: { count: 8, color: 0xFFFFFF }, particles: [{ mode: "orbit", color: 0xFFF0B0, count: 16, radius: 4.4 }], light: 0x8FA8FF, aura: 0x4FF0FF, pillar: 0x9FB8FF, beam: "180,200,255",
+    extras: (api) => {
+      const stars = [[0, 2, 0.3], [0, 4, 0.7], [0, 7, 0.4], [0, 9, 0.75], [1, 3, 0.5], [1, 6, 0.2], [1, 8, 0.8], [2, 5, 0.5], [2, 9, 0.3], [3, 4, 0.6], [3, 7, 0.4]].map(([f, i, fr]) => {
+        const a = f * Math.PI / 2, w = api.widthAt(i), nx = Math.sin(a), nz = Math.cos(a), along = (fr - 0.5) * (w - 0.8);
+        const p = new THREE.Vector3(nx * (w / 2 + 0.08) + nz * along, api.yAt(i), nz * (w / 2 + 0.08) - nx * along);
+        api.box(0.32, 0.32, 0.32, 0xFFF0B0, { x: p.x, y: p.y, z: p.z, ry: a + Math.PI / 4, glow: true, dim: 2.6, outline: false });
+        return [p, f];
+      });
+      for (let k = 0; k < stars.length - 1; k++) {
+        const [a, fa] = stars[k], [b, fb] = stars[k + 1];
+        if (fa !== fb) continue;
+        const len = a.distanceTo(b), m = a.clone().add(b).multiplyScalar(0.5);
+        const line = api.make(0.06, len, 0.06, 0xBFD0FF, { glow: true, dim: 1.6, outline: false });
+        line.position.copy(m);
+        line.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+        api.add(line);
+      }
+      api.halo(TOP + 1.3, 2.2, 0xFFF0B0);
+    } },
+  { id: "galaxia", biome: 7, rarity: "celestial", name: "Huevo de Galaxia", hatch: "Pingüino Galaxia",
+    desc: "Remolino morado y rosa que gira sobre la cáscara, un disco de estrellas en espiral a su alrededor y núcleo encendido.",
+    effect: "Remolino de colores, disco de estrellas en espiral, columna de luz",
+    shell: [0x1A0A3A, 0x3A1A6A], tip: 0xFFFFFF, hover: true, glowShell: 0.2,
+    tile: (i, f, c, n) => diag(i, f, c, n, 5, 1) ? glow(0xFF6BD8) : diag(i + 2, f, c, n, 5, 1) ? glow(0x8F6BFF) : null,
+    sparkles: { count: 8, color: 0xFFD8F8 }, particles: [{ mode: "spiral", color: 0xFFFFFF, count: 40 }, { mode: "spiral", color: 0xFF8AE0, count: 20 }], light: 0xC46BFF, aura: 0x4FF0FF, pillar: 0xD08AFF, beam: "220,160,255",
+    extras: (api) => api.box(1.2, 0.4, 1.2, 0xFFFFFF, { y: TOP + 0.1, glow: true, dim: 2.4 }) },
+  { id: "eterno", biome: 7, rarity: "secreto", name: "Huevo del Pingüino Eterno", hatch: "Pingüino Eterno",
+    desc: "El último: la cáscara dorada se rompe en pedazos que flotan y giran, y en el centro brilla un sol con una corona. Los colores cambian solos.",
+    effect: "Cáscara rota en órbita, sol que late, corona, colores que cambian",
+    shell: [0xE8C878, 0xFFF6DC], tip: 0xFFF6DC, hover: true, metal: true, rainbow: true,
+    layerMotion: (i, t) => {
+      const a = i * 2.4 + t * 0.4, r = 2.2 + Math.sin(t * 1.1 + i) * 0.4;
+      return { dx: Math.cos(a) * r, dz: Math.sin(a) * r, ry: t * 0.6 + i, dy: (i - 5.5) * 0.25 + Math.sin(t * 1.3 + i) * 0.25, scale: 0.6 };
+    },
+    sparkles: { count: 9, color: 0xFFFFFF }, particles: [{ mode: "orbit", color: 0xFFE07A, count: 20, radius: 4.6 }, { mode: "rise", color: 0xFFFFFF, count: 14 }], light: 0xFFE07A, aura: 0xFFFFFF, pillar: 0xFFF0B0, beam: "255,240,200",
+    extras: (api) => {
+      const sun = api.box(1.8, 1.8, 1.8, 0xFFC830, { y: 3.2, glow: true, dim: 1.5 });
+      const core = api.box(1.1, 1.1, 1.1, 0xFFF6D0, { y: 3.2, glow: true, dim: 1.8, outline: false });
+      api.update((t) => { sun.rotation.set(t * 0.7, t * 0.9, 0); core.rotation.set(-t, t * 0.5, t * 0.3); sun.scale.setScalar(1 + Math.sin(t * 2.4) * 0.1); });
+      const crown = new THREE.Group();
+      crown.position.y = TOP + 1.2;
+      for (let k = 0; k < 5; k++) { const a = k / 5 * TAU; crown.add(api.make(0.35, 0.9, 0.35, 0xFFD45C, { x: Math.cos(a) * 0.9, z: Math.sin(a) * 0.9, metal: true })); }
+      crown.add(api.make(2.1, 0.3, 2.1, 0xFFD45C, { y: -0.4, metal: true }));
+      api.add(crown);
+      api.update((t) => { crown.rotation.y = t * 0.5; crown.position.y = TOP + 1.2 + Math.sin(t * 1.5) * 0.15; });
+    } },
+];
+const eggsById = Object.fromEntries(EGGS.map((e) => [e.id, e]));
+const BOOST_STATS = {
+  golem: { particles: [{ mode: "rise", color: 0xBFF6FF, count: 30 }, { mode: "orbit", color: 0x7FF6FF, count: 16, radius: 5.2 }], sparkles: { count: 8, color: 0xFFFFFF } },
+  espiritu: { particles: [{ mode: "rise", color: 0x7FFFC8, count: 30 }, { mode: "orbit", color: 0xFFF3A0, count: 14, radius: 5 }], sparkles: { count: 8, color: 0xBFFFE4 } },
+  aurora: { particles: [{ mode: "orbit", color: 0xFFFFFF, count: 24, radius: 5.4 }, { mode: "snow", color: 0xCFFFF0, count: 24 }], sparkles: { count: 10, color: 0xFFFFFF } },
+  fenix: { particles: [{ mode: "rise", color: 0x8FF4FF, count: 34 }, { mode: "orbit", color: 0xFFFFFF, count: 14, radius: 5.6 }], sparkles: { count: 9, color: 0xBFF6FF } },
+  dragon: { particles: [{ mode: "rise", color: 0xFF5A10, count: 34 }, { mode: "breath", color: 0xFFAA2E, count: 26 }], sparkles: { count: 8, color: 0xFFC46B } },
+  volcan: { particles: [{ mode: "fountain", color: 0xFF7A1A, count: 44 }, { mode: "orbit", color: 0xBFF6FF, count: 16, radius: 5.4 }, { mode: "rise", color: 0x8A8A8A, count: 12, size: 0.5 }], sparkles: { count: 10, color: 0xFFE0A0 } },
+  orca: { particles: [{ mode: "helix", color: 0x6FD8FF, count: 40 }, { mode: "bubbles", color: 0xD8F6FF, count: 20 }], sparkles: { count: 8, color: 0xFFFFFF } },
+  kraken: { particles: [{ mode: "bubbles", color: 0xBFF6FF, count: 28 }, { mode: "rise", color: 0x2A0E4A, count: 14, size: 0.45 }], sparkles: { count: 8, color: 0xD8B8FF } },
+  leviatan: { particles: [{ mode: "helix", color: 0x3DFFE0, count: 40 }, { mode: "bubbles", color: 0xBFFFF4, count: 24 }], sparkles: { count: 10, color: 0xBFFFF4 } },
+  abismo: { particles: [{ mode: "inward", color: 0xFFFFFF, count: 50 }, { mode: "disc", color: 0x9FA8FF, count: 40 }], sparkles: { count: 12, color: 0xFFFFFF } },
+  saturno: { particles: [{ mode: "orbit", color: 0xFFF0C0, count: 20, radius: 6.2 }], sparkles: { count: 9, color: 0xFFF0C0 } },
+  astronauta: { particles: [{ mode: "fall", color: 0x7FE0FF, count: 22, from: [-0.8, 1.5, -2.6] }, { mode: "fall", color: 0x7FE0FF, count: 22, from: [0.8, 1.5, -2.6] }, { mode: "orbit", color: 0xFFFFFF, count: 18, radius: 5.8 }], sparkles: { count: 9, color: 0xFFFFFF } },
+  constelacion: { particles: [{ mode: "orbit", color: 0xFFF0B0, count: 28, radius: 5.2 }, { mode: "snow", color: 0xFFFFFF, count: 20 }], sparkles: { count: 12, color: 0xFFFFFF } },
+  galaxia: { particles: [{ mode: "spiral", color: 0xFFFFFF, count: 70 }, { mode: "spiral", color: 0xFF8AE0, count: 40 }, { mode: "spiral", color: 0x8F7BFF, count: 30 }], sparkles: { count: 12, color: 0xFFD8F8 } },
+  eterno: { particles: [{ mode: "orbit", color: 0xFFE07A, count: 30, radius: 5.4 }, { mode: "rise", color: 0xFFFFFF, count: 24 }], sparkles: { count: 14, color: 0xFFFFFF } },
+};
+
+const BOOSTS = {
+  golem: (api) => {
+    for (const s of [-1, 1]) {
+      api.box(1.6, 1.3, 1.6, 0x7FB4D9, { x: s * 1.9, y: api.yAt(9), rz: s * 0.2 });
+      api.crystal(s * 1.9, api.yAt(9) + 0.6, 0, 1.8, 0x7FF6FF, { glow: true, dim: 1.6, rz: s * -0.3 });
+    }
+    for (let k = 0; k < 5; k++) api.crystal((k - 2) * 0.6, api.yAt(7), -(api.widthAt(7) / 2), 1.2 + (2 - Math.abs(k - 2)) * 0.5, 0x9FF8FF, { glow: true, dim: 1.4, rx: -1.0 });
+    for (let k = 0; k < 8; k++) { const a = k / 8 * TAU; api.box(0.25, 0.12, 1.6, 0x3FF4FF, { x: Math.cos(a) * 3.3, y: 0.08, z: Math.sin(a) * 3.3, ry: -a, glow: true, dim: 1.8, outline: false }); }
+    api.orbit({ count: 6, radius: 4.6, y: 4, size: 0.7, colors: [0xB8E6FF, 0x7FB4D9], speed: 0.7, wave: 1.2, shard: true, edge: 0x3FF4FF });
+  },
+  espiritu: (api) => {
+    for (const s of [-1, 1]) {
+      const antler = new THREE.Group();
+      antler.position.set(s * 0.9, TOP, 0);
+      [[0.3, 1.8, 0.8, -0.3], [0.25, 1.4, 2.0, -0.9], [0.22, 1.1, 2.4, 0.3], [0.2, 1.0, 3.0, -0.3]].forEach(([w, h, y, r], k) => antler.add(api.make(w, h, w, 0x6B4A2E, { x: s * k * 0.45, y, rz: s * r })));
+      [[0.9, 2.6], [1.7, 3.3], [0.4, 3.6], [1.3, 2.0]].forEach(([x, y]) => antler.add(api.make(0.5, 0.5, 0.2, 0x7FFFC8, { x: s * x, y, rz: 0.6, glow: true, dim: 1.8 })));
+      api.add(antler);
+    }
+    for (let k = 0; k < 6; k++) { const a = k / 6 * TAU; api.box(0.4, 0.4, 2.2, 0x5A3E26, { x: Math.cos(a) * 2.4, y: 0.25, z: Math.sin(a) * 2.4, ry: -a + Math.PI / 2, rx: 0.2 }); }
+    const lanterns = [0, 1, 2, 3].map((k) => { const g = new THREE.Group(); g.add(api.make(0.6, 0.8, 0.6, 0xFFE07A, { glow: true, dim: 1.8 }), api.make(0.7, 0.15, 0.7, 0x4A3420, { y: 0.45 })); api.add(g); return g; });
+    api.update((t) => lanterns.forEach((g, k) => { const a = k / 4 * TAU + t * 0.4; g.position.set(Math.cos(a) * 4.6, 3.5 + Math.sin(t * 1.3 + k) * 1.2, Math.sin(a) * 4.6); }));
+  },
+  aurora: (api) => {
+    const curtains = [];
+    for (let k = 0; k < 10; k++) {
+      const a = k / 10 * TAU, color = [0x3DFF9E, 0x3DD8FF, 0x8F7BFF, 0xC46BFF][k % 4];
+      const panel = api.box(1.6, 5 + hash(k, 1, 1) * 2, 0.08, color, { x: Math.cos(a) * 5.6, y: 4.5, z: Math.sin(a) * 5.6, ry: -a + Math.PI / 2, glow: true, dim: 1.2, translucent: 0.35, outline: false });
+      curtains.push(panel);
+    }
+    api.update((t) => curtains.forEach((p, k) => { p.scale.y = 0.8 + Math.sin(t * 1.2 + k) * 0.25; p.position.y = 4.5 + Math.sin(t + k) * 0.4; }));
+    const crown = new THREE.Group();
+    crown.position.y = TOP + 1.6;
+    for (let k = 0; k < 6; k++) { const a = k / 6 * TAU; crown.add(api.make(0.4, 0.4, 0.4, 0xFFFFFF, { x: Math.cos(a) * 1.3, z: Math.sin(a) * 1.3, ry: Math.PI / 4, rx: Math.PI / 4, glow: true, dim: 2.6, outline: false })); }
+    api.add(crown);
+    api.update((t) => { crown.rotation.y = t * 0.8; });
+    const ribbon = new THREE.Group();
+    ribbon.position.y = 2.4;
+    ribbon.rotation.z = 0.7;
+    for (let s = 0; s < 26; s++) { const a = s / 26 * TAU; ribbon.add(api.make(0.9, 0.6, 0.12, 0x3DD8FF, { x: Math.cos(a) * 5, z: Math.sin(a) * 5, ry: -a + Math.PI / 2, glow: true, dim: 1.4, outline: false, translucent: 0.75 })); }
+    api.add(ribbon);
+    api.update((t) => { ribbon.rotation.y = t * 0.3; });
+  },
+  fenix: (api) => {
+    api.wings({ y: api.yAt(5), color: 0xBFF6FF, edge: 0x6FE8FF, span: 3.6, feathers: 5, flap: 2.2, amount: 0.35, glow: true });
+    const halo = new THREE.Group();
+    halo.position.set(0, 4, -2.2);
+    for (let k = 0; k < 14; k++) { const a = k / 14 * TAU; halo.add(api.make(0.3, 1.4, 0.2, k % 2 ? 0xFFFFFF : 0x6FE8FF, { x: Math.cos(a) * 3.4, y: Math.sin(a) * 3.4, rz: a - Math.PI / 2, glow: true, dim: 1.6, outline: false })); }
+    api.add(halo);
+    api.update((t) => { halo.rotation.z = t * 0.5; });
+    const flames = [];
+    for (let k = 0; k < 12; k++) { const a = k / 12 * TAU; flames.push(api.box(0.5, 1.4, 0.5, k % 2 ? 0xBFF6FF : 0x4FC8FF, { x: Math.cos(a) * 3.0, y: 0.6, z: Math.sin(a) * 3.0, glow: true, dim: 1.8, outline: false })); }
+    api.update((t) => flames.forEach((f, k) => { f.scale.y = 0.5 + Math.abs(Math.sin(t * 6 + k)) * 1.0; }));
+  },
+  dragon: (api) => {
+    api.wings({ y: api.yAt(9), color: 0x7A1A14, edge: 0xFFAA2E, span: 6.2, membrane: true, feathers: 5, flap: 1.6, amount: 0.4 });
+    const tail = new THREE.Group();
+    for (let k = 0; k < 16; k++) { const a = k / 16 * TAU * 0.9, r = 2.9; tail.add(api.make(0.9 - k * 0.04, 0.7 - k * 0.03, 0.9, k % 3 ? 0x6A1410 : 0xFF6A2E, { x: Math.cos(a) * r, y: 0.5 + Math.sin(k) * 0.15, z: Math.sin(a) * r, ry: -a, glow: k % 3 === 0, dim: 1.2 })); }
+    tail.add(api.make(0.9, 0.9, 0.3, 0xFFAA2E, { x: Math.cos(TAU * 0.9) * 2.9, y: 0.6, z: Math.sin(TAU * 0.9) * 2.9, rz: Math.PI / 4, glow: true, dim: 1.6 }));
+    api.add(tail);
+    api.update((t) => { tail.rotation.y = Math.sin(t * 0.8) * 0.2; });
+    for (let k = 0; k < 6; k++) api.box(0.5, 0.9, 0.5, 0xFFAA2E, { y: api.yAt(2 + k * 1.6), z: -(api.widthAt(2 + k * 1.6) / 2 + 0.3), rx: -0.5, glow: true, dim: 1 });
+    for (let k = 0; k < 10; k++) { const a = k / 10 * TAU; api.box(1.0, 0.1, 0.4, 0xFF4A10, { x: Math.cos(a) * 3.8, y: 0.06, z: Math.sin(a) * 3.8, ry: -a, glow: true, dim: 2, outline: false }); }
+  },
+  volcan: (api) => {
+    for (let k = 0; k < 6; k++) { const a = k / 6 * TAU + 0.3; api.crystal(Math.cos(a) * 2.0, api.yAt(4 + (k % 3) * 2), Math.sin(a) * 2.0, 1.4, 0xBFF6FF, { glow: true, dim: 1.4, rx: Math.sin(a) * 1.1, rz: -Math.cos(a) * 1.1 }); }
+    const rivers = [];
+    for (let k = 0; k < 4; k++) { const a = k / 4 * TAU + Math.PI / 4; for (let s = 0; s < 6; s++) rivers.push(api.box(0.4, 0.5, 0.15, 0xFF6A10, { x: Math.sin(a) * (api.widthAt(11 - s * 2) / 2 + 0.05), y: api.yAt(11 - s * 2), z: Math.cos(a) * (api.widthAt(11 - s * 2) / 2 + 0.05), ry: a, glow: true, dim: 2, outline: false })); }
+    api.update((t) => rivers.forEach((r, k) => api.setGlow(r, 1.2 + Math.max(0, Math.sin(t * 4 - (k % 6))) * 2)));
+    const smoke = new THREE.Group();
+    smoke.position.y = TOP + 3;
+    for (let k = 0; k < 10; k++) { const a = k / 10 * TAU; smoke.add(api.make(1.0, 0.8, 1.0, 0x5A5560, { x: Math.cos(a) * 1.6, z: Math.sin(a) * 1.6, translucent: 0.7, outline: false })); }
+    api.add(smoke);
+    api.update((t) => { smoke.rotation.y = t * 0.4; smoke.scale.setScalar(1 + Math.sin(t * 1.5) * 0.15); });
+    api.orbit({ count: 6, radius: 5.4, y: 2.2, size: 1.0, colors: [0x3A2A26, 0x5A4540], speed: -0.35, wave: 1.1, rock: true, edge: 0xFF6A10 });
+  },
+  orca: (api) => {
+    api.box(0.5, 3.6, 2.2, 0x0E0E14, { y: TOP + 1.1, z: -0.8, rx: -0.45 });
+    for (const s of [-1, 1]) api.box(2.4, 0.3, 1.2, 0x0E0E14, { x: s * (api.widthAt(4) / 2 + 1.1), y: api.yAt(4), rz: s * -0.4 });
+    const waves = [];
+    for (let k = 0; k < 16; k++) { const a = k / 16 * TAU; waves.push(api.box(1.0, 0.6, 0.5, k % 2 ? 0x3FA9FF : 0xBFE8FF, { x: Math.cos(a) * 4.4, y: 0.3, z: Math.sin(a) * 4.4, ry: -a, glow: true, dim: 1, translucent: 0.85, outline: false })); }
+    api.update((t) => waves.forEach((w, k) => { w.position.y = 0.3 + Math.max(0, Math.sin(t * 3 + k * 0.8)) * 1.4; }));
+    const ring2 = api.ring(8.0, 0.2, 0.2, 2.4, 0x6FD8FF, { glow: true, dim: 1.6, outline: false, translucent: 0.8 });
+    ring2.rotation.x = 0.4;
+    api.update((t) => { ring2.rotation.y = t * 0.6; });
+  },
+  kraken: (api) => {
+    api.tentacles({ count: 8, segments: 10, radius: 3.2, y: 0.1, color: 0x8A4EC8, glow: false, down: false, length: 0.85, suckers: 0x4FF0FF });
+    for (let k = 0; k < 7; k++) { const a = k / 7 * TAU; api.crystal(Math.cos(a) * 1.2, TOP, Math.sin(a) * 1.2, 1.2 + (k % 2) * 0.6, 0x9FF8FF, { glow: true, dim: 1.6, rx: Math.sin(a) * 0.4, rz: -Math.cos(a) * 0.4 }); }
+    for (const s of [-1, 1]) api.box(0.9, 0.7, 0.2, 0xFFE14D, { x: s * 1.3, y: api.yAt(9.5), z: api.widthAt(9) / 2 + 0.1, glow: true, dim: 1.6 });
+  },
+  leviatan: (api) => {
+    const head = new THREE.Group();
+    head.position.set(0, 7.6, 0);
+    head.add(api.make(1.8, 1.4, 2.4, 0x0B7A70), api.make(1.6, 0.5, 1.2, 0x0B7A70, { y: -0.6, z: 0.9 }));
+    for (const s of [-1, 1]) { head.add(api.make(0.4, 0.3, 0.2, 0x3DFFE0, { x: s * 0.55, y: 0.2, z: 1.2, glow: true, dim: 2.6 })); head.add(api.make(0.3, 1.4, 0.3, 0xBFFFF4, { x: s * 0.6, y: 1.0, z: -0.6, rx: -0.6, rz: s * -0.3 })); }
+    for (let k = 0; k < 4; k++) head.add(api.make(0.15, 0.7, 0.6, 0x3DFFE0, { y: 0.9, z: -0.2 - k * 0.5, glow: true, dim: 1.4 }));
+    api.add(head);
+    api.update((t) => { const a = t * 0.35 + TAU * 2.2; head.position.set(Math.cos(a) * 2.4, 7.4 + Math.sin(t * 1.5) * 0.3, Math.sin(a) * 2.4); head.rotation.y = -a + Math.PI; });
+    const serpent = new THREE.Group();
+    for (let k = 0; k < 26; k++) { const u = k / 26, a = -u * TAU * 1.6, r = 4.6; serpent.add(api.make(0.8, 0.8, 1.1, k % 3 === 0 ? 0x3DFFE0 : 0x0B5A55, { x: Math.cos(a) * r, y: 0.6 + u * 3.5, z: Math.sin(a) * r, ry: a, glow: k % 3 === 0, dim: 1.5 })); }
+    api.add(serpent);
+    api.update((t) => { serpent.rotation.y = -t * 0.25; });
+  },
+  abismo: (api) => {
+    const eyes = [];
+    [[0, 3, 0.5], [1, 9, 0.3], [2, 5, 0.6], [3, 8, 0.4], [1, 4, 0.7], [3, 3, 0.3]].forEach(([f, i, fr], k) => {
+      const a = f * Math.PI / 2, w = api.widthAt(i), nx = Math.sin(a), nz = Math.cos(a), along = (fr - 0.5) * (w - 1);
+      const lid = api.box(0.9, 0.6, 0.12, 0xFFFFFF, { x: nx * (w / 2 + 0.08) + nz * along, y: api.yAt(i), z: nz * (w / 2 + 0.08) - nx * along, ry: a, glow: true, dim: 2, outline: false });
+      eyes.push([lid, k]);
+    });
+    api.update((t) => eyes.forEach(([lid, k]) => { lid.scale.y = 0.05 + Math.max(0, Math.sin(t * 0.9 + k * 1.3)) * 0.95; }));
+    for (let k = 0; k < 6; k++) {
+      const tendril = new THREE.Group();
+      const a = k / 6 * TAU;
+      tendril.position.set(Math.cos(a) * 2.2, 0.2, Math.sin(a) * 2.2);
+      tendril.rotation.y = -a;
+      let parent = tendril;
+      const chain = [];
+      for (let s = 0; s < 8; s++) { const seg = new THREE.Group(); seg.position.y = s ? 0.7 : 0; seg.add(api.make(0.4 - s * 0.03, 0.7, 0.4 - s * 0.03, 0x000000, { y: 0.35, outlineColor: 0xFFFFFF, outlineGlow: true })); parent.add(seg); chain.push(seg); parent = seg; }
+      api.add(tendril);
+      api.update((t) => chain.forEach((seg, s) => { seg.rotation.z = -0.25 + Math.sin(t * 1.8 + k + s * 0.5) * 0.2; }));
+    }
+    [[6.4, 1.1], [7.2, -0.9], [3.6, 1.4]].forEach(([s, tilt], k) => {
+      const r = api.ring(s, 0.12, 0.12, 3.2, 0xFFFFFF, { glow: true, dim: 1.8, outline: false });
+      r.rotation.x = tilt;
+      api.update((t) => { r.rotation.y = t * (k % 2 ? -0.9 : 0.6); });
+    });
+  },
+  saturno: (api) => {
+    const ring = new THREE.Group();
+    ring.position.y = 3.2;
+    ring.rotation.x = -0.35; ring.rotation.z = -0.3;
+    for (let k = 0; k < 60; k++) { const a = k / 60 * TAU, r = 5.6 + (k % 4) * 0.3; ring.add(api.make(0.45, 0.16, 0.45, k % 5 === 0 ? 0xFFB8E0 : (k % 2 ? 0xBFA8FF : 0x8FC8FF), { x: Math.cos(a) * r, z: Math.sin(a) * r, ry: a, outline: false, glow: k % 5 === 0, dim: 1.6 })); }
+    api.add(ring);
+    api.update((t) => { ring.rotation.y = -t * 0.3; });
+    for (const i of [3, 7]) api.ring(api.widthAt(i) + 0.16, 0.12, 0.2, api.yAt(i), 0xFFE0A0, { glow: true, dim: 1.6, outline: false });
+    api.orbit({ count: 3, radius: 7.2, y: 3.6, size: 1.1, colors: [0xFF8A5A, 0x9FD8FF, 0xE6E6EE], speed: 0.22, wave: 2.0 });
+  },
+  astronauta: (api) => {
+    const planet = new THREE.Group();
+    planet.position.set(-3.2, 6.8, -3);
+    planet.add(api.make(2.2, 2.2, 2.2, 0x3FA9FF, { glow: true, dim: 0.5 }), api.make(1.0, 0.6, 2.24, 0x4CD37B, { y: 0.4, x: 0.3 }), api.make(3.6, 0.15, 3.6, 0xFFE0A0, { glow: true, dim: 1.2, rx: 0.4, outline: false }));
+    api.add(planet);
+    api.update((t) => { planet.rotation.y = t * 0.5; planet.position.y = 6.8 + Math.sin(t) * 0.3; });
+    const sat = new THREE.Group();
+    sat.add(api.make(0.7, 0.7, 0.7, 0xD8DEE8), api.make(2.0, 0.08, 0.7, 0x2F6FC8, { glow: true, dim: 0.8 }));
+    api.add(sat);
+    api.update((t) => { const a = t * 0.9; sat.position.set(Math.cos(a) * 4.6, 4 + Math.sin(a * 2) * 0.8, Math.sin(a) * 4.6); sat.rotation.y = -a; });
+    const flames = [];
+    for (const s of [-1, 1]) [[0.6, 1.4, 0xFF8A2E], [0.35, 2.0, 0xFFF0A0]].forEach(([w, h, c]) => flames.push(api.box(w, h, w, c, { x: s * 0.8, y: 0.4 - h / 2, z: -(api.widthAt(5) / 2 + 0.6), glow: true, dim: 2, outline: false })));
+    api.update((t) => flames.forEach((f, k) => { f.scale.y = 0.7 + Math.abs(Math.sin(t * 16 + k)) * 0.6; }));
+    api.box(0.12, 2.4, 0.12, 0xDDDDDD, { x: -1.3, y: TOP + 1.1 });
+    api.box(1.6, 1.0, 0.06, 0xE5383B, { x: -0.45, y: TOP + 1.8 });
+    api.box(0.6, 0.5, 0.08, 0xFFFFFF, { x: -0.85, y: TOP + 2.0, outline: false });
+  },
+  constelacion: (api) => {
+    const web = new THREE.Group();
+    const pts = [];
+    for (let k = 0; k < 14; k++) { const a = k / 14 * TAU, r = 5.2 + hash(k, 1, 2) * 1.2; pts.push(new THREE.Vector3(Math.cos(a) * r, 1.5 + hash(k, 3, 4) * 6, Math.sin(a) * r)); }
+    pts.forEach((p) => web.add(api.make(0.4, 0.4, 0.4, 0xFFF0B0, { x: p.x, y: p.y, z: p.z, ry: Math.PI / 4, rx: Math.PI / 4, glow: true, dim: 2.6, outline: false })));
+    for (let k = 0; k < pts.length; k++) {
+      const a = pts[k], b = pts[(k + 1) % pts.length], len = a.distanceTo(b);
+      const line = api.make(0.06, len, 0.06, 0xBFD0FF, { glow: true, dim: 1.6, outline: false });
+      line.position.copy(a.clone().add(b).multiplyScalar(0.5));
+      line.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+      web.add(line);
+    }
+    api.add(web);
+    api.update((t) => { web.rotation.y = t * 0.12; });
+    api.halo(TOP + 2.2, 3.0, 0xBFD0FF);
+  },
+  galaxia: () => {},
+  eterno: (api) => {
+    const rays = new THREE.Group();
+    rays.position.y = 3.2;
+    for (let k = 0; k < 16; k++) { const a = k / 16 * TAU; rays.add(api.make(0.18, 5.5, 0.18, k % 2 ? 0xFFF0B0 : 0xFFFFFF, { x: Math.cos(a) * 3.2, y: Math.sin(a) * 3.2, rz: a - Math.PI / 2, glow: true, dim: 1.6, outline: false, translucent: 0.7 })); }
+    api.add(rays);
+    api.update((t, cam) => { rays.rotation.z = t * 0.3; if (cam) rays.quaternion.copy(cam.quaternion).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), t * 0.3)); });
+    for (const s of [-1, 1]) {
+      const wing = new THREE.Group();
+      wing.position.set(s * 1.2, 3.6, -0.8);
+      for (let k = 0; k < 6; k++) wing.add(api.make(3.6 - k * 0.4, 0.3, 0.6, k % 2 ? 0xFFF6DC : 0xFFE07A, { x: s * (1.8 - k * 0.2), y: 1.0 - k * 0.45, rz: s * (0.4 - k * 0.12), glow: true, dim: 1.4 }));
+      api.add(wing);
+      api.update((t) => { wing.rotation.z = s * Math.sin(t * 1.6) * 0.18; });
+    }
+    [[5.2, 0.5], [6.0, -0.6], [6.8, 0.1]].forEach(([s, tilt], k) => {
+      const r = api.ring(s, 0.14, 0.14, 3.2, [0xFF6B9A, 0x6BDFFF, 0xFFE07A][k], { glow: true, dim: 2, outline: false });
+      r.rotation.x = tilt;
+      api.update((t) => { r.rotation.y = t * (k % 2 ? -0.7 : 0.5); });
+    });
+  },
+};
+
+function runeCircle(api, colorHex, radius) {
+  const color = parseInt(colorHex.slice(1), 16);
+  const outer = new THREE.Group(), inner = new THREE.Group();
+  outer.position.y = inner.position.y = 0.05;
+  for (let k = 0; k < 24; k++) { const a = k / 24 * TAU; outer.add(api.make(k % 3 ? 0.7 : 0.3, 0.06, 0.18, color, { x: Math.cos(a) * radius, z: Math.sin(a) * radius, ry: -a + Math.PI / 2, glow: true, dim: 1.8, outline: false })); }
+  for (let k = 0; k < 8; k++) { const a = k / 8 * TAU; inner.add(api.make(0.35, 0.06, 0.35, color, { x: Math.cos(a) * radius * 0.78, z: Math.sin(a) * radius * 0.78, ry: Math.PI / 4, glow: true, dim: 2.2, outline: false })); }
+  api.add(outer, inner);
+  api.update((t) => { outer.rotation.y = t * 0.3; inner.rotation.y = -t * 0.5; });
+}
+
+for (const [id, stats] of Object.entries(BOOST_STATS)) Object.assign(eggsById[id], stats);
+const OVERRIDES = {
+  galaxia: { shell: [0x12052E, 0x3A1670], glowShell: 0.22, tile: (i, f, c) => hash(i, f, c) < 0.1 ? glow(0xFFFFFF) : (hash(c, i, f) < 0.12 ? glow(0xFF6BD8) : null),
+    desc: "Guardián de galaxia: dos brazos de estrellas en espiral le suben por el cuerpo, ojos de estrella, un agujero negro con disco de fuego encima y planetas en órbita.",
+    effect: "Brazos en espiral, agujero negro, planetas, disco de estrellas, columna de luz" },
+  cometa: { tile: null, desc: "Cometa con carácter: núcleo de hielo con cráteres, cara decidida y una cola de fuego azul que ondea detrás. Flota en su aura.",
+    effect: "Flota, cola de fuego que ondea, cráteres, aura" },
+  magma: { desc: "Placas de roca que se le despegan con lava brillando por debajo, ojos y boca de fuego, gotas de lava colgando y corona de llamas.",
+    effect: "Flota, placas de roca, lava que fluye, gotas, corona de fuego, aura" },
+  obsidiana: { desc: "Vidrio volcánico negro erizado de picos filosos con puntas moradas, vetas encendidas y un ojo de gema morada con marco de oro.",
+    effect: "Flota, picos de obsidiana, ojo de gema, esquirlas en órbita, aura" },
+  aurora: { desc: "Espíritu de aurora: ojos de estrella, alas de luz verde y violeta, corona de copos de nieve, cintas y cortinas de aurora alrededor.",
+    effect: "Alas de luz, corona de hielo, cortinas y cintas de aurora, columna de luz" },
+  constelacion: { desc: "Cielo de noche con ojos de estrella, una luna creciente de corona y una esfera armilar de oro con tres aros girando a su alrededor.",
+    effect: "Esfera armilar, luna, red de estrellas, halo, columna de luz" },
+  saturno: { desc: "Planeta con cara: ojos grandes y cachetes, cráteres, franjas de luz, un anillo inclinado de rocas y lunas en órbita.",
+    effect: "Cara de planeta, anillos de rocas, lunas en órbita" },
+  volcan: { desc: "Espíritu del volcán: collar de roca dentada, ojos y boca de lava, mitad hielo y mitad fuego, erupción por la punta y rocas en órbita.",
+    effect: "Erupción, collar de roca, cara de lava, ríos de lava, columna de luz" },
+  leviatan: { desc: "Serpiente marina gigante con cabeza de cuernos que se enrosca en espiral sobre un huevo con aleta dorsal brillante y ojos bioluminiscentes.",
+    effect: "Serpiente con cabeza, aleta que brilla, bioluminiscencia, columna de luz" },
+};
+for (const [id, o] of Object.entries(OVERRIDES)) Object.assign(eggsById[id], o);
+
+const EXTRA2 = {
+  galaxia: (api) => {
+    const arms = new THREE.Group();
+    for (let arm = 0; arm < 2; arm++) for (let k = 0; k < 34; k++) {
+      const u = k / 33, layer = Math.min(11, Math.floor(u * 11.5)), a = arm * Math.PI + u * TAU * 1.4;
+      const r = api.widthAt(layer) / 2 + 0.35, color = mix(0xFF6BD8, 0x6BE8FF, u);
+      arms.add(api.make(0.5 - u * 0.15, 0.4, 0.5 - u * 0.15, color, { x: Math.cos(a) * r, y: 0.3 + u * 5.6, z: Math.sin(a) * r, ry: -a, glow: true, dim: 1.8, outline: false }));
+    }
+    api.add(arms);
+    api.update((t) => { arms.rotation.y = t * 0.35; });
+    api.face({ layer: 7, gap: 0.7, size: 0.5, eye: 0xFFFFFF, glowEyes: true });
+    const hole = new THREE.Group();
+    hole.position.y = TOP + 2.4;
+    hole.add(api.make(1.3, 1.3, 1.3, 0x000000, { outlineColor: 0xFFB8F0, outlineGlow: true, ry: Math.PI / 4, rx: 0.6 }));
+    const disc = new THREE.Group();
+    for (let k = 0; k < 22; k++) { const a = k / 22 * TAU; disc.add(api.make(0.4, 0.12, 0.4, k % 2 ? 0xFF8A3B : 0xFFD06B, { x: Math.cos(a) * 1.5, z: Math.sin(a) * 1.5, glow: true, dim: 2.2, outline: false })); }
+    disc.rotation.x = 0.4;
+    hole.add(disc);
+    api.add(hole);
+    api.update((t) => { disc.rotation.y = t * 2; hole.position.y = TOP + 2.4 + Math.sin(t * 1.4) * 0.2; });
+    api.orbit({ count: 3, radius: 5.2, y: 3.2, size: 0.8, colors: [0xFF8A5A, 0x6BE8FF, 0xB88AFF], speed: 0.5, wave: 1.0 });
+  },
+  cometa: (api) => {
+    [[0, 3, 0.3], [1, 7, 0.6], [3, 5, 0.4], [2, 8, 0.7], [1, 2, 0.2], [3, 9, 0.5]].forEach(([f, i, fr]) => {
+      const a = f * Math.PI / 2, w = api.widthAt(i), nx = Math.sin(a), nz = Math.cos(a), along = (fr - 0.5) * (w - 1);
+      api.box(0.8, 0.6, 0.3, 0x2A5A9E, { x: nx * (w / 2 + 0.12) + nz * along, y: api.yAt(i), z: nz * (w / 2 + 0.12) - nx * along, ry: a });
+    });
+    api.face({ layer: 7, gap: 0.7, size: 0.5, eye: 0x0D1638 });
+    for (const s of [-1, 1]) api.box(0.7, 0.16, 0.16, 0x0D1638, { x: s * 0.7, y: api.yAt(8.2), z: api.widthAt(8) / 2 + 0.12, rz: s * 0.35, outline: false });
+    const tail = new THREE.Group();
+    tail.position.set(-api.widthAt(6) / 2, 3.2, 0);
+    for (let k = 0; k < 10; k++) {
+      const s = 2.6 - k * 0.2;
+      tail.add(api.make(1.0, s, s, k < 2 ? 0xFFFFFF : k < 5 ? 0x8FE0FF : 0x3F7FFF, { x: -0.5 - k * 0.95, glow: true, dim: 1.6 - k * 0.08, translucent: 0.9 - k * 0.05, outline: false }));
+    }
+    api.add(tail);
+    api.update((t) => tail.children.forEach((seg, k) => { seg.position.y = Math.sin(t * 4 - k * 0.6) * 0.18 * k; seg.position.z = Math.cos(t * 3 - k * 0.5) * 0.12 * k; }));
+  },
+  magma: (api) => {
+    for (let k = 0; k < 12; k++) {
+      const f = k % 4, i = 2 + Math.floor(hash(k, 1, 2) * 8), a = f * Math.PI / 2, w = api.widthAt(i), nx = Math.sin(a), nz = Math.cos(a), along = (hash(k, 3, 4) - 0.5) * (w - 1.2);
+      api.box(1.2, 0.9, 0.2, 0xFF6A10, { x: nx * (w / 2 + 0.08) + nz * along, y: api.yAt(i), z: nz * (w / 2 + 0.08) - nx * along, ry: a, glow: true, dim: 2, outline: false });
+      api.box(1.1, 0.8, 0.45, 0x2A1E1C, { x: nx * (w / 2 + 0.4) + nz * along, y: api.yAt(i) + 0.08, z: nz * (w / 2 + 0.4) - nx * along, ry: a, rx: 0.15, rz: (hash(k, 5, 6) - 0.5) * 0.4 });
+    }
+    api.face({ layer: 8, gap: 0.7, size: 0.5, eye: 0xFFC020, glowEyes: true, mouth: { color: 0xFF6A10, glow: true, w: 1.4 } });
+    const drips = [];
+    for (let k = 0; k < 10; k++) { const a = k / 10 * TAU, r = api.widthAt(2) / 2; drips.push(api.box(0.3, 0.5, 0.3, 0xFF7A1A, { x: Math.cos(a) * r, y: api.yAt(2) - 0.4, z: Math.sin(a) * r, glow: true, dim: 2, outline: false })); }
+    api.update((t) => drips.forEach((d, k) => { d.scale.y = 1 + ((t * 0.6 + k * 0.17) % 1) * 1.8; d.position.y = api.yAt(2) - 0.4 - ((t * 0.6 + k * 0.17) % 1) * 0.45; }));
+  },
+  obsidiana: (api) => {
+    for (let k = 0; k < 14; k++) {
+      const a = k / 14 * TAU + hash(k, 1, 1), i = 2 + Math.floor(hash(k, 2, 2) * 9), r = api.widthAt(i) / 2;
+      const g = api.crystal(Math.cos(a) * r, api.yAt(i), Math.sin(a) * r, 1.4 + hash(k, 3, 3) * 1.2, 0x15101F, { rx: Math.sin(a) * 1.3, rz: -Math.cos(a) * 1.3 });
+      g.children[2].material.forEach((m) => { m.emissive = lin(0xB04FFF); m.emissiveIntensity = 2; m.color = lin(0xB04FFF); });
+    }
+    const z = api.widthAt(7) / 2 + 0.3;
+    api.box(1.7, 1.7, 0.4, 0xF2B82E, { y: api.yAt(7), z: z - 0.15, rz: Math.PI / 4, metal: true });
+    api.box(1.2, 1.2, 0.55, 0xB04FFF, { y: api.yAt(7), z, rz: Math.PI / 4, glow: true, dim: 1.8 });
+    const pupil = api.box(0.3, 0.8, 0.6, 0x0A0A12, { y: api.yAt(7), z: z + 0.03, outline: false });
+    api.update((t) => { pupil.position.x = Math.sin(t * 0.8) * 0.25; });
+  },
+  aurora: (api) => {
+    api.face({ layer: 7, gap: 0.7, size: 0.5, eye: 0xFFFFFF, glowEyes: true, cheeks: 0xFF8AD8 });
+    api.wings({ y: api.yAt(7), color: 0x3DFFC8, edge: 0xC46BFF, span: 4.4, feathers: 6, flap: 1.8, amount: 0.3, glow: true });
+    [[0, 1.8], [0.8, 1.2], [-0.8, 1.2], [0, 1.2, 0.8], [0, 1.2, -0.8], [0.6, 0.8, 0.6], [-0.6, 0.8, -0.6]].forEach(([x, h, z = 0]) => api.crystal(x, TOP + 0.2, z, h, 0xE8FFFF, { glow: true, dim: 1.8 }));
+  },
+  constelacion: (api) => {
+    api.face({ layer: 7, gap: 0.7, size: 0.5, eye: 0xFFF0B0, glowEyes: true });
+    [[5.4, 0, 0], [5.8, Math.PI / 2, 0], [6.2, Math.PI / 4, Math.PI / 3]].forEach(([s, rx, rz], k) => {
+      const ring = new THREE.Group();
+      ring.position.y = 3.2;
+      for (let q = 0; q < 28; q++) { const a = q / 28 * TAU; ring.add(api.make(0.6, 0.22, 0.22, q % 7 ? 0xF2B82E : 0xFFF6C8, { x: Math.cos(a) * s / 2, y: Math.sin(a) * s / 2, rz: a + Math.PI / 2, metal: true, glow: q % 7 === 0, dim: 2 })); }
+      ring.rotation.set(rx, 0, rz);
+      api.add(ring);
+      api.update((t) => { ring.rotation.y = t * (0.3 + k * 0.15) * (k % 2 ? -1 : 1); });
+    });
+    const moon = new THREE.Group();
+    moon.position.y = TOP + 1.6;
+    for (let k = 0; k <= 10; k++) { const a = -Math.PI * 0.75 + k / 10 * Math.PI * 1.5; moon.add(api.make(0.42, 0.42, 0.42, 0xFFF0B0, { x: Math.cos(a) * 0.9, y: Math.sin(a) * 0.9, glow: true, dim: 2.2, outline: false })); }
+    moon.rotation.z = Math.PI / 2;
+    api.add(moon);
+    api.update((t) => { moon.rotation.y = Math.sin(t * 0.8) * 0.6; });
+  },
+  saturno: (api) => {
+    api.face({ layer: 6, gap: 0.8, size: 0.6, eye: 0x3A1E0E, cheeks: 0xFF8A8A });
+    api.box(0.8, 0.2, 0.14, 0x3A1E0E, { y: api.yAt(4.6), z: api.widthAt(5) / 2 + 0.07, outline: false });
+    [[1, 8, 0.3], [3, 9, 0.6], [2, 6, 0.4], [1, 4, 0.7], [3, 3, 0.4]].forEach(([f, i, fr]) => {
+      const a = f * Math.PI / 2, w = api.widthAt(i), nx = Math.sin(a), nz = Math.cos(a), along = (fr - 0.5) * (w - 1);
+      api.box(0.9, 0.7, 0.25, 0xB0703A, { x: nx * (w / 2 + 0.1) + nz * along, y: api.yAt(i), z: nz * (w / 2 + 0.1) - nx * along, ry: a });
+    });
+  },
+  volcan: (api) => {
+    for (let k = 0; k < 12; k++) { const a = k / 12 * TAU, r = api.widthAt(9) / 2 + 0.3; api.box(0.9, 0.9 + hash(k, 1, 2) * 1.2, 0.8, 0x3A2A26, { x: Math.cos(a) * r, y: api.yAt(9) + 0.3, z: Math.sin(a) * r, ry: -a, rx: 0.2 }); }
+    api.face({ layer: 6.5, gap: 0.75, size: 0.55, eye: 0xFFC020, glowEyes: true, mouth: { color: 0xFF5A10, glow: true, w: 1.6 } });
+  },
+  leviatan: (api) => {
+    for (let k = 0; k < 8; k++) api.box(0.2, 1.4 - Math.abs(k - 3.5) * 0.2, 0.8, 0x3DFFE0, { y: api.yAt(2 + k * 1.2), z: -(api.widthAt(2 + k * 1.2) / 2 + 0.5), glow: true, dim: 1.6, rx: -0.3 });
+    api.face({ layer: 7.5, gap: 0.75, size: 0.5, eye: 0x3DFFE0, glowEyes: true });
+  },
+};
+
+
+
+function lin(hex) { return new THREE.Color(hex).convertSRGBToLinear(); }
+function mix(a, b, t) { return new THREE.Color(a).lerp(new THREE.Color(b), t).getHex(); }
+
+function studTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const g = c.getContext("2d");
+  g.fillStyle = "#ffffff"; g.fillRect(0, 0, 64, 64);
+  const grad = g.createRadialGradient(28, 28, 4, 32, 32, 18);
+  grad.addColorStop(0, "rgba(255,255,255,0.6)");
+  grad.addColorStop(1, "rgba(0,0,0,0.04)");
+  g.fillStyle = grad; g.beginPath(); g.arc(32, 32, 17, 0, TAU); g.fill();
+  g.strokeStyle = "rgba(0,0,0,0.10)"; g.lineWidth = 2; g.beginPath(); g.arc(32, 33, 17, 0, TAU); g.stroke();
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.encoding = THREE.sRGBEncoding;
+  return t;
+}
+const STUD = studTexture();
+const OUTLINE = 0x0B0F1A;
+
+function makeBox(w, h, d, color, o = {}) {
+  const props = { color: lin(color), roughness: o.metal ? 0.35 : 0.7, metalness: o.metal ? 0.45 : 0 };
+  if (o.glow) Object.assign(props, { emissive: lin(color), emissiveIntensity: o.dim ?? 1.2 });
+  else if (o.glowShell) Object.assign(props, { emissive: lin(color), emissiveIntensity: o.glowShell });
+  if (o.translucent) Object.assign(props, { transparent: true, opacity: o.translucent });
+  const side = new THREE.MeshStandardMaterial(props);
+  const mats = [side, side, side, side, side, side];
+  if (o.studs) {
+    const map = STUD.clone();
+    map.needsUpdate = true;
+    map.repeat.set(w, d);
+    mats[2] = new THREE.MeshStandardMaterial({ ...props, map });
+  }
+  const m = new THREE.Mesh(new THREE.BoxGeometry(Math.abs(w), Math.abs(h), Math.abs(d)), mats);
+  m.position.set(o.x || 0, o.y || 0, o.z || 0);
+  m.rotation.set(o.rx || 0, o.ry || 0, o.rz || 0);
+  m.castShadow = !o.glow && !o.translucent;
+  m.receiveShadow = true;
+  if (o.outline !== false) {
+    const e = Math.min(0.07, Math.min(Math.abs(w), Math.abs(h), Math.abs(d)) * 0.22);
+    const shell = new THREE.Mesh(new THREE.BoxGeometry(Math.abs(w) + e * 2, Math.abs(h) + e * 2, Math.abs(d) + e * 2), new THREE.MeshBasicMaterial({ color: o.outlineColor ? lin(o.outlineColor).multiplyScalar(o.outlineGlow ? 2.5 : 1) : lin(OUTLINE), side: THREE.BackSide }));
+    m.add(shell);
+  }
+  return m;
+}
+
+function eggWidth(i) {
+  const u = 2 * ((i + 0.5) / LAYERS) - 1;
+  const r = Math.pow(Math.max(0, 1 - Math.pow(Math.abs(u), SQUARENESS)), 1 / SQUARENESS) * (1 - 0.14 * u);
+  return Math.max(1.6, Math.round(r * MAX_WIDTH / 1.14 / 0.4) * 0.4);
+}
+
+function buildEgg(spec, thumb) {
+  const group = new THREE.Group();
+  const updaters = [];
+  const add = (m) => { group.add(m); return m; };
+  const shellAt = (i) => Array.isArray(spec.shell) ? mix(spec.shell[0], spec.shell[1], i / (LAYERS - 1)) : spec.shell;
+  const shellOpts = { studs: STUD, translucent: spec.translucent, metal: spec.metal, glowShell: spec.glowShell, outlineColor: spec.outline, outlineGlow: spec.outlineGlow };
+  const layers = [];
+  const pulsing = [];
+  const rainbow = [];
+  for (let i = 0; i < LAYERS; i++) {
+    const lg = new THREE.Group();
+    const y = i * LAYER + LAYER / 2;
+    lg.position.y = y;
+    lg.userData.y = y;
+    const w = eggWidth(i);
+    const notch = Math.min(0.8, w * 0.22);
+    const glowColor = spec.glowLayers && spec.glowLayers[i];
+    const tone = glowColor || (spec.layers && spec.layers[i]) || (i < 2 && !Array.isArray(spec.shell) && spec.base ? spec.base : shellAt(i));
+    for (const [sx, sz] of [[w, w - notch], [w - notch, w]]) {
+      const b = makeBox(sx, LAYER, sz, tone, { ...shellOpts, glow: !!glowColor, dim: 1.5 });
+      lg.add(b);
+      if (glowColor && spec.pulse) pulsing.push(b);
+      if (spec.rainbow) rainbow.push([b, i]);
+    }
+    if (spec.tile) {
+      const fw = w - notch;
+      const n = Math.max(1, Math.round(fw / 0.55));
+      for (let f = 0; f < 4; f++) {
+        const a = f * Math.PI / 2, nx = Math.sin(a), nz = Math.cos(a);
+        for (let c = 0; c < n; c++) {
+          const res = spec.tile(i, f, c, n);
+          if (!res) continue;
+          const color = typeof res === "number" ? res : res.color;
+          const along = (c + 0.5) * fw / n - fw / 2;
+          const tile = makeBox(fw / n * 0.98, LAYER * 0.98, 0.06, color, { glow: res.glow, dim: 1.6, outline: false });
+          tile.position.set(nx * (w / 2 + 0.03) + nz * along, 0, nz * (w / 2 + 0.03) - nx * along);
+          tile.rotation.y = a;
+          lg.add(tile);
+          if (res.glow && (spec.pulse || spec.flow)) pulsing.push(tile);
+        }
+      }
+    }
+    layers.push(lg);
+    add(lg);
+  }
+  if (spec.tip !== null) add(makeBox(1.2, 0.3, 1.2, spec.tip ?? shellAt(LAYERS - 1), { ...shellOpts, y: TOP + 0.15 }));
+
+  const setGlow = (m, v) => m.traverse((o) => { if (o.material) [].concat(o.material).forEach((mt) => { if (mt.emissive) mt.emissiveIntensity = v; }); });
+  const api = {
+    group,
+    widthAt: (i) => eggWidth(Math.max(0, Math.min(LAYERS - 1, Math.round(i)))),
+    yAt: (i) => i * LAYER + LAYER / 2,
+    make: (w, h, d, color, o) => makeBox(w, h, d, color, o),
+    box: (w, h, d, color, o) => add(makeBox(w, h, d, color, o)),
+    add: (...objs) => { objs.forEach((o) => group.add(o)); return objs[0]; },
+    update: (fn) => updaters.push(fn),
+    setGlow,
+    ring: (size, thick, height, y, color, o = {}) => {
+      const ring = new THREE.Group();
+      ring.position.y = y;
+      for (let k = 0; k < 4; k++) {
+        const a = k * Math.PI / 2;
+        ring.add(makeBox(size + thick, height, thick, color, { ...o, x: Math.sin(a) * size / 2, z: Math.cos(a) * size / 2, ry: a }));
+      }
+      return add(ring);
+    },
+    crystal: (x, y, z, h, color, o = {}) => {
+      const g = new THREE.Group();
+      g.position.set(x, y, z);
+      g.rotation.set(o.rx || 0, o.ry || 0, o.rz || 0);
+      const dir = Math.sign(h) || 1, len = Math.abs(h);
+      [[0.55, 0.45], [0.38, 0.35], [0.2, 0.2]].forEach(([s, f], k) => g.add(makeBox(s, len * f + 0.05, s, color, { y: dir * (len * [0.22, 0.6, 0.88][k]), ry: Math.PI / 4, glow: o.glow, dim: o.dim })));
+      (o.parent || group).add(g);
+      return g;
+    },
+    wings: (o) => {
+      const w = eggWidth(Math.round((o.y - LAYER / 2) / LAYER));
+      for (const s of [-1, 1]) {
+        const wing = new THREE.Group();
+        wing.position.set(s * w / 2, o.y, -0.2);
+        const n = o.feathers || 4;
+        for (let k = 0; k < n; k++) {
+          const len = o.span * (1 - k * 0.14), t = k / (n - 1 || 1);
+          if (o.membrane) {
+            wing.add(makeBox(len, 0.16, 0.9, k === 0 ? o.edge : o.color, { x: s * len / 2, y: -k * 0.45, z: -k * 0.2, rz: s * -k * 0.12, glow: k === 0 && !!o.edge, dim: 1 }));
+          } else {
+            wing.add(makeBox(len, 0.28, 0.7, k % 2 ? o.edge : o.color, { x: s * len / 2, y: 0.4 - k * 0.38, z: -t * 0.6, rz: s * (0.25 - t * 0.5), glow: o.glow, dim: 1.3 }));
+          }
+        }
+        add(wing);
+        updaters.push((tt) => { wing.rotation.z = s * Math.sin(tt * o.flap) * o.amount; });
+      }
+    },
+    tentacles: (o) => {
+      for (let k = 0; k < o.count; k++) {
+        const a = k / o.count * TAU;
+        let parent = new THREE.Group();
+        parent.position.set(Math.cos(a) * o.radius, o.y, Math.sin(a) * o.radius);
+        parent.rotation.y = -a;
+        add(parent);
+        const chain = [];
+        for (let s = 0; s < o.segments; s++) {
+          const size = 0.55 - s * 0.05;
+          const seg = new THREE.Group();
+          seg.position.y = s === 0 ? 0 : (o.down ? -o.length : o.length);
+          seg.add(makeBox(size, o.length, size, o.color, { y: (o.down ? -1 : 1) * o.length / 2, glow: o.glow, dim: 0.8 }));
+          if (o.suckers && s % 2) seg.add(makeBox(0.18, 0.18, 0.06, o.suckers, { x: size / 2 + 0.03, y: o.length / 2, ry: Math.PI / 2, glow: true, dim: 2, outline: false }));
+          parent.add(seg);
+          chain.push(seg);
+          parent = seg;
+        }
+        updaters.push((t) => chain.forEach((seg, s) => { seg.rotation.z = Math.sin(t * 2 + k + s * 0.6) * (o.down ? 0.18 : 0.12) + (o.down ? 0 : -0.16); }));
+      }
+    },
+    orbit: (o) => {
+      const ring = new THREE.Group();
+      ring.position.y = o.y;
+      for (let k = 0; k < o.count; k++) {
+        const color = o.colors[k % o.colors.length];
+        const piece = o.leaf ? makeBox(o.size, 0.1, o.size * 0.6, color, { rx: 0.4 })
+          : o.shard ? makeBox(o.size * 0.4, o.size * 1.4, o.size * 0.3, color, { metal: true, rz: 0.4 })
+          : makeBox(o.size, o.size, o.size, color, { glow: o.gem, dim: 1.4, ry: Math.PI / 4, rx: Math.PI / 4 });
+        if (o.edge) piece.add(makeBox(o.size * 0.45, o.size * 0.45, o.size * 0.45, o.edge, { glow: true, dim: 2, outline: false }));
+        ring.add(piece);
+        const phase = k / o.count * TAU;
+        updaters.push((t) => {
+          const a = phase + t * o.speed;
+          piece.position.set(Math.cos(a) * o.radius, Math.sin(t * 1.3 + k) * (o.wave || 0), Math.sin(a) * o.radius);
+          piece.rotation.y = -a + t;
+        });
+      }
+      return add(ring);
+    },
+    face: (o) => {
+      const l0 = Math.floor(o.layer), l1 = Math.ceil(o.layer);
+      const z = Math.max(eggWidth(Math.min(LAYERS - 1, l0)), eggWidth(Math.min(LAYERS - 1, l1))) / 2 + 0.1;
+      const y = o.layer * LAYER + LAYER / 2, size = o.size || 0.5, gap = o.gap || 0.65;
+      for (const s of [-1, 1]) {
+        const x = s * gap;
+        if (o.ring) add(makeBox(size + 0.28, size * 1.1 + 0.28, 0.14, o.ring, { x, y, z }));
+        add(makeBox(size, size * 1.1, 0.2, o.eye ?? 0x111111, { x, y, z: z + 0.05, glow: o.glowEyes, dim: 2.2 }));
+        if (!o.glowEyes) add(makeBox(size * 0.36, size * 0.36, 0.22, 0xFFFFFF, { x: x - size * 0.18, y: y + size * 0.24, z: z + 0.08, outline: false }));
+        if (o.cheeks) add(makeBox(0.5, 0.26, 0.12, o.cheeks, { x: s * (gap + 0.5), y: y - size * 0.95, z: z - 0.02, outline: false }));
+      }
+      if (o.beak) add(makeBox(0.5, 0.34, 0.45, o.beak, { y: y - size - 0.12, z: z + 0.15 }));
+      if (o.mouth) add(makeBox(o.mouth.w || 0.9, 0.18, 0.16, o.mouth.color, { y: y - size - 0.2, z: z + 0.04, glow: o.mouth.glow, dim: 2, outline: false }));
+    },
+    halo: (y, size, color) => {
+      const h = api.ring(size, 0.2, 0.2, y, color, { glow: true, dim: 2.2, outline: false });
+      updaters.push((t) => { h.rotation.y = t * 0.7; h.position.y = y + Math.sin(t * 1.5) * 0.12; });
+      return h;
+    },
+  };
+  if (spec.extras) spec.extras(api);
+  if (BOOSTS[spec.id]) BOOSTS[spec.id](api);
+  if (EXTRA2[spec.id]) EXTRA2[spec.id](api);
+  if (["mitico", "celestial", "secreto"].includes(spec.rarity)) runeCircle(api, RARITIES[spec.rarity].color, 4.4);
+
+  if (spec.layerMotion) updaters.push((t) => layers.forEach((lg, i) => {
+    const m = spec.layerMotion(i, t);
+    lg.position.set(m.dx || 0, lg.userData.y + (m.dy || 0), m.dz || 0);
+    lg.rotation.y = m.ry || 0;
+    if (m.scale) lg.scale.setScalar(m.scale);
+  }));
+  if (pulsing.length) updaters.push((t) => pulsing.forEach((m, k) => setGlow(m, spec.flow ? 1.0 + Math.max(0, Math.sin(t * 3 - (m.parent.userData.y || 0) * 1.2)) * 1.6 : 1.1 + Math.sin(t * 2.4 + k * 0.3) * 0.7)));
+  if (spec.rainbow) updaters.push((t) => rainbow.forEach(([b, i]) => [].concat(b.material).forEach((mt) => { mt.emissive = new THREE.Color().setHSL(((t * 0.1 + i * 0.06) % 1), 0.8, 0.5).convertSRGBToLinear(); mt.emissiveIntensity = 0.35; })));
+
+  if (spec.sparkles) {
+    const mat = new THREE.MeshBasicMaterial({ color: lin(spec.sparkles.color).multiplyScalar(3) });
+    for (let k = 0; k < spec.sparkles.count; k++) {
+      const star = new THREE.Group();
+      star.add(new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.2, 0.16), mat), new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.16, 0.16), mat));
+      const phase = k / spec.sparkles.count;
+      let spot = null, last = 1;
+      updaters.push((t, cam) => {
+        const cycle = (t * 0.5 + phase) % 1;
+        if (!spot || cycle < last) {
+          const a = hash(k, Math.floor(t * 0.5 + phase), 7) * TAU, r = 2.8 + hash(k, 2, Math.floor(t)) * 1.0;
+          spot = [Math.cos(a) * r, 0.6 + hash(Math.floor(t * 0.5 + phase), k, 3) * 6, Math.sin(a) * r];
+        }
+        last = cycle;
+        star.position.set(...spot);
+        star.scale.setScalar(0.001 + Math.max(0, Math.sin(cycle * Math.PI)) ** 2);
+        if (cam) star.quaternion.copy(cam.quaternion);
+      });
+      add(star);
+    }
+  }
+  for (const p of [].concat(spec.particles || [])) {
+    const mat = new THREE.MeshBasicMaterial({ color: lin(p.color).multiplyScalar(2.6), transparent: true, opacity: 0.9 });
+    const size = p.size || 0.22;
+    for (let k = 0; k < p.count; k++) {
+      const geo = p.mode === "streak" ? new THREE.BoxGeometry(0.07, 1.4, 0.07) : p.mode === "trail" ? new THREE.BoxGeometry(size * 2.5, size, size) : new THREE.BoxGeometry(size, size, size);
+      const bit = new THREE.Mesh(geo, mat);
+      const phase = k / p.count, a = hash(k, 1, 2) * TAU, h1 = hash(k, 3, 4), h2 = hash(k, 5, 6);
+      updaters.push((t) => {
+        const life = (t * ({ fall: 1.4, fountain: 0.7, inward: 0.5, trail: 0.9, spiral: 0.12, orbit: 0.15, breath: 1.3, helix: 0.18 }[p.mode] || 0.6) + phase) % 1;
+        let s = Math.sin(life * Math.PI);
+        if (p.mode === "fall") {
+          const [fx, fy, fz] = p.from || [0, -0.6, 0];
+          bit.position.set(fx + Math.cos(a) * 0.5 * life, fy - life * 2.8, fz + Math.sin(a) * 0.5 * life); s = 1 - life;
+        } else if (p.mode === "streak") {
+          const r = 3.0 + h1 * 0.9; bit.position.set(Math.cos(a) * r, 8 - life * 9, Math.sin(a) * r);
+        } else if (p.mode === "orbit") {
+          const r = p.radius || 3.4 + h1; const ang = a + life * TAU; bit.position.set(Math.cos(ang) * r, 0.8 + h2 * 5.5 + Math.sin(t * 2 + k) * 0.3, Math.sin(ang) * r); s = 0.6 + Math.sin(t * 4 + k) * 0.4;
+        } else if (p.mode === "snow") {
+          bit.position.set((h1 - 0.5) * 8, 8.5 - life * 9, (h2 - 0.5) * 8); s = 0.7;
+        } else if (p.mode === "bubbles") {
+          const r = 2.4 + h1 * 1.6; bit.position.set(Math.cos(a) * r + Math.sin(t * 3 + k) * 0.2, -0.5 + life * 8.5, Math.sin(a) * r); s = 0.4 + life * 0.8;
+        } else if (p.mode === "fountain") {
+          const v = 0.8 + h1 * 1.4; bit.position.set(Math.cos(a) * v * life * 3.2, TOP + 0.4 + life * 7 - life * life * 9.5, Math.sin(a) * v * life * 3.2); s = 1 - life * 0.6;
+        } else if (p.mode === "inward") {
+          const r = 6.5 * (1 - life); bit.position.set(Math.cos(a) * r, 3.2 + (h1 - 0.5) * 7 * (1 - life), Math.sin(a) * r); s = life;
+        } else if (p.mode === "trail") {
+          bit.position.set(-1.8 - life * 7, 3 + (h1 - 0.5) * 3 * (0.3 + life), (h2 - 0.5) * 3 * (0.3 + life)); s = 1 - life;
+        } else if (p.mode === "breath") {
+          bit.position.set((h1 - 0.5) * life * 1.6, 4.0 + (h2 - 0.5) * life * 1.2 - life * 0.6, eggWidth(8) / 2 + 0.6 + life * 4.5); s = 1 - life * 0.8;
+        } else if (p.mode === "helix") {
+          const ang = a + life * TAU * 2.5, r = 3.6 + h1 * 0.8; bit.position.set(Math.cos(ang) * r, -0.2 + life * 9, Math.sin(ang) * r); s = Math.sin(life * Math.PI);
+        } else if (p.mode === "disc") {
+          const ang = a + t * (1.5 + h1), r = 3.4 + h2 * 3.2; bit.position.set(Math.cos(ang) * r, 3.2 + Math.sin(ang * 2) * 0.15, Math.sin(ang) * r); s = 0.7;
+        } else if (p.mode === "spiral") {
+          const r = 1.5 + life * 4.5, ang = a * 0.25 + life * TAU * 1.5 + (k % 2) * Math.PI; bit.position.set(Math.cos(ang) * r, 3.2 + (h1 - 0.5) * 0.6, Math.sin(ang) * r); s = 1 - life * 0.7;
+        } else {
+          const r = 2.6 + h1 * 0.9; bit.position.set(Math.cos(a) * r, 0.3 + life * 7.5, Math.sin(a) * r);
+        }
+        bit.scale.setScalar(Math.max(0.001, s));
+      });
+      add(bit);
+    }
+  }
+  if (spec.aura) {
+    const ring = api.ring(5.4, 0.16, 0.16, 0.08, spec.aura, { glow: true, dim: 2, outline: false });
+    const ring2 = api.ring(6.4, 0.08, 0.08, 0.08, spec.aura, { glow: true, dim: 1.6, outline: false });
+    updaters.push((t) => { ring.rotation.y = t * 0.6; ring2.rotation.y = -t * 0.4; });
+  }
+  if (spec.pillar) {
+    const c = document.createElement("canvas");
+    c.width = 4; c.height = 128;
+    const g = c.getContext("2d");
+    const col = new THREE.Color(spec.pillar);
+    const grad = g.createLinearGradient(0, 0, 0, 128);
+    grad.addColorStop(0, `rgba(${col.r * 255},${col.g * 255},${col.b * 255},0)`);
+    grad.addColorStop(1, `rgba(${col.r * 255},${col.g * 255},${col.b * 255},0.55)`);
+    g.fillStyle = grad; g.fillRect(0, 0, 4, 128);
+    const tex = new THREE.CanvasTexture(c);
+    tex.encoding = THREE.sRGBEncoding;
+    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.6, 22, 24, 1, true), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
+    pillar.position.y = 10;
+    add(pillar);
+    updaters.push((t) => { pillar.material.opacity = thumb ? 0.28 : 0.38 + Math.sin(t * 2) * 0.1; });
+  }
+  if (spec.light) {
+    const light = new THREE.PointLight(lin(spec.light), 1.2, 12);
+    light.position.y = 3;
+    add(light);
+    updaters.push((t) => { light.intensity = 1.0 + Math.sin(t * 1.8) * 0.3; });
+  }
+  return { group, update: (t, cam) => updaters.forEach((fn) => fn(t, cam)) };
+}
+
+function addLights(scene) {
+  scene.add(new THREE.HemisphereLight(lin(0xe6f2ff), lin(0x3a3f58), 0.62));
+  const key = new THREE.DirectionalLight(lin(0xfff1dc), 0.95);
+  key.position.set(8, 14, 9);
+  key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024);
+  Object.assign(key.shadow.camera, { left: -10, right: 10, top: 12, bottom: -6 });
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(lin(0xffffff), 0.3);
+  fill.position.set(2, 4, 14);
+  scene.add(fill);
+  const rim = new THREE.DirectionalLight(lin(0x9fc8ff), 0.7);
+  rim.position.set(-10, 6, -10);
+  scene.add(rim);
+}
+
+function backdrop(hex, card) {
+  const c = document.createElement("canvas");
+  c.width = 512; c.height = 512;
+  const g = c.getContext("2d");
+  const base = card ? "#121b2c" : "#0b1220";
+  g.fillStyle = base; g.fillRect(0, 0, 512, 512);
+  const grad = g.createRadialGradient(256, card ? 230 : 250, 10, 256, 260, card ? 300 : 380);
+  const col = new THREE.Color(hex);
+  grad.addColorStop(0, `rgba(${col.r * 255},${col.g * 255},${col.b * 255},${card ? 0.34 : 0.42})`);
+  grad.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = grad; g.fillRect(0, 0, 512, 512);
+  const t = new THREE.CanvasTexture(c);
+  t.encoding = THREE.sRGBEncoding;
+  return t;
+}
+
+function composerFor(renderer, scene, camera, w, h, strength) {
+  const target = new THREE.WebGLRenderTarget(w, h, { type: THREE.HalfFloatType });
+  const composer = new THREE.EffectComposer(renderer, target);
+  composer.addPass(new THREE.RenderPass(scene, camera));
+  const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(w, h), strength, 0.5, 0.97);
+  composer.addPass(bloom);
+  composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader));
+  return { composer, bloom };
+}
+
+const stage = document.getElementById("stage");
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+addLights(scene);
+const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 400);
+camera.position.set(13, 8, 17);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+Object.assign(controls, { enableDamping: true, enablePan: false, minDistance: 9, maxDistance: 55, maxPolarAngle: Math.PI * 0.5 });
+const view = composerFor(renderer, scene, camera, 800, 600, 0.9);
+
+function rand(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+function buildNest() {
+  const nest = new THREE.Group();
+  const next = rand(42);
+  const tones = [0x8a5a3b, 0x9c6a45, 0x7a4c30, 0xa8774f];
+  for (let ring = 0; ring < 3; ring++) {
+    const radius = 2.4 + ring * 0.25, count = 20 + ring * 4;
+    for (let k = 0; k < count; k++) {
+      const a = (k / count) * TAU + next() * 0.3;
+      nest.add(makeBox(0.28, 0.28, 1.4 + next() * 1.1, tones[k % 4], { x: Math.cos(a) * radius, y: 0.2 + ring * 0.24, z: Math.sin(a) * radius, rx: (next() - 0.5) * 0.5, ry: -a + (next() - 0.5) * 0.7, rz: (next() - 0.5) * 0.4, outline: false }));
+    }
+  }
+  nest.add(makeBox(3.6, 0.3, 3.6, 0x6e4529, { y: 0.15, outline: false }));
+  return nest;
+}
+function ground(color) { const g = makeBox(60, 1, 60, color, { y: -0.5, studs: STUD, outline: false }); g.castShadow = false; return g; }
+const showScene = new THREE.Group();
+const pedestal = [makeBox(7, 0.6, 7, 0x1B2438, { y: 0.3 }), makeBox(5.6, 0.5, 5.6, 0x222D46, { y: 0.85 })];
+const pedestalEdge = [makeBox(7.08, 0.1, 7.08, 0xffffff, { y: 0.62, glow: true, dim: 1.6, outline: false })];
+showScene.add(...pedestal, ...pedestalEdge, ground(0x0A101C));
+const nestScene = new THREE.Group();
+nestScene.add(ground(0x63b356), buildNest());
+const trackScene = new THREE.Group();
+trackScene.add(ground(0xdfe9f3));
+const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.9, 16, 24, 1, true), new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
+beam.position.y = 8;
+trackScene.add(beam);
+scene.add(showScene, nestScene, trackScene);
+const holder = new THREE.Group();
+scene.add(holder);
+let current = null, currentSpec = null, mode = "show";
+
+function beamMap(rgb) {
+  const c = document.createElement("canvas");
+  c.width = 4; c.height = 128;
+  const g = c.getContext("2d");
+  const grad = g.createLinearGradient(0, 0, 0, 128);
+  grad.addColorStop(0, `rgba(${rgb},0)`);
+  grad.addColorStop(1, `rgba(${rgb},0.4)`);
+  g.fillStyle = grad; g.fillRect(0, 0, 4, 128);
+  return new THREE.CanvasTexture(c);
+}
+
+function setMode(next) {
+  mode = next;
+  showScene.visible = next === "show";
+  nestScene.visible = next === "nest";
+  trackScene.visible = next === "track";
+  for (const k of ["show", "nest", "track"]) document.getElementById(`tab-${k}`).setAttribute("aria-pressed", String(k === next));
+  applyBackground();
+  controls.target.set(0, next === "track" ? 5.2 : 4, 0);
+}
+function applyBackground() {
+  const r = currentSpec ? RARITIES[currentSpec.rarity] : RARITIES.comun;
+  scene.background = mode === "show" ? backdrop(r.color) : backdrop(mode === "nest" ? "#bfe3f7" : "#dfefff");
+  scene.fog = mode === "show" ? new THREE.Fog(lin(0x0b1220), 22, 48) : null;
+}
+document.getElementById("tab-show").addEventListener("click", () => setMode("show"));
+document.getElementById("tab-nest").addEventListener("click", () => setMode("nest"));
+document.getElementById("tab-track").addEventListener("click", () => setMode("track"));
+
+function setEgg(id, scroll) {
+  const spec = eggsById[id] || EGGS[0];
+  if (current) holder.remove(current.group);
+  current = buildEgg(spec);
+  currentSpec = spec;
+  holder.add(current.group);
+  const r = RARITIES[spec.rarity];
+  const far = ["mitico", "celestial", "secreto"].includes(spec.rarity) ? 1.45 : 1;
+  camera.position.set(13 * far, 8 * far, 17 * far);
+  pedestalEdge.forEach((m) => [].concat(m.material).forEach((mt) => { mt.color = lin(r.color); mt.emissive = lin(r.color); }));
+  beam.material.map = beamMap(spec.beam || "255,248,232");
+  beam.material.needsUpdate = true;
+  document.getElementById("card").style.setProperty("--rc", r.color);
+  document.getElementById("rarity-label").textContent = r.label.toUpperCase();
+  document.getElementById("egg-name").textContent = spec.name;
+  document.getElementById("egg-hatch").textContent = spec.hatch;
+  document.getElementById("egg-desc").textContent = spec.desc;
+  document.getElementById("egg-biome").textContent = `${spec.biome + 1} · ${BIOMES[spec.biome].name}`;
+  document.getElementById("egg-effect").textContent = spec.effect;
+  document.querySelectorAll(".egg[data-id]").forEach((b) => b.setAttribute("aria-current", String(b.dataset.id === spec.id)));
+  if (location.hash !== `#${spec.id}`) history.replaceState(null, "", `#${spec.id}`);
+  applyBackground();
+  if (scroll) window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+}
+
+function thumbnails() {
+  const size = 256;
+  const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  r.setSize(size, size);
+  const s = new THREE.Scene();
+  addLights(s);
+  const cam = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+  const { composer } = composerFor(r, s, cam, size, size, 0.6);
+  const out = {};
+  for (const spec of EGGS) {
+    const big = RARITIES[spec.rarity];
+    const reach = ["mitico", "celestial", "secreto"].includes(spec.rarity) ? 1.55 : spec.rarity === "legendario" ? 1.12 : 1;
+    cam.position.set(9 * reach, 6.6 * reach, 12.5 * reach);
+    cam.lookAt(0, spec.hover ? 3.6 : 3.3, 0);
+    s.background = backdrop(big.color, true);
+    const egg = buildEgg(spec, true);
+    if (spec.hover) egg.group.position.y = 0.4;
+    egg.update(1.15, cam);
+    s.add(egg.group);
+    composer.render();
+    out[spec.id] = r.domElement.toDataURL("image/png");
+    s.remove(egg.group);
+  }
+  r.dispose();
+  return out;
+}
+
+function renderCatalog() {
+  document.getElementById("ladder").innerHTML = Object.values(RARITIES).map((r) => `<div class="step" style="--c:${r.color}"><b>${r.label}</b><span>${r.step}</span></div>`).join("");
+  const thumbs = thumbnails();
+  const catalog = document.getElementById("catalog");
+  catalog.innerHTML = BIOMES.map((b, bi) => {
+    const eggs = EGGS.filter((e) => e.biome === bi);
+    const cards = eggs.map((e) => {
+      const r = RARITIES[e.rarity];
+      return `<button class="egg${e.rarity === "secreto" ? " secret" : ""}" type="button" data-id="${e.id}" style="--c:${r.color};--g:${r.glow}px"><img src="${thumbs[e.id]}" alt="${e.name}"><span class="r">${r.label}</span><span class="n">${e.name}</span><span class="h">${e.hatch}</span></button>`;
+    }).join("");
+    return `<section><h2>${bi + 1} · ${b.name} <small>${eggs.length} huevos</small></h2><p>${b.note}</p><div class="grid">${cards}</div></section>`;
+  }).join("");
+  catalog.querySelectorAll(".egg[data-id]").forEach((b) => b.addEventListener("click", () => setEgg(b.dataset.id, true)));
+}
+
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false);
+  view.composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  view.composer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener("resize", resize);
+window.addEventListener("hashchange", () => setEgg(location.hash.slice(1)));
+
+renderCatalog();
+resize();
+setEgg(location.hash.slice(1) || "nevado");
+setMode("show");
+
+const clock = new THREE.Clock();
+function wobble(t) { const c = t % 4.5; return c > 0.9 ? 0 : Math.sin(c * Math.PI * 4.4) * 0.07 * (1 - c / 0.9); }
+function frame() {
+  const t = reduceMotion ? 1.15 : clock.getElapsedTime();
+  const hover = currentSpec.hover;
+  const baseY = mode === "show" ? 1.1 : mode === "nest" ? 0.35 : 2.4;
+  if (mode === "track") {
+    holder.position.y = baseY + Math.sin(t * 1.6) * 0.25;
+    holder.rotation.set(0, t * 0.5, 0);
+    beam.material.opacity = 0.75 + Math.sin(t * 2) * 0.12;
+  } else {
+    holder.position.y = baseY + (hover ? 1.0 + Math.sin(t * 1.6) * 0.25 : 0);
+    holder.rotation.set(0, mode === "show" ? t * 0.25 : 0, hover ? 0 : wobble(t));
+  }
+  current.update(t, camera);
+  controls.update();
+  view.composer.render();
+  requestAnimationFrame(frame);
+}
+frame();
+</script>
+</body>
+</html>
