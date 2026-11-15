@@ -1,6 +1,6 @@
 ---
 tipo: diseno
-verificado: 2026-11-14 (HUD del lobby y eventos leídos del código y probados en Play; botón del Modo Avalancha probado en Play)
+verificado: 2026-11-14 (HUD del lobby y eventos leídos del código y probados en Play; bases, nidos y panel de huevos probados en Play el 14; botón del Modo Avalancha probado en Play)
 ---
 # Lobby y economía
 
@@ -26,11 +26,12 @@ Precios, premios y tiempos: `grep -n "EconomyConfig\|SkinCatalog\|WheelCatalog" 
 | `ChevronRoad` | Camino de flechas a la resortera (11 `ChevronArrow` animadas) | — |
 | `LuckyWheel` | Ruleta 3D de 12 gajos (`LobbyWheel`) | panel `wheel` |
 | `HallOfFame` | Tabla y podio con maniquíes (`LobbyLeaderboard`, `PodiumMannequin`) | panel `leaderboard` |
-| `EventPedestal` | Pedestal de la skin del evento Avalancha | panel `event` (explica el Modo Avalancha, D-033c) |
 | `MostPopular` | Podio "Más populares" | panel `skins` |
 | `LevelsPortal` | Portal de niveles | panel `levels` |
 | `Shop` | Tienda | panel `shop` |
 | `PenguinCampfire` | Fogata con pingüinos (la agregó ciervo el 2026-11-13) | — |
+Desde D-054a el Salón de la Fama está al fondo al centro y la ruleta al fondo a la izquierda, para no tapar las bases; el portal de niveles, el pedestal del evento y los pedestales de skins de la tienda se retiraron (guardados en `Respaldo_MapaViejo.LobbyRetirado`), igual que el botón NIVELES y la tarjeta de Próxima carrera. Si alguna fila de esta tabla habla de ellos, ya no aplica.
+
 Posiciones: `grep -n "Lobby:" place/mapa-place.md`. Construido por `ServerStorage.ClaudeBuild.BuildLobby`; después ciervo movió varios objetos a mano el 2026-11-13. Hay un arco, dos iglús y tres pingüinos "cute" con animación propia, y el lobby tiene su propia exposición y bloom (`LobbyLighting`).
 
 ## Puestos (D-034a)
@@ -44,10 +45,10 @@ Diseño del vault viejo (2026-11-12); no se ha comparado con lo que hay hoy en S
 |---|---|---|---|
 | ¡LANZAR! | R | — | funciona: monta en la resortera (D-021c); botón verde |
 | Ruleta | P | `wheel` | funciona |
-| Tienda | G | `shop` | funciona con peces (impulso, giros); Robux = "pronto" |
-| Skins | K | `skins` | funciona: vista 3D, comprar y equipar |
+| Tienda | G | `shop` | funciona con peces (huevos de la hora, impulso, giros); Robux = "pronto" |
+| Skins | K | `skins` | funciona: vista 3D y equipar; ya no se compran (D-052a) |
+| Mi base | J | `eggs` | funciona: nidos, huevos guardados, incubar, abrir e ir a tu base (D-052a) |
 | Regalo | Y | `gift` | funciona |
-| Niveles | Q | `levels` | funciona: viaja a niveles desbloqueados |
 | Impulso | B | `boost` | funciona |
 | Tabla | L | `leaderboard` | funciona |
 | Invitar | U | `invite` | abre la invitación de Roblox; premios por invitar = fachada |
@@ -56,19 +57,28 @@ Diseño del vault viejo (2026-11-12); no se ha comparado con lo que hay hoy en S
 | Personalizar | C | `custom` | fachada |
 | Renacer | Z | `rebirth` | fachada |
 | Lanzarse con un amigo · x2 peces | F | `friend` | fachada |
-| Próxima carrera | N | — | funciona: inscribe o saca de la carrera programada; muestra cuánto falta e inscritos (D-032c) |
 | Modo Avalancha (arriba) | — | — | funciona: "¡JUGAR!" o cuánto falta; al tocarlo te sube a la resortera del modo (D-033c) |
 Arriba a la derecha: contador de peces y aviso de impulso activo.
 
 ## Reglas de la economía (como están en el servidor)
-- **Peces en la pista:** el servidor los reparte al arrancar, en grupos sobre carriles, desde poco después de la resortera hasta poco antes de la meta; no pone peces sobre `Hazard` ni sobre carpetas con "Obstacle" en el nombre. La misma semilla por nivel da siempre el mismo reparto. Solo cuentan en `Racing`; cada pez se cobra una vez por carrera. Valen `EconomyConfig.Fish.ValuePerPickup`, o el doble con impulso activo.
+- **Peces en la pista (solo Modo Avalancha desde D-050a; en la bajada infinita faltan, Q-33a):** el servidor los reparte al arrancar, en grupos sobre carriles, desde poco después de la resortera hasta poco antes de la meta; no pone peces sobre `Hazard` ni sobre carpetas con "Obstacle" en el nombre. La misma semilla por nivel da siempre el mismo reparto. Solo cuentan en `Racing`; cada pez se cobra una vez por carrera. Valen `EconomyConfig.Fish.ValuePerPickup`, o el doble con impulso activo.
 - **Impulso x2:** se compra con peces; el tiempo se acumula. También sale en la ruleta.
 - **Regalo diario:** una vez cada `DailyGift.CooldownSeconds`; la racha sube el premio según `DailyGift.Rewards` y se reinicia tras `StreakResetSeconds`.
+- **Tienda rotativa (D-041a, D-054a):** arriba del panel TIENDA salen `EggConfig.Shop.OfferCount` huevos que cambian cada `Shop.RotationSeconds`, con cuenta regresiva; son los mismos para todos. Cada oferta se compra una vez por hora con peces (`Shop.Prices`) y el huevo va a MI BASE. Las rarezas altas salen poco (`Shop.Weights`). Sin resorteras todavía.
 - **Ruleta:** un giro gratis cada `Wheel.FreeSpinCooldownSeconds`; giros extra se compran con peces o salen de premio. Premios y probabilidades en `WheelCatalog`. El premio de skin es Inferno; si ya la tienes, da peces. El premio se entrega al terminar la animación.
-- **Skins:** 5 en `SkinCatalog` (clásica gratis + Inferno, Glacial, Santa, Reno). Se compran con peces y se equipan; el servidor viste al personaje.
+- **Skins:** 12 en `SkinCatalog`: la clásica gratis y 11 que nacen de huevos según su rareza (campo `hatchesFrom`). Siete son provisionales (Bufanda, Gorrito, Orejeras, Elegante, Explorador, Aurora, Sombra; D-052a). Ya no se compran con peces: el panel dice de qué huevo sale cada una y cuántas copias tienes. Se equipan; el servidor viste al personaje. Cada una tiene Vida, Abrigo y Resistencia (D-039a; qué hacen: [[nivel-1]]) y el panel las muestra bajo la descripción; valores sin aprobar (Q-27a).
 - **Tabla:** tres categorías: peces de la semana, carreras de la semana y mejor tiempo. La de tiempo solo cuenta el nivel 1 (Q-13). La semana se reinicia sola.
 - **Progreso:** terminar un nivel guarda cuántas veces y el mejor tiempo; desbloquea el siguiente (Q-05).
 - Todo lo que cuesta se valida en el servidor y cada remote tiene límite de frecuencia: [[sistemas]] § Economía.
+
+## Bases (D-052a)
+- Cada jugador recibe al entrar una de las 12 parcelas, en dos alas a los lados de la meseta (6 y 6). Todos ven las de todos. Al salir se libera.
+- Cada parcela tiene letrero con el avatar y nombre del dueño, 6 nidos al fondo (3 abiertos y 3 con candado para el gamepass de incubadora, D-042a) y 8 pedestales donde se paran sus pingüinos más raros.
+- Incubar: en tu nido, E pone tu huevo más raro; o desde el panel MI BASE eliges cuál. Sobre el nido se ve el huevo y el tiempo que falta (`EggConfig.IncubationSeconds`, D-048a); corre aunque no estés conectado. Cuando dice ¡LISTO!, E o ABRIR hacen nacer un pingüino al azar de esa rareza. Los repetidos se guardan como otra copia.
+- El panel MI BASE (J) también tiene IR A MI BASE, que te lleva a tu parcela.
+- Para encontrarlas desde el lobby (D-053a): letreros BASES a cada lado, un camino dorado en el piso desde el centro, portería con banderines en cada parcela, el nombre del dueño flotando encima y un haz dorado con TU BASE sobre la tuya.
+- Claude eligió (sin aprobar): dónde van las alas y su tamaño, el aspecto de la parcela, que E ponga el huevo más raro, cuántos pingüinos se exhiben y cuáles, y las skins provisionales con sus estadísticas.
+- Falta: multiplicador de incubación por eventos (D-041a), gamepass de incubadora, y que el servidor admita solo 12 jugadores (hoy 60; T-17a).
 
 ## Skins (diseño v0.2, Claude eligió)
 | Skin | id | Detalle |

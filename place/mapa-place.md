@@ -7,8 +7,8 @@ generado: sí (ServerStorage.DevTools.PlaceMap; no editar a mano; ver herramient
 Formato. scripts: `Nombre TipoLíneas | api | req | rem | tag | attr | key | svc` (M módulo, S script, L local; `+N` = N más sin listar). etiquetas: `Etiqueta total | por nivel | clases | atributos{valores}`. niveles: posiciones del mundo redondeadas a studs. Qué hace cada sistema: [[sistemas]].
 
 # huella
-place=PINGUINO TEST placeId=76340917059535 universeId=10776032682 generado=2026-11-14 14:50
-huella: scripts=161 lineas=25869 codigo=c2ee0efa instancias=106991 mundo=bb4cc67b
+place=PINGUINO TEST placeId=76340917059535 universeId=10776032682 generado=2026-11-14 22:28
+huella: scripts=193 lineas=30761 codigo=e6faf9f3 instancias=20481 mundo=938b1853
 # scripts
 ## ReplicatedStorage.Shared
 AvalancheModeConfig M31
@@ -16,8 +16,15 @@ AvalancheTrack M96 | api:distanceOf,fieldEndZ,fieldTopY,forward,frameAtDistance,
 ChristmasTrack M313 | api:centerAt,distanceToRoad,frameAt,guideDirection,heightAt,normalAt,progressAt,rescueFrame,shortcutAt,tangentAt,widthAt,xAt,zoneIndexAt
 Cleaner M44 | api:clean,new
 EconomyConfig M55
-EconomyRemotes M22
-EventConfig M85 | attr:AvalancheEventRun
+EconomyRemotes M21
+EggCatalog M49 | api:get,isValid,list,orderOf
+EggConfig M90 | tag:BaseNest,PlayerBase | attr:NestIndex,PlotIndex,SpotIndex
+EggField M147 | api:_eggsOfBiome,between,find,new,positionOf | req:EggCatalog,EggConfig,EndlessConfig,EndlessLayout
+EggRemotes M14
+EndlessCatalog M138 | api:theme | req:EndlessConfig | attr:Blocked,Exit,From,Length,PathBank,PathStep,PathX,PathY,Role,To
+EndlessConfig M80 | attr:PenguinHealth,PenguinMaxHealth
+EndlessLayout M243 | api:_append,bankAt,biomeName,biomeSpanAt,centerAt,chunk,chunkAt,chunkWorldOrigin,distanceOf,forPlayer,forSeed,frameAt,heightAt,new,+3 | req:EconomyConfig,EndlessCatalog,EndlessConfig
+EventConfig M87 | attr:AvalancheEventRun
 EventRemotes M11
 GameConfig M107 | tag:BoostRamp | attr:JumpDistance,KeepSpeed
 LaunchMath M49 | api:clampAim,direction,flightGravity,positionAt,pullOffset,speed,velocity | req:GameConfig
@@ -26,35 +33,40 @@ PenguinOrientation M16 | api:bellyDown
 Pose M36 | api:isValid
 Remotes M16
 RunState M8
+ShopRotation M58 | api:indexAt,offers,secondsLeft | req:EggCatalog,EggConfig
 Signal M42 | api:Connect,Disconnect,Fire,new
-SkinAppearance M352 | api:apply,clear | tag:ChaseBulb,FlickeringFlame,PulseGlow | attr:ChaseIndex,SkinBaseColor,SkinBaseMaterial,SkinBaseTransparency,SkinId
-SkinCatalog M90 | api:get,isValid,list
+SkinAppearance M461 | api:apply,clear | tag:ChaseBulb,FlickeringFlame,PulseGlow | attr:ChaseIndex,SkinBaseColor,SkinBaseMaterial,SkinBaseTransparency,SkinId
+SkinCatalog M206 | api:get,hatchable,isValid,list,statsOf
 SlingshotGeometry M39 | api:find,findAll,seatFrame | req:LevelRegistry | tag:Slingshot | attr:LaunchForward,SeatPosition
 WheelCatalog M67 | api:chance,count,list,pick,totalWeight
 ## ServerScriptService
 EconomyMain S5 | req:name
 ## ServerScriptService.Server.Data
-PlayerProfile M78 | api:currentWeek,rollWeek,sanitize | req:EconomyConfig,SkinCatalog
+PlayerProfile M158 | api:addEgg,addPenguin,currentWeek,newUid,rollWeek,sanitize | req:EconomyConfig,EggCatalog,SkinCatalog | svc:Http
 ## ServerScriptService.Server
-Main S27 | req:AvalancheModeService,ChristmasRunService,DeathService,LevelFlowService,LevelService,PoseService,RaceService,ReturnService,RunStateService,RunStatsService,SlingshotService
+Main S27 | req:AvalancheModeService,DeathService,EndlessRunService,LevelFlowService,LevelService,PoseService,RaceService,ReturnService,RunStateService,RunStatsService,SlingshotService
 ## ServerScriptService.Server.Services
 AvalancheModeService M270 | api:absorbCrash,init | req:AvalancheModeConfig,AvalancheTrack,EventRemotes,LevelRegistry,PlayerDataService,Remotes,ReturnService,RunState,RunStateService,SlingshotGeometry,SlingshotService | rem:AvalancheModeRequested,RaceNotice
-ChristmasRunService M264 | api:absorbCrash,absorbHazard,closeRun,init,isOutOfHealth | req:ChristmasTrack,LevelRegistry,Remotes,RunState,RunStateService | rem:RaceNotice | attr:PenguinHealth,PenguinMaxHealth,RunZone
-DeathService M101 | api:handleElimination,init | req:ChristmasRunService,GameConfig,RateLimiter,Remotes,RunStatsService | rem:DeathRespawnRequested,RaceNotice
-EventService M400 | api:fishMultiplier,init | req:ChristmasTrack,EventConfig,EventRemotes,LaunchMath,LevelRegistry,PlayerDataService,Remotes,RunState,RunStateService,SlingshotGeometry | rem:EventPickupRequested,RaceJoinRequested,RaceNotice
+BaseService M280 | api:init,plotIndexOf | req:EggCatalog,EggConfig,EggRemotes,IncubationService,PlayerDataService,PlayerProfile,RateLimiter,RunState,SkinAppearance,SkinCatalog | rem:BaseTravelRequested,EggNotice | attr:RunState
+DeathService M101 | api:handleElimination,init | req:EndlessRunService,GameConfig,RateLimiter,Remotes,RunStatsService | rem:DeathRespawnRequested,RaceNotice
+EggCarryService M141 | api:init,slotsOf | req:EggConfig,EggField,EggRemotes,EndlessLayout,EndlessRunService,PlayerDataService,PlayerProfile,RateLimiter | rem:EggDropRequested,EggNotice,EggPickupRequested
+EndlessRunService M297 | api:absorbCrash,absorbHazard,closeRun,deathKind,init | req:EndlessConfig,EndlessLayout,LevelRegistry,PlayerDataService,Remotes,RunState,RunStateService,Signal,SkinCatalog | rem:RaceNotice
+EventService M405 | api:fishMultiplier,init | req:ChristmasTrack,EventConfig,EventRemotes,LaunchMath,LevelRegistry,PlayerDataService,Remotes,RunState,RunStateService,SlingshotGeometry | rem:EventPickupRequested,RaceJoinRequested,RaceNotice
 FishService M221 | api:init | req:AvalancheTrack,ChristmasTrack,EconomyConfig,EconomyRemotes,EventService,LevelRegistry,PlayerDataService,RateLimiter,RunState,RunStateService | rem:FishCollectRequested | tag:FinishLine,FishEnd,FishPickup,Hazard,Slingshot | attr:PickupId
+IncubationService M138 | api:hatch,incubate,init,interact,nestSlots,totalNests | req:EggCatalog,EggConfig,EggRemotes,PlayerDataService,PlayerProfile,RateLimiter,SkinCatalog | rem:EggNotice,NestActionRequested
 LeaderboardService M161 | api:init | req:EconomyConfig,EconomyRemotes,PlayerDataService,SkinCatalog | rem:LeaderboardChanged,LeaderboardRequested | svc:DataStore
 LevelFlowService M70 | api:init | req:GameConfig,LevelRegistry,ReturnService,RunState,RunStateService,SlingshotGeometry,SlingshotService
 LevelService M46 | api:init | req:LevelRegistry
-PlayerDataService M205 | api:addFish,currentWeek,get,init,snapshot,spendFish,update | req:DataKit,EconomyConfig,EconomyRemotes,PlayerProfile,Signal | rem:ProfileChanged,ProfileRequested
+PlayerDataService M210 | api:addFish,currentWeek,get,init,snapshot,spendFish,update | req:DataKit,EconomyConfig,EconomyRemotes,PlayerProfile,Signal | rem:ProfileChanged,ProfileRequested
 PoseService M48 | api:init | req:Pose,RateLimiter,Remotes,RunState,RunStateService | rem:PoseChanged | attr:Pose
 ProgressService M96 | api:init,isUnlocked | req:AvalancheTrack,EconomyRemotes,GameConfig,LevelRegistry,PlayerDataService,RateLimiter,ReturnService,RunState,RunStateService,SlingshotService | rem:LaunchPadRequested,LevelTravelRequested | tag:Slingshot | attr:DismountPosition
-RaceService M170 | api:init | req:AvalancheModeService,ChristmasRunService,DeathService,GameConfig,LevelRegistry,RateLimiter,Remotes,RunState,RunStateService | rem:CrashReported,RaceNotice | tag:FinishLine,Hazard | attr:HazardKind,KillHeight
+RaceService M171 | api:init | req:AvalancheModeService,DeathService,EndlessRunService,GameConfig,LevelRegistry,RateLimiter,Remotes,RunState,RunStateService | rem:CrashReported,RaceNotice | tag:FinishLine,Hazard | attr:HazardKind,KillHeight
 ReturnService M81 | api:init | req:LevelRegistry,RateLimiter,RunState,RunStateService,Signal | tag:ReturnPortal | attr:DestinationLevel
 RewardService M58 | api:init | req:EconomyConfig,EconomyRemotes,PlayerDataService,RateLimiter | rem:BoostPurchaseRequested,DailyGiftClaimRequested
 RunStateService M72 | api:get,init,reset,transition | req:Remotes,RunState,Signal | rem:RunStateChanged | attr:RunState
 RunStatsService M78 | api:init,snapshot | req:GameConfig,PlayerDataService,RunState,RunStateService
-SkinService M97 | api:grant,init,owns | req:EconomyRemotes,PlayerDataService,RateLimiter,SkinAppearance,SkinCatalog | rem:SkinEquipRequested,SkinPurchaseRequested
+ShopRotationService M51 | api:init | req:EggConfig,EggRemotes,PlayerDataService,PlayerProfile,RateLimiter,ShopRotation | rem:ShopOfferPurchaseRequested
+SkinService M79 | api:grant,init,owns | req:EconomyRemotes,PlayerDataService,PlayerProfile,RateLimiter,SkinAppearance,SkinCatalog | rem:SkinEquipRequested
 SlingshotService M202 | api:init,mountAtLevel | req:GameConfig,LaunchMath,LevelRegistry,RateLimiter,Remotes,RunState,RunStateService,SlingshotGeometry | rem:AimChanged,DismountRequested,LaunchRequested | attr:AimPitch,AimPull,AimYaw,DismountPosition
 WheelService M102 | api:init | req:EconomyConfig,EconomyRemotes,PlayerDataService,RateLimiter,SkinService,WheelCatalog | rem:WheelSpinPurchaseRequested,WheelSpinRequested,WheelSpun
 ## ServerScriptService.Server.Util
@@ -64,18 +76,21 @@ BuildAvalancheMountains M237 | req:SlingshotGeometry | tag:AvalancheMountain,Ava
 BuildStalls M532 | req:SkinAppearance | tag:ChaseBulb,PulseGlow,SpinningDecor,SwingingDecor | attr:ChaseIndex,OpensPanel,SpinSpeed,SwingAmplitude | key:E
 ## ServerStorage.ClaudeBuild
 AvalancheModeBuild M439 | api:run | req:Clone | tag:AvalancheMountain,FinishLine,FishEnd,PlateauSpawn,ReturnPortal,Slingshot | attr:Bumper,DestinationLevel,DismountPosition,KeepSpeed,KillHeight,LevelId,PlateauEdge,SeatPosition,Side,TrackDistance
+BuildBases M315 | api:run | req:EggConfig | attr:MovedToWings
 BuildLevel2Festival M524 | tag:ChaseBulb,CheeringPenguin,DragonParade,SkyLantern,SpinningDecor,SwingingDecor | attr:ChaseIndex,CheerMode,CheerPhase,Cheers,PathCenter,PathRadiusX,PathRadiusZ,PathSpeed,RiseHeight,RiseSpeed,SegmentIndex,SpinAxis,SpinSpeed,SwingAmplitude
 BuildLobby M485 | req:SkinAppearance,WheelCatalog | tag:ChaseBulb,ChevronArrow,LobbyLeaderboard,LobbyWheel,PodiumMannequin,PulseGlow,SpinningDecor | attr:ChaseIndex,ChevronIndex,OpensPanel,Rank,SegmentCount,SpinSpeed | key:E
 ChristmasBuild M706 | api:finishArea,zone1,zone2,zone3,zone4,zone5,zone6,zone7,zone8 | req:Clone | tag:FinishLine | attr:Bumper
 ChristmasBuild2 M460 | api:clean,flyers,ground,shortcuts,track,world | req:Clone | tag:BoostRamp,FinishLine | attr:JumpDistance,JumpRamp,KeepSpeed
 ChristmasKit M862 | api:ball,boostPad,buildRail,building,candyCane,car,conveyor,cyl,factory,fillSides,folder,gift,gingerHouse,house,+27 | req:Clone | tag:BoostRamp | attr:Bumper,JumpDistance,JumpRamp,KeepSpeed
 ChristmasObstacles M465 | api:build | req:Clone | attr:Bumper,TrackDistance
+EndlessPieceCutter M554 | api:cut,cutObstacles,pieceIds | req:ChristmasTrack | attr:Blocked,Exit,From,Length,PathBank,PathStep,PathX,PathY,Role,SliceLength,SourceFrom,SourceTo,Theme,To,TrackDistance
+RearrangeLobby M77 | api:run | attr:RearrangedForBases
 ## ServerStorage
 ClaudeScriptDump M1270 | api:_crashInto,_holdFrame,_onRaceNotice,_playStretchFeedback,_setPhase,_step,_stepFlight,_stepSlide,_switchTo,_tumble,_updateHeading,clearFinish,detect,elapsedSeconds,+14 | req:AimCamera,AimHudPresenter,AimHudView,AimInput,AimModel,AimingMode,BodyMover,ChaseCamera,Cleaner,CrashSensor,DecorationController,DefaultCamera,FeedbackSounds,FinishPresenter,FinishView,FinishedMode,+26 | rem:AimChanged,CrashReported,DismountRequested,LaunchRequested,RaceNotice,RunStateChanged | tag:FinishLine,Hazard | attr:HazardKind
 ## ServerStorage.Respaldo_MapaViejo
+ChristmasRunClient L496 | req:Audio,AvalancheTrack,ChristmasTrack,EndlessConfig,Feedback,Remotes | rem:RaceNotice | tag:BoostRamp | attr:JumpRamp,LevelId,Offset,RunState
+ChristmasRunService M264 | api:absorbCrash,absorbHazard,closeRun,init,isOutOfHealth | req:ChristmasTrack,LevelRegistry,Remotes,RunState,RunStateService | rem:RaceNotice | attr:PenguinHealth,PenguinMaxHealth,RunZone
 ChristmasTrack_v1_old M169 | api:centerAt,frameAt,heightAt,progressAt,rescueFrame,tangentAt,widthAt,xAt,zoneIndexAt
-## StarterPlayer.StarterPlayerScripts
-ChristmasRunClient L494 | req:Audio,AvalancheTrack,ChristmasTrack,Feedback,Remotes | rem:RaceNotice | tag:BoostRamp | attr:JumpRamp,LevelId,Offset,RunState
 ## StarterPlayer.StarterPlayerScripts.Client.Aim
 AimCamera M62 | api:new,start,stop | req:AimModel,LaunchMath
 AimInput M141 | api:_beginCharge,_drag,_endCharge,_pointAt,new,start,stop | req:AimModel,Cleaner,GameConfig,Signal | key:X
@@ -87,19 +102,20 @@ TrajectoryPreview M64 | api:hide,new,render | req:LaunchMath
 FeedbackSounds M38 | api:play | req:SoundCatalog
 SoundCatalog M22
 ## StarterPlayer.StarterPlayerScripts.Client
-AvalancheCinematic M1033 | api:init | req:AvalancheModeConfig,AvalancheTrack,ChristmasTrack,LevelRegistry,RunState,SlingshotGeometry | tag:AvalancheMountain,AvalancheSiren | attr:AvalancheEventRun,BaseRate,BaseTransparency,RunState
+AvalancheCinematic M1034 | api:init | req:AvalancheModeConfig,AvalancheTrack,EndlessLayout,LevelRegistry,RunState,SlingshotGeometry | tag:AvalancheMountain,AvalancheSiren | attr:AvalancheEventRun,BaseRate,BaseTransparency,RunState
 ## StarterPlayer.StarterPlayerScripts.Client.AvalancheMode
 AvalancheModeModel M44 | api:new | req:AvalancheModeConfig,AvalancheTrack
 AvalancheModeView M102 | api:new | req:UiKit
 ## StarterPlayer.StarterPlayerScripts.Client
 AvalancheModeClient M214 | api:init | req:AvalancheModeConfig,AvalancheModeModel,AvalancheModeView,AvalancheTrack,LevelRegistry,ProfileStore,Remotes,RunState,UiKit | rem:RaceNotice | attr:RunState,TrackDistance
+BaseClient M263 | api:init | req:EggAppearance,EggCatalog,EggConfig,EggRemotes,EggText,Feedback,ProfileStore,SkinCatalog,UiKit | rem:EggNotice
 ## StarterPlayer.StarterPlayerScripts.Client.Character
 BodyMover M153 | api:destroy,face,holdAt,new,ragdoll,recover,releaseControl,setLiftEnabled,stopHolding,takeControl,teleport | req:GameConfig
 DefaultCamera M19 | api:restore
 LocalCharacter M62 | api:get,init | req:BodyMover,Signal
 LocalPose M29 | api:get,set | req:Pose,Remotes,Signal | rem:PoseChanged
 ## StarterPlayer.StarterPlayerScripts.Client.DeathScreen
-DeathScreenModel M80 | api:countdownText,fromNotice,secondsUntilReturn | req:TimeFormatter,UiKit
+DeathScreenModel M84 | api:countdownText,fromNotice,secondsUntilReturn | req:TimeFormatter,UiKit
 DeathScreenView M220 | api:new | req:DeathScreenModel,HudIcons,UiKit
 ## StarterPlayer.StarterPlayerScripts.Client
 DeathScreenClient M168 | api:init | req:DeathScreenModel,DeathScreenView,EconomyRemotes,Feedback,FeedbackSounds,LocalCharacter,Remotes,RunState | rem:DeathRespawnRequested,LaunchPadRequested,RaceNotice | attr:RunState | key:ButtonA,ButtonB,L,R
@@ -115,6 +131,22 @@ SwingingDecor M79 | api:init,update | tag:SkyLantern,SwingingDecor | attr:RiseHe
 ## StarterPlayer.StarterPlayerScripts.Client.Effects
 WorldEffects M32 | api:splash
 ## StarterPlayer.StarterPlayerScripts.Client
+EggRunClient M170 | api:init | req:EggCarryView,EggCatalog,EggConfig,EggField,EggFieldView,EggRemotes,EggText,EndlessConfig,EndlessLayout,Feedback,LevelRegistry,RunMessages,RunState,UiKit | rem:EggDropRequested,EggNotice,EggPickupRequested | attr:RunState | key:T
+## StarterPlayer.StarterPlayerScripts.Client.Eggs
+EggAppearance M79 | api:build | req:EggCatalog
+EggCarryView M77 | api:new,render,setVisible | req:EggCatalog,UiKit
+EggFieldView M115 | api:_show,clear,keyWithin,new,update | req:EggAppearance,EggCatalog,EggConfig,EggField
+EggText M31 | api:count,duration,rarityName | req:EggCatalog
+## StarterPlayer.StarterPlayerScripts.Client.Endless
+BiomeAmbience M76 | api:nameOf,restore,show | req:EndlessConfig
+BiomeArchView M123 | api:clear,new,update | req:EndlessConfig,EndlessLayout,UiKit
+ChunkStreamer M208 | api:_buildWithin,_dismantleWithin,_enqueue,_pending,_release,clear,new,update | req:EndlessCatalog,EndlessConfig,EndlessLayout
+EndlessHudModel M60 | api:crossedWarning,frostOf,isColdLoss,snapshot | req:EndlessConfig,EndlessLayout
+EndlessHudView M106 | api:new | req:EndlessHudModel,UiKit
+FrostEffect M49 | api:apply,clear,new
+RunMessages M85 | api:clear,show | req:UiKit
+## StarterPlayer.StarterPlayerScripts.Client
+EndlessClient M157 | api:init | req:BiomeAmbience,BiomeArchView,ChunkStreamer,EndlessConfig,EndlessHudModel,EndlessHudView,EndlessLayout,FrostEffect,LevelRegistry,Remotes,RunMessages,RunState,SkinCatalog | rem:RaceNotice | attr:RunState
 Feedback M112 | api:confetti,init,toast | req:UiKit
 FishPickupController M135 | api:init | req:EconomyConfig,EconomyRemotes,RunState | rem:FishCollectRequested | tag:FishPickup | attr:PickupId,RunState
 ## StarterPlayer.StarterPlayerScripts.Client.Gui
@@ -133,16 +165,17 @@ IconText M194 | api:init | req:HudIcons | attr:EmojiPure
 MoveInput M40 | api:steer | key:A,D,Left,Right,Thumbstick1
 ## StarterPlayer.StarterPlayerScripts.Client
 LeaderboardStore M70 | api:init,rows,secondsUntilReset | req:EconomyRemotes,Signal | rem:LeaderboardChanged,LeaderboardRequested
-LobbyHud M381 | api:init,open | req:AvalancheModeConfig,EconomyConfig,EconomyRemotes,EventConfig,EventRemotes,Feedback,HudIcons,HudLife,InfoPanel,LeaderboardPanel,LevelsPanel,PanelHost,ProfileStore,RunState,ShopPanel,SkinsPanel,+2 | rem:AvalancheModeRequested,LaunchPadRequested,RaceJoinRequested | attr:OpensPanel,RunState | key:B,C,Escape,F,G,H,K,L,N,P,Q,R,U,X,Y,Z | svc:ProximityPrompt
+LobbyHud M349 | api:init,open | req:AvalancheModeConfig,EconomyConfig,EconomyRemotes,EggsPanel,EventConfig,EventRemotes,Feedback,HudIcons,HudLife,InfoPanel,LeaderboardPanel,LevelsPanel,PanelHost,ProfileStore,RunState,ShopPanel,+3 | rem:AvalancheModeRequested,LaunchPadRequested | attr:OpensPanel,RunState | key:B,C,Escape,F,G,H,J,K,L,P,R,U,X,Y,Z | svc:ProximityPrompt
 LobbyLighting M73 | api:init
 Main L65 | req:AimCamera,AimHudPresenter,AimHudView,AimInput,AimModel,AimingMode,CameraFeel,ChaseCamera,DecorationController,FinishPresenter,FinishView,FinishedMode,IdleMode,LocalCharacter,PresentationController,RaceHudPresenter,+7
 PanelHost M125 | api:close,isOpen,new,open | req:HudIcons,ProfileStore,UiKit
 ## StarterPlayer.StarterPlayerScripts.Client.Panels
+EggsPanel M204 | api:build | req:EggCatalog,EggConfig,EggRemotes,EggText,Feedback,ProfileStore,UiKit | rem:BaseTravelRequested,NestActionRequested
 InfoPanel M186 | api:build | req:EconomyConfig,EconomyRemotes,Feedback,ProfileStore,UiKit | rem:BoostPurchaseRequested,DailyGiftClaimRequested | svc:Social
 LeaderboardPanel M185 | api:build | req:Feedback,LeaderboardStore,PenguinViewport,ProfileStore,UiKit | attr:TabIndex
 LevelsPanel M70 | api:build | req:EconomyRemotes,Feedback,ProfileStore,UiKit | rem:LevelTravelRequested
-ShopPanel M80 | api:build | req:EconomyConfig,EconomyRemotes,Feedback,UiKit | rem:BoostPurchaseRequested,WheelSpinPurchaseRequested
-SkinsPanel M227 | api:build,request | req:EconomyRemotes,Feedback,PenguinViewport,ProfileStore,SkinCatalog,UiKit | rem:SkinEquipRequested,SkinPurchaseRequested
+ShopPanel M156 | api:build | req:EconomyConfig,EconomyRemotes,EggCatalog,EggRemotes,EggText,Feedback,ProfileStore,ShopRotation,UiKit | rem:BoostPurchaseRequested,ShopOfferPurchaseRequested,WheelSpinPurchaseRequested
+SkinsPanel M247 | api:build,request | req:EconomyRemotes,EggCatalog,Feedback,PenguinViewport,ProfileStore,SkinCatalog,UiKit | rem:SkinEquipRequested
 WheelPanel M281 | api:build,recordWinner | req:EconomyConfig,EconomyRemotes,Feedback,HudIcons,ProfileStore,UiKit,WheelCatalog | rem:WheelSpinPurchaseRequested,WheelSpinRequested
 ## StarterPlayer.StarterPlayerScripts.Client
 PenguinViewport M113 | api:_applyYaw,destroy,new,setSkin,spin | req:SkinAppearance
@@ -153,7 +186,7 @@ PenguinEffects M198 | api:destroy,new,onPoseChanged,update | req:PenguinAnimator
 PenguinSounds M114 | api:destroy,new,onPoseChanged,update | req:PenguinAnimator,Pose,SoundCatalog
 PresentationController M61 | api:init | req:CharacterPresentation,LocalPose,Pose | attr:Pose
 ## StarterPlayer.StarterPlayerScripts.Client
-ProfileStore M61 | api:get,init,now | req:EconomyRemotes,Signal | rem:ProfileChanged,ProfileRequested
+ProfileStore M66 | api:get,init,now | req:EconomyRemotes,Signal | rem:ProfileChanged,ProfileRequested
 ## StarterPlayer.StarterPlayerScripts.Client.Race
 BoostRampSensor M46 | api:detect,new | req:GameConfig
 CameraFeel M81 | api:addTrauma,kickFieldOfView,new,reset,sample,setFieldOfViewBias,setRoll,setRumble
@@ -173,11 +206,12 @@ GroundProbe M36 | api:new,probe | req:GameConfig
 RaceModel M70 | api:clearFinish,elapsedSeconds,finish,new,reportSpeed,speed,start,stop | req:Signal
 SlideMotor M250 | api:_speedCap,_updateHeading,boost,boostFraction,groundNormal,new,requestJump,resetHeading,step | req:BodyMover,GameConfig,GroundProbe,LevelRegistry,PenguinOrientation
 SpeedEffects M223 | api:setBoost,start,stop | req:GameConfig
+TrackGuide M45 | api:at | req:EndlessConfig,EndlessLayout,LevelRegistry
 ## StarterPlayer.StarterPlayerScripts.Client.Run.Modes
 AimingMode M142 | api:_holdFrame,_playStretchFeedback,_step,enter,exit,new | req:AimCamera,AimInput,AimModel,Cleaner,FeedbackSounds,LaunchMath,LevelRegistry,LocalCharacter,LocalPose,PenguinOrientation,Pose,Remotes,SlingshotBandController,SlingshotGeometry,TrajectoryPreview | rem:AimChanged,DismountRequested,LaunchRequested
 FinishedMode M59 | api:enter,exit,new | req:DefaultCamera,FeedbackSounds,GameConfig,LocalCharacter,LocalPose,Pose,RaceModel
 IdleMode M36 | api:enter,exit,new | req:DefaultCamera,LocalCharacter,LocalPose,Pose
-RacingMode M471 | api:_absorbHit,_assistSteer,_bounceOff,_crashInto,_onRaceNotice,_recoverAt,_scheduleRecover,_setPhase,_step,_stepFlight,_stepSlide,_tumble,_updateFeel,enter,+2 | req:AvalancheModeConfig,AvalancheTrack,BoostRampSensor,CameraFeel,ChaseCamera,ChristmasTrack,Cleaner,CrashSensor,FeedbackSounds,GameConfig,GroundProbe,LevelRegistry,LocalCharacter,LocalPose,MoveInput,PenguinOrientation,+7 | rem:CrashReported,RaceNotice | attr:Bumper
+RacingMode M468 | api:_absorbHit,_assistSteer,_bounceOff,_crashInto,_onRaceNotice,_recoverAt,_scheduleRecover,_setPhase,_step,_stepFlight,_stepSlide,_tumble,_updateFeel,enter,+2 | req:AvalancheModeConfig,AvalancheTrack,BoostRampSensor,CameraFeel,ChaseCamera,Cleaner,CrashSensor,FeedbackSounds,GameConfig,GroundProbe,LevelRegistry,LocalCharacter,LocalPose,MoveInput,PenguinOrientation,Pose,+7 | rem:CrashReported,RaceNotice | attr:Bumper
 ## StarterPlayer.StarterPlayerScripts.Client.Run
 RunController M54 | api:_switchTo,new,start | req:LocalCharacter,Remotes,RunState | rem:RunStateChanged
 ## StarterPlayer.StarterPlayerScripts.Client
@@ -197,7 +231,8 @@ ServerStorage.Packages.DataKit scripts=16 lineas=2560
 # etiquetas
 AvalancheMountain 2 | N1=1 N2=1 | Folder | PlateauEdge{140/38160}
 AvalancheSiren 2 | N1=1 N2=1 | Part |
-BoostRamp 46 | N1=46 | Part |
+BaseNest 72 | N1=72 | Part | NestIndex{6 valores}
+BoostRamp 0 | solo en ejecucion o sin usar
 BreakableWindow 0 | solo en ejecucion o sin usar
 ChaseBulb 243 | N1=243 | Part | ChaseIndex{47 valores}
 CheeringPenguin 17 | N1=16 N2=1 | Model | CheerMode{wave} CheerPhase{16 valores} Cheers{true}
@@ -206,79 +241,32 @@ CuteArch 1 | N1=1 | Model |
 CuteIgloo 1 | N1=1 | Model |
 CutePenguin 8 | N1=8 | Model |
 DragonParade 0 | solo en ejecucion o sin usar
-FinishLine 2 | N1=1 N2=1 | Part |
+FinishLine 1 | N2=1 | Part |
 FishEnd 1 | N2=1 | Part |
 FishPickup 0 | solo en ejecucion o sin usar
-FlickeringFlame 38 | N1=38 | Part |
+FlickeringFlame 19 | N1=19 | Part |
 Hazard 0 | solo en ejecucion o sin usar
 HouseShell 0 | solo en ejecucion o sin usar
 LobbyLeaderboard 1 | N1=1 | Model |
 LobbyWheel 1 | N1=1 | Model | SegmentCount{12}
 PlateauSpawn 2 | N1=1 N2=1 | Part,SpawnLocation |
+PlayerBase 12 | N1=12 | Model | PlotIndex{12 valores}
 PodiumMannequin 3 | N1=3 | Model | Rank{1/2/3} SkinId{classic}
-PulseGlow 36 | N1=36 | Part |
-ReturnPortal 2 | N1=1 N2=1 | Part | DestinationLevel{1}
+PulseGlow 19 | N1=19 | Part |
+ReturnPortal 1 | N2=1 | Part | DestinationLevel{1}
 SkyLantern 0 | solo en ejecucion o sin usar
 Slingshot 2 | N1=1 N2=1 | Model | AimPitch{0} AimPull{0} AimYaw{0} DismountPosition{(-20000,6552,38046)/(0,608.5,26)} LaunchForward{(0,0,-1)} SeatPosition{(-20000,6583,38040)/(0,638.8,20)}
-SpinningDecor 16 | N1=16 | Model | SpinSpeed{13 valores}
+SpinningDecor 12 | N1=12 | Model | SpinSpeed{12 valores}
 SwingingDecor 3 | N1=3 | Model | SwingAmplitude{0.08/0.12}
 # niveles
-## N1 PenguinSlingshotMap_v01 | instancias=92257 partes=86362 conColision=15158 | min(-2253,-4229,-20500) max(4000,1691,416)
-hijos: AvalancheMountain[Folder]226 · ChristmasRun[Folder]86627 · FestiveDecoration[Folder]1027 · Lobby[Folder]3674 · PlateauFence[Part]0 · PlateauFence[Part]0 · PlateauFence[Part]0 · ReturnPortalGate[Model]574 · SlingshotDecor[Model]52 · Slingshot[Model]61 · Terrain[Folder]4 · WaitingPenguins[Folder]0
+## N1 PenguinSlingshotMap_v01 | instancias=5747 partes=4718 conColision=2592 | min(-582,163,-10) max(501,821,416)
+hijos: AvalancheMountain[Folder]226 · FestiveDecoration[Folder]1027 · Lobby[Folder]4367 · PlateauFence[Part]0 · PlateauFence[Part]0 · PlateauFence[Part]0 · SlingshotDecor[Model]52 · Slingshot[Model]61 · Terrain[Folder]4 · WaitingPenguins[Folder]0
 PlateauSpawn: Lobby.PlateauSpawn [SpawnLocation] pos(0,601,110) size(30,1,30)
 Slingshot: Slingshot [Model] pos(0,614,20) AimPitch=0,AimPull=0,AimYaw=0,DismountPosition=(0,608.5,26),LaunchForward=(0,0,-1),SeatPosition=(0,638.8,20)
-FinishLine: ChristmasRun.Meta_AldeaDeSanta.FinishLine [Part] pos(0,-3569,-16370) size(128,0,4)
-ReturnPortal: ReturnPortalGate.ReturnPortalTrigger [Part] pos(0,-3575,-16648) size(11,22,2) DestinationLevel=1
-BoostRamp: ChristmasRun.Zona6_TallerDeJuguetes.Gameplay.Turbo.BoostPad [Part] pos(-37,-1884,-9500) size(30,1,22)
-BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(0,-3261,-14430) size(30,1,22)
-BoostRamp: ChristmasRun.Zona4_Centro.Gameplay.Turbo.BoostPad [Part] pos(32,-1195,-6970) size(30,1,22)
-BoostRamp: ChristmasRun.Zona5_GarajeDeSanta.Gameplay.Turbo.BoostPad [Part] pos(-176,-1457,-8060) size(30,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo8_juguetes.BoostPad [Part] pos(46,-2215,-10678) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo5_callejon.BoostPad [Part] pos(18,-900,-5751) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo9_salto.BoostPad [Part] pos(-74,-2566,-12008) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo6_parque.BoostPad [Part] pos(15,-1153,-6781) size(16,1,22)
-BoostRamp: ChristmasRun.Zona3_PuebloNavideno.Gameplay.Turbo.BoostPad [Part] pos(-143,-723,-4970) size(30,1,22)
-BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(-169,-2450,-11546) size(26,1,22)
-BoostRamp: ChristmasRun.Zona3_PuebloNavideno.Gameplay.Turbo.BoostPad [Part] pos(177,-468,-3888) size(24,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo7_juguetes.BoostPad [Part] pos(-43,-1979,-9891) size(16,1,22)
-BoostRamp: ChristmasRun.Zona4_Centro.Gameplay.Turbo.BoostPad [Part] pos(-186,-1062,-6369) size(24,1,22)
-BoostRamp: ChristmasRun.Zona3_PuebloNavideno.Gameplay.Turbo.BoostPad [Part] pos(208,-469,-3892) size(24,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo1_pinos.BoostPad [Part] pos(71,422,-628) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo7_juguetes.BoostPad [Part] pos(1,-1920,-9648) size(16,1,22)
-BoostRamp: ChristmasRun.Zona2_BosqueDeBastones.Gameplay.Turbo.BoostPad [Part] pos(206,19,-2170) size(30,1,22)
-BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(-210,-2444,-11533) size(26,1,22)
-BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(121,-2789,-12720) size(26,1,22)
-BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(148,-2645,-12321) size(26,1,22)
-BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(192,-2644,-12318) size(26,1,22)
-BoostRamp: ChristmasRun.Zona7_AutopistaPolar.Gameplay.Turbo.BoostPad [Part] pos(-191,-2907,-13120) size(26,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo8_juguetes.BoostPad [Part] pos(7,-2274,-10921) size(16,1,22)
-BoostRamp: ChristmasRun.Zona4_Centro.Gameplay.Turbo.BoostPad [Part] pos(84,-959,-5950) size(30,1,22)
-BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(-16,-3315,-14770) size(24,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo3_hielo.BoostPad [Part] pos(-29,-281,-3231) size(16,1,22)
-BoostRamp: ChristmasRun.Zona1_ColinaNevada.Gameplay.Turbo.BoostPad [Part] pos(164,415,-660) size(30,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo2_hielo.BoostPad [Part] pos(52,10,-2201) size(16,1,22)
-BoostRamp: ChristmasRun.Zona6_TallerDeJuguetes.Gameplay.Turbo.BoostPad [Part] pos(-115,-2023,-10075) size(24,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo6_parque.BoostPad [Part] pos(-77,-1099,-6538) size(16,1,22)
-BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(0,-3376,-15150) size(30,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo1_pinos.BoostPad [Part] pos(-32,368,-871) size(16,1,22)
-BoostRamp: ChristmasRun.Zona6_TallerDeJuguetes.Gameplay.Turbo.BoostPad [Part] pos(-145,-2025,-10084) size(24,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo3_hielo.BoostPad [Part] pos(-59,-217,-2988) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo4_callejon.BoostPad [Part] pos(-38,-655,-4721) size(16,1,22)
-BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(16,-3315,-14770) size(24,1,22)
-BoostRamp: ChristmasRun.Zona5_GarajeDeSanta.Gameplay.Turbo.BoostPad [Part] pos(-212,-1532,-8327) size(24,1,22)
-BoostRamp: ChristmasRun.Zona5_GarajeDeSanta.Gameplay.Turbo.BoostPad [Part] pos(-183,-1528,-8313) size(24,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo2_hielo.BoostPad [Part] pos(0,103,-1958) size(16,1,22)
-BoostRamp: ChristmasRun.Zona5_GarajeDeSanta.Gameplay.Turbo.BoostPad [Part] pos(21,-1609,-8600) size(30,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo9_salto.BoostPad [Part] pos(36,-2624,-12251) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo10_salto.BoostPad [Part] pos(-22,-2950,-13281) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo10_salto.BoostPad [Part] pos(23,-2872,-13038) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo5_callejon.BoostPad [Part] pos(34,-846,-5508) size(16,1,22)
-BoostRamp: ChristmasRun.Atajos.Atajo4_callejon.BoostPad [Part] pos(26,-602,-4478) size(16,1,22)
-BoostRamp: ChristmasRun.Zona8_PuenteDelPuerto.Gameplay.Turbo.BoostPad [Part] pos(0,-3424,-15450) size(30,1,22)
-LobbyWheel: Lobby.LuckyWheel.LobbyWheel [Model] pos(-92,625,72) SegmentCount=12
-LobbyLeaderboard: Lobby.HallOfFame.LobbyLeaderboard [Model] pos(101,626,62)
+LobbyWheel: Lobby.LuckyWheel.LobbyWheel [Model] pos(-78,625,139) SegmentCount=12
+LobbyLeaderboard: Lobby.HallOfFame.LobbyLeaderboard [Model] pos(0,626,150)
 Hazard: ninguno
-Lobby: ChevronRoad(-5,600,66) · EventPedestal(-58,617,129) · HallOfFame(100,643,68) · LevelsPortal(-8,629,150) · LobbyDecor(-119,607,80) · LuckyWheel(-83,603,81) · MostPopular(64,602,32) · PenguinCampfire(-33,603,101) · PenguinCampfire2(35,603,99) · PlateauSpawn(0,601,110) · Shop(62,601,136)
+Lobby: Bases(-144,600,80) · ChevronRoad(0,600,66) · HallOfFame(17,611,149) · LobbyDecor(-166,607,80) · LuckyWheel(-65,603,139) · MostPopular(54,603,37) · PenguinCampfire(-33,603,101) · PenguinCampfire2(35,603,99) · PlateauSpawn(0,601,110) · Shop(62,608,145)
 ## N2 AvalancheMode | instancias=14726 partes=14468 conColision=633 | min(-21080,-6437,-39376) max(-18911,6765,38436)
 hijos: AvalancheMountain[Folder]226 · Finale[Model]127 · GroundTexture[Folder]9563 · Obstacles[Folder]1000 · Plateau[Folder]12 · ReturnPortalGate[Model]574 · Scenery[Folder]2636 · SlingshotDecor[Model]52 · Slingshot[Model]61 · Track[Folder]465
 PlateauSpawn: Plateau.PlateauSpawn [Part] pos(-20000,6545,38120) size(30,1,30)
@@ -292,10 +280,80 @@ fuera de niveles: Baseplate[Part](0,-8,0) · SpawnLocation[SpawnLocation](0,1,0)
 ## prompts
 N1 PenguinSlingshotMap_v01.Lobby.LuckyWheel.LobbyWheel.Base | Girar · Ruleta de la suerte | tecla=E dist=26 OpensPanel=wheel
 N1 PenguinSlingshotMap_v01.Lobby.HallOfFame.PromptAnchor | Ver tabla · Salón de la fama | tecla=E dist=22 OpensPanel=leaderboard
-N1 PenguinSlingshotMap_v01.Lobby.EventPedestal.PromptAnchor | Ver · Skin del evento | tecla=E dist=18 OpensPanel=event
 N1 PenguinSlingshotMap_v01.Lobby.MostPopular.PromptAnchor | Ver skins · Más populares | tecla=E dist=18 OpensPanel=skins
-N1 PenguinSlingshotMap_v01.Lobby.LevelsPortal.Swirl | Elegir nivel · Portal de niveles | tecla=E dist=18 OpensPanel=levels
 N1 PenguinSlingshotMap_v01.Lobby.Shop.PromptAnchor | Abrir · Tienda | tecla=E dist=16 OpensPanel=shop
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base06.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base06.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base06.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base06.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base06.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base06.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=8
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=8
 N1 PenguinSlingshotMap_v01.Slingshot.Frame.Trunk.MountPromptAttachment | Subirse · Resortera | tecla=E dist=24
 N2 AvalancheMode.Slingshot.Frame.Trunk.MountPromptAttachment | Subirse · Resortera | tecla=E dist=24
 ## StarterGui
@@ -313,7 +371,7 @@ ClaudeScriptDump[ModuleScript]
 BuildAvalancheMountains[ModuleScript]
 BuildStalls[ModuleScript]
 PluginCurves[Folder]
-ClaudeBuild[Folder] BuildLevel2Festival,BuildLobby,ChristmasKit,ChristmasBuild,ChristmasBuild2,ChristmasObstacles,+1
+ClaudeBuild[Folder] BuildLevel2Festival,BuildLobby,ChristmasKit,ChristmasBuild,ChristmasBuild2,ChristmasObstacles,+4
 Packages[Folder] DataKit
 DevTools[Folder] PlaceMap,GroundTexturer
 MountainLookBackup[Folder] Workspace.PenguinSlingshotMap_v01.AvalancheMountain.PeakFront,Workspace.PenguinSlingshotMap_v01.AvalancheMountain.PeakBack,Workspace.PenguinSlingshotMap_v01.AvalancheMountain.PeakFront,Workspace.PenguinSlingshotMap_v01.AvalancheMountain.PeakBack,Workspace.PenguinSlingshotMap_v01.AvalancheMountain.Flank,Workspace.PenguinSlingshotMap_v01.AvalancheMountain.PeakBack,+17
@@ -321,4 +379,4 @@ CuteModels[Folder] CutePenguinTall,CutePenguinStand,CuteArch,CutePenguinSit,Cute
 CuteReplacedBackup[Folder] SittingPenguin,TallPenguin,LeftPenguin,Igloo,Igloo,WelcomeArch
 LobbyDecorBackup[Folder] FencePennants,Pine,Pine,Pine,Pine,Guide_WaitingLine
 LobbyQuitado[Folder] Jardin3,Jardin4,Jardin5,Jardin6,ArbolitoMaceta,ArbolitoMaceta,+98
-Respaldo_MapaViejo[Folder] ChristmasTrack_v1_old,Niveles2a5,Nivel1_Bajada_Terrain,Nivel1_Bajada,Nivel1_Festive_Crowd,Nivel1_Festive_Lights,+6
+Respaldo_MapaViejo[Folder] ChristmasTrack_v1_old,Niveles2a5,Nivel1_Bajada_Terrain,Nivel1_Bajada,Nivel1_Festive_Crowd,Nivel1_Festive_Lights,+11

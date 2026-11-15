@@ -3,7 +3,7 @@ tipo: decision
 id: D-027c
 fecha: 2026-11-14
 autor: ciervo
-estado: vigente
+estado: reemplazada por D-050a
 tema: niveles
 ---
 # D-027c · La pista navideña reemplaza a los niveles 1 a 5

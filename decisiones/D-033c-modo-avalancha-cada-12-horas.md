@@ -3,7 +3,7 @@ tipo: decision
 id: D-033c
 fecha: 2026-11-14
 autor: ciervo
-estado: vigente
+estado: vigente (cambia con D-051a: pasará a ser un evento)
 tema: modos,eventos
 ---
 # D-033c · Modo Avalancha cada 12 horas

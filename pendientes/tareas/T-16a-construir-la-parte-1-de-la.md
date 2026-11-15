@@ -3,22 +3,22 @@ tipo: tarea
 id: T-16a
 fecha: 2026-11-15
 autor: angel
-estado: pendiente
+estado: en curso
 grupo: construir
 ---
 # T-16a · Construir la parte 1 de la progresión
 - hecho cuando: 
 - bloqueada por: 
 Orden acordado en D-044a. Parte 1, según D-038a, D-040a, D-041a, D-042a, D-045a y D-047a:
-- [ ] Generador compartido con semilla semanal (`ReplicatedStorage`): devuelve por chunk las piezas, obstáculos, peces y huevos; el servidor lo usa para validar sin construir.
-- [ ] Cliente que arma y borra chunks alrededor del jugador.
-- [ ] Piezas de los 3 biomas: cortar la pista navideña (`Shared.ChristmasTrack`) y sacar tramos de Ciudad Nevada y Valle del Avión del respaldo.
-- [ ] Arco de fin de bioma y cambio de ambiente.
-- [ ] Frío: la vida baja con la distancia; quitar la curación de las zonas (D-048a).
-- [ ] Huevos en el mapa (1 a 3 por bioma, rareza por distancia), cargarlos (slots), tirarlos, perderlos al morir, asegurarlos en el arco.
-- [ ] Incubación por tiempo guardada en DataKit, con multiplicador de evento solo en línea.
-- [ ] Tienda rotativa (huevos y resorteras con peces); resortera de premio en la ruleta y al pasar cada arco por primera vez (D-048a).
-- [ ] Estadísticas del pingüino (Vida, Abrigo, Resistencia) e Impulso de la resortera.
+- [x] Hecho (D-049a, D-050a): generador con semilla semanal, pista armada en el cliente por distancia recorrida, 9 piezas navideñas, obstáculos, frío sin curación, pantalla de muerte, y la bajada infinita como modo normal del lobby.
+- [ ] Piezas de Ciudad Nevada y Valle del Avión, sacadas del respaldo.
+- [x] Arco (D-053a) y cambio de ambiente (D-054a). Falta la música.
+- [x] Huevos en el mapa, cargarlos, tirarlos, perderlos al morir y asegurarlos al cambiar de bioma (D-052a). El arco ya está (D-053a).
+- [x] Bases con nidos e incubación por tiempo guardada en DataKit (D-052a). Falta el multiplicador de evento.
+- [x] Tienda rotativa de huevos (D-054a). Faltan las resorteras: tienda, ruleta y premio del arco (D-048a).
+- [ ] Impulso de la resortera. Las estadísticas del pingüino ya funcionan con valores sin aprobar (Q-27a).
 - [ ] Gamepasses de slots e incubadora (precios configurables).
-- [ ] El generador trabaja por distancia recorrida, no por posición del mundo (para resolver la precisión después).
-Antes de empezar, conviene resolver lo que queda de Q-28a, Q-29a y Q-30a que afecta la parte 1.
+- [ ] Peces repartidos por el generador (hoy no se gana ninguno bajando, Q-33a).
+- [ ] Récord de distancia.
+- [ ] Probar la bajada infinita a mano, en celular y con dos jugadores.
+Hecho el 2026-11-14: D-049a y D-050a; obstáculos con peralte, estadísticas por skin, avisos de frío, huevos y bases (D-052a). Siguiente: definir el evento de avalancha (Q-34a); luego peces del generador, arco y cambio de ambiente, huevos.

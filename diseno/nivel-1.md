@@ -1,93 +1,70 @@
 ---
 tipo: nivel
 nivel: 1
-nombre: Pista navideña
+nombre: Bajada infinita
 folder: Workspace.PenguinSlingshotMap_v01
 origen_x: 0
 base_y: 600
-verificado: 2026-11-14 (leído en Studio en modo edición: ChristmasTrack, ChristmasRunService y carpetas; no se jugó)
+verificado: 2026-11-14 (escrito y probado en Play: lanzamiento desde el lobby, ~5,800 studs con bot, choques, frío, cambio de bioma, pantalla de muerte, REINTENTAR y regreso solo al lobby, estadísticas de la skin Glacial y avisos de frío; obstáculos y props revisados con rayos sobre las 9 piezas; huevos levantados, tirados y asegurados con bot; nadie lo jugó a mano)
 ---
-# Nivel 1 · Pista navideña
+# Nivel 1 · Bajada infinita (D-045a, D-050a)
 
-Coordenadas reales, etiquetas y carpetas: `grep -n "N1" place/mapa-place.md`. Z del plano = -Z del mundo.
+Es la bajada del juego: sale de la resortera del lobby (D-050a). La pista navideña de antes (D-027c) está guardada en `ServerStorage.Respaldo_MapaViejo.ChristmasRun`; su ficha anterior está en el historial de git. En Workspace el nivel solo tiene la meseta, el lobby (D-014), la resortera y la montaña de la avalancha.
 
-Desde el 2026-11-14 el N1 es una sola bajada larga, `ChristmasRun` (D-027c). La hizo ciervo con otra sesión de Claude; los números y el diseño de zonas los eligió Claude (sin aprobar). La pista anterior "Pico Pingüino" (D-009, D-023c) se descartó; sigue guardada en `ServerStorage.Respaldo_MapaViejo.Nivel1_Bajada`.
+## Cómo se juega
+- La pista no existe en el servidor. Cada cliente la arma alrededor del jugador (`EndlessConfig.Streaming`) con piezas de `ReplicatedStorage.EndlessPieces` y la borra al pasar. Desde el lobby se ve el inicio. El orden sale de la semilla de la semana, igual para todos (D-045a).
+- Empieza en `EndlessConfig.WorldOrigin`, el mismo punto donde empezaba la pista navideña, y baja hacia -Z. Sin meta ni portal.
+- La vida máxima es la Vida de la skin puesta, sin curación (D-048a). El frío quita `EndlessConfig.Cold.DamagePerStud` por stud y crece `Cold.GrowthPerBiome` en cada bioma (D-038a). Choque: `Damage.Crash`. Caída: `Damage.Fall` y rescate sobre la pista. Nada quita vida hasta aterrizar del lanzamiento (D-030c).
+- Sin vida: pantalla de muerte (D-037a) con la causa (choque, caída o frío), bioma, distancia, tiempo, peces, velocidad máxima y golpes; REINTENTAR o LOBBY.
+- HUD propio: distancia, barra de vida, bioma y velocidad. Los mensajes (bioma nuevo, te estás congelando, huevos) son solo texto, sin fondo, y salen de uno en uno (D-053a).
+- Cada bioma termina en un arco que cruza la calle con el nombre del siguiente bioma; al cruzarlo tus huevos quedan a salvo (D-047a, D-053a). No hay último bioma: siguen sin fin. Al cruzar cambia el ambiente (hora, luz y tinte, `EndlessConfig.Ambience`): del bioma 2 en adelante atardecer, noche y aurora en ciclo; en el lobby vuelve al normal (D-054a).
+- Para que se note el frío: una línea dice cuánta vida quita cada 100 m, cada punto perdido flota junto a la barra, sale "¡TE ESTÁS CONGELANDO!" al cruzar `EndlessConfig.Cold.WarningFractions`, y bajo `Cold.FrostStartsBelow` la pantalla se escarcha por los bordes y el pingüino se pone azulado, más mientras menos vida queda.
+- Un bioma mide al menos `EndlessConfig.Biome.MinimumLength` y termina donde acaba una pieza. Por ahora todos son el navideño (`Biome.ThemeRotation`).
+- Las estadísticas del pingüino (D-039a) salen de la skin puesta (`SkinCatalog`, campo `stats`): Vida, Abrigo (menos frío) y Resistencia (menos daño por choque; la caída no cambia). Con 100 de Abrigo o Resistencia el daño baja a la mitad. Los valores de las 5 skins son de Claude, sin aprobar (Q-27a). El Impulso de la resortera no existe todavía.
+- La avalancha (D-029c) sigue: cinemática al subirse y ola que persigue al inicio.
 
-## Lo que hay en Studio
-- La meseta de spawn, el lobby (D-014), la resortera y el portal no cambiaron. La bajada empieza en Z -20 (Y 556) y la meta está en Z -16370 (Y ≈ -3569): ~16,350 studs de largo y ~4,100 de desnivel. Portal en Z -16648; lleva al mismo N1.
-- La forma la define `Shared.ChristmasTrack`: pendiente por zona más 16 "caídas" más empinadas (`Drops`), curvas de dos ondas de hasta ±230 en X, calle de `ChristmasTrack.RoadWidth` con barandales suaves (la Autopista es más ancha). Detalle técnico → [[sistemas]] § Pista navideña.
-- `KillHeight` del folder: -7000.
+## Huevos en la bajada (D-040a, D-041a, D-042a)
+- En cada bioma salen de `EggConfig.Spawn.MinimumPerBiome` a `Spawn.MaximumPerBiome` huevos, flotando sobre la pista con un haz de luz de su color. La rareza sale de `EggConfig.RarityWeightsByBiome`: en el bioma 1 todos comunes, y más lejos se van quitando las rarezas bajas.
+- Se levanta al pasar cerca. Llevas `EggConfig.Carry.BaseSlots` a la vez (el gamepass dará más); se ven abajo a la izquierda. T, o el botón TIRAR, tira el que llevas para poder levantar otro.
+- Al entrar al siguiente bioma los huevos que llevas quedan asegurados y pasan a tu base. Si te quedas sin vida antes, se pierden.
+- Claude eligió (sin aprobar): los huevos de cada bajada se sortean al lanzarte (posición, cuántos y rareza), no salen de la semilla de la semana, para que nadie se aprenda dónde sale el raro; la tabla de probabilidades; la tecla T.
+- Falta: el gamepass de cupo y la tecla en control.
 
-| Zona | Empieza a (studs) | Pendiente | Premio (peces) |
-|---|---|---|---|
-| 1 Colina Nevada | 0 | 0.22 | — |
-| 2 Bosque de Bastones | 1950 | 0.26 | 20 |
-| 3 Pueblo Navideño | 3750 | 0.22 | 25 |
-| 4 Centro de la Ciudad | 5850 | 0.22 | 30 |
-| 5 Garaje de Santa | 7950 | 0.28 | 35 |
-| 6 Taller de Juguetes | 9300 | 0.24 | 40 |
-| 7 Autopista Polar | 11400 | 0.24 | 45 |
-| 8 Puente del Puerto | 14250 | 0.16 | 60 |
-| Meta Aldea de Santa | 16350 | 0.07 | 200 + vida/2 |
+## Piezas del bioma navideño
+Cortadas de la pista navideña en puntos donde iba recta hacia -Z (las crestas de las curvas), para encadenarlas solo moviéndolas. Cada pieza va partida en rebanadas de 100 studs.
 
-- Cada zona tiene carpeta `Zona<N>_<Nombre>` con edificios, faroles, pinos, puestos, `Obstaculos` (9 pilas de regalos en total) y `Gameplay` (pads de turbo `BoostRamp`). 4,527 partes con atributo `Bumper` (rebotan sin chocar).
-- `Atajos`: 10 caminos rectos de 22 de ancho que cortan por dentro de las curvas (pinos, hielo, callejón, parque, juguetes, salto), algunos con turbo y rampas de salto. Ninguno en el Garaje ni en el Puente.
-- Vida: 100; choque −25, caída −20 (te rescata sobre la pista), +35 al entrar a cada zona. Sin vida, eliminado.
-- Peces en 5 carriles (`EconomyConfig.Fish.Lanes`) que siguen las curvas, y una fila de peces a lo largo de cada atajo como premio.
-
-## Obstáculos de la pista (D-031c)
-En `ObstaculosPista`, una carpeta por zona; cada obstáculo lleva `TrackDistance` (studs desde el inicio). Chocar con su caja invisible quita vida. Siempre queda un paso libre de ≥ 18 y entre uno y otro hay al menos 150 studs (115 en la recta final).
-
-| Zona | Cuántos | Qué |
+| Pieza | Studs de la pista navideña | Zonas |
 |---|---|---|
-| 1 Colina | 4 | montículos para saltar, muñecos de nieve |
-| 2 Bosque | 8 | bastones caídos a media calle, esferas gigantes, un montículo |
-| 3 Pueblo | 8 | puestos en la calle, trineos estacionados, pilas de cajas |
-| 4 Centro | 9 | vallas de obra, árboles de glorieta al centro, bancas |
-| 5 Garaje | 5 | trineos en fila, conos, rampa de salto |
-| 6 Taller | 8 | soldados de juguete, cubos, bandas cruzadas |
-| 7 Autopista | 11 | quitanieves, trineos descompuestos, cajas, conos |
-| 8 Puente (recta final) | 13 | slalom de filas de cajas de carga alternando lado, postes en las orillas, vallas, quitanieves |
+| Start (solo al inicio) | 0–1305 | Colina, con la zona ancha de aterrizaje |
+| CandyForestEntry | 1305–2243 | Colina → Bosque |
+| CandyForest | 2243–3159 | Bosque |
+| TownSquare | 5684–6423 | Pueblo → Centro |
+| Downtown | 6423–7255 | Centro |
+| DowntownGarage | 7255–8193 | Centro → Garaje |
+| SantaGarage | 8193–9109 | Garaje |
+| GarageWorkshop | 9109–9774 | Garaje → Taller |
+| ToyWorkshop | 9774–10698 | Taller |
 
-Posiciones exactas: `TrackDistance` de cada modelo en Studio.
+- Llevan calle, rieles, suelo, edificios, decoración, turbos, topes, rampas y pilas de regalos. No llevan atajos (los huecos del riel se rellenaron), arcos de zona ni los obstáculos sueltos.
+- Fuera: la zona 7 (calle más ancha), el tramo 3159–5684 (el más pesado) y el Puente.
+- Obstáculos: 45 modelos de las zonas 1 a 6. El generador los reparte según `EndlessConfig.Obstacles` y evita los turbos, rampas y pilas de cada pieza. La calle navideña tiene peralte en las curvas: cada obstáculo se apoya inclinado igual que la calle (antes quedaban volando de un lado).
+- Peso: ~38,400 instancias en `ReplicatedStorage`; en juego hay ~6,000 armadas a la vez. Workspace bajó de ~107,000 a ~19,800 instancias.
 
-## Eventos en la bajada (D-032c)
-| Dónde | Evento | Qué pasa |
-|---|---|---|
-| 2 Bosque | Tormenta de nieve | casi no se ve unos 700 studs; los obstáculos de la zona brillan |
-| 2, 3, 4, 6 o 7 (a veces) | Trineo dorado | baja más lento que tú; si lo tocas, turbo y peces |
-| 5 Garaje | Duendes | te persiguen; si vas lento te alcanzan (máx. 3 veces) y te quitan pocos peces |
-| 6 Taller | Desfile de juguetes | 2 filas de 3 soldados cruzan la calle de lado a lado; chocar quita vida |
-| 8 Puente | Santa | pasa volando y suelta 6 regalos con sombra; agarrarlos da peces |
-| toda la pista | Avalancha del evento | si te lanzas durante el evento, la ola te persigue toda la bajada (x2 peces) |
-| toda la pista | Nevada de peces | durante el evento, lluvia de peces y todos valen x2 |
-| salida | Carrera programada | los inscritos salen juntos; premio a los 3 primeros |
+## Lo que ya no hay (D-050a, Q-33a)
+Meta, portal de regreso, premios por zona y por llegar, peces en la bajada, atajos, curación, el mar y las montañas del fondo, el HUD navideño (cronómetro grande, récord de velocidad, trucos en el aire). Eventos de la bajada y carrera programada: en pausa.
 
-## Suelo
-Sin `GroundTexture`: la ladera `Ground` y la calle son lisas → T-13c (D-025c).
+## Falta (T-16a)
+Peces repartidos por el generador, música por bioma (D-047a), biomas Ciudad Nevada y Valle del Avión, tienda, Impulso de la resortera, gamepasses y récord de distancia.
 
 ## Sin probar
-Todo: no hay una bajada registrada → T-14c.
+- Jugado a mano, con control y en celular. Dos jugadores a la vez. La caída con rescate. El cambio de semana con alguien bajando.
+- Más allá de ~6,000 studs. Límites lejanos: `FallenPartsDestroyHeight` (-9000) se alcanza cerca de los 40,000 studs y la precisión falla hacia los 100,000 (D-048a).
+- Rendimiento en celular: en la Mac fue 60 fps y el cuadro más lento 21–64 ms.
 
-## Resortera (modelo v0.2, se clona a los demás niveles)
-- Prototipo: https://claude.ai/artifact/DZuHEQHahKa4aUhb15QQTH
-- Plataforma octagonal de piedra 24×4×24, tronco 6×13×6, horquilla 12×5×7, brazos 5×16×5 inclinados 18°, altura total ≈ 41. Liga doble roja. Alrededor: escalones, cajas, farol, bandera, letrero y pingüinos en fila.
-- En Studio: `Slingshot` (etiqueta y atributos de asiento), `SlingshotDecor`, `WaitingPenguins`.
-- El artefacto usa otros controles y valores que el juego; mandan D-005 y `GameConfig.Slingshot`.
-
-## Decoración festiva (D-013)
-- Artefacto: https://claude.ai/artifact/YGbXEhC78CCans6p68xAeE
-- En `FestiveDecoration` quedan solo restos (~1,000 instancias, sobre todo en la meseta); casi todo se movió a `ServerStorage.Respaldo_MapaViejo` (`Nivel1_Festive_*`) junto con la pista vieja.
-
-## Portal
-- Estilo Hielo: https://claude.ai/artifact/N9dQzZxestQoVsSauFWXXW · `ReturnPortalGate`. Ahora está al final de la pista navideña y lleva al mismo N1.
-
-## Avalancha (D-029c)
-- `AvalancheMountain` volvió detrás de la meseta (montaña, cornisa, torre con sirena). Al subirse a la resortera, cinemática; al lanzarse, la ola persigue ~11 s siguiendo la pista, luego se queda atrás y desaparece; en la meta, cierre "¡SOBREVIVISTE!". Es visual: no quita vida. Detalle: [[sistemas]] § Avalancha.
-
-## Lobby
-Objetos y paneles: [[lobby-economia]].
-
-## Reconstrucción
-- Pista navideña: `ServerStorage.ClaudeBuild.ChristmasKit` (piezas), `ChristmasBuild` (zonas 1–8 y meta) y `ChristmasBuild2` (suelo, calle, atajos, mundo). No están en el vault.
-- Pista vieja: `archivo/construccion/` (`BuildMap_v01.lua` y siguientes) o el respaldo en ServerStorage.
+## Reconstrucción de las piezas
+```lua
+local cutter = require(game.ServerStorage.ClaudeBuild.EndlessPieceCutter:Clone())
+for _, id in cutter.pieceIds() do cutter.cut(id) end
+cutter.cutObstacles()
+```
+Rehace `ReplicatedStorage.EndlessPieces.Christmas` desde `ServerStorage.Respaldo_MapaViejo.ChristmasRun`. Si se borra ese respaldo ya no se pueden cortar más piezas navideñas.

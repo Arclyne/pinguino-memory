@@ -18,4 +18,4 @@ tema: progresion,skins
 - porqué: pocas estadísticas para que se entienda qué pingüino es mejor; el resto no lo dijo.
 - sigue vigente D-020: las estadísticas no cambian el diseño del pingüino.
 - sin decidir: cómo se consiguen las skins de pingüino y las de resortera (peces, huevos, cofres) y los valores → Q-27a.
-- dónde vive: nada en Studio aún. Hoy `SkinCatalog` solo tiene aspecto.
+- dónde vive: `SkinCatalog` (campo `stats`), `EndlessRunService` y `SkinsPanel`; reglas en [[nivel-1]]. El Impulso y las skins de resortera no existen aún.

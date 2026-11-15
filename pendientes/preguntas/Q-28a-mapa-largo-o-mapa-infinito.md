@@ -11,4 +11,5 @@ Ya se decidió: infinito por chunks, generado solo en el cliente, con biomas def
 - Piezas a mano y semilla semanal ya decididos (D-045a). ¿Cuántas piezas por bioma y cuántos biomas para empezar?
 - El servidor valida golpes, peces y huevos con el mismo generador y la misma semilla, sin construir piezas.
 - Límite de precisión lejos del origen: se deja para después (D-048a).
-- ¿Qué pasa con la pista navideña actual (D-027c): se quita, se vuelve las piezas de un bioma navideño, o queda para eventos?
+- La bajada infinita ya es la del lobby (D-050a). La pista navideña quedó en `ServerStorage.Respaldo_MapaViejo.ChristmasRun`: ¿se borra de verdad? Antes hay que cortar todas las piezas que se quieran.
+- El prototipo usa 9 piezas navideñas; quedaron fuera la zona 7, el Puente y parte del Pueblo ([[nivel-1]]). ¿Se agregan?

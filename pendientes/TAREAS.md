@@ -25,6 +25,10 @@ Detalles que Claude eligió para que algo funcionara. Valen hasta que Angel los 
 - Qué se ve en cada efecto de movimiento y sus umbrales (D-018).
 - Toda la economía: valor del pez, precios en peces, premios y probabilidades de la ruleta, regalo diario, duración del impulso, rarezas y precios de skins.
 - Desbloqueo de niveles en orden (Q-05).
+- Todo lo marcado en D-049a y D-050a: qué piezas se cortaron, mover la pista vieja a respaldo en vez de borrarla, eventos y carrera en pausa, reparto de obstáculos, fin de bioma en el borde de una pieza, distancia en "m".
+- Estadísticas de las 5 skins y la fórmula de Abrigo y Resistencia (Q-27a); cómo se avisa el frío (número que flota, letrero, escarcha, pingüino azulado) y sus umbrales (`EndlessConfig.Cold`).
+- Huevos y bases (D-052a): huevos sorteados por bajada y no por semana, tabla de rarezas por bioma, tecla T, dónde y cómo son las alas y parcelas, E pone el huevo más raro, qué pingüinos se exhiben, las 7 skins provisionales y sus estadísticas.
+- D-053a y D-054a: forma del arco, mensajes en fila, cómo se señalan las bases, ambientes por bioma, pesos y precios de la tienda rotativa, lugar del salón y la ruleta.
 
 ## Fases
 | Fase | Objetivo | Estado |

@@ -11,14 +11,14 @@ Un pingüino es lanzado con una resortera: el jugador elige dirección y fuerza,
 
 ## Ciclo
 ```
-Lobby (Idle) --E o ¡LANZAR!--> Aiming --soltar--> Racing --meta--> Finished --auto--> Aiming en la misma resortera
+Lobby (Idle) --E o ¡LANZAR!--> Aiming --soltar--> Racing (bajada infinita, sin meta)
                                   |                 |
                                   X: bajarse        choque: tumbo y te endereza (−vida) · caída: rescate sobre la pista (−vida)
                                                     sin vida: ragdoll y pantalla de muerte con resumen (D-037a) → REINTENTAR (resortera) o LOBBY
 ```
 - Estados y transiciones exactas: [[sistemas]] § Estados.
-- Desde el 2026-11-14 hay un solo nivel (la pista navideña, D-027c): al terminar, el avance automático (D-016) vuelve a montar en la misma resortera.
-- Vida, zonas y premios de la pista: [[nivel-1]].
+- Desde el 2026-11-14 la bajada es infinita (D-045a, D-050a): no hay meta; la carrera acaba cuando te quedas sin vida. El estado Finished solo lo usa el Modo Avalancha.
+- Vida, frío, biomas y piezas: [[nivel-1]].
 - Sin puntos de control (D-008).
 - Al morir en la pista sale la pantalla de muerte con el resumen de la bajada (D-037a); detalle en [[sistemas]] § Pantalla de muerte.
 
@@ -56,7 +56,7 @@ Lobby (Idle) --E o ¡LANZAR!--> Aiming --soltar--> Racing --meta--> Finished --a
 - Angel decidió: tipos iniciales (D-003); chocar = ragdoll y muerte sin la muerte de Roblox (D-008); las rampas impulsan (D-017).
 - Regla de alturas (Claude eligió; la usan los obstáculos de la pista navideña, D-031c): lo que mide ≤ 4 studs se salta; lo que mide ≥ 9 se esquiva.
 - Tres formas de ser eliminado: choque de frente (lo detecta el cliente, `CrashSensor`, umbrales en `GameConfig.Crash`), pisar una parte con etiqueta `Hazard` (servidor) y caer bajo `GameConfig.Race.KillHeight` (servidor).
-- En la pista navideña (D-027c; los valores los eligió Claude, sin aprobar) los dos primeros solo restan vida: el choque te tumba y te endereza en ~1 s, la caída te rescata sobre la pista; solo eliminan cuando la vida llega a 0. Las partes con atributo `Bumper` (barandales, bordes) rebotan sin chocar, y una ayuda de dirección gira sola con las curvas.
+- En la bajada infinita (los valores vienen de D-048a) los dos primeros solo restan vida, y el frío resta con la distancia (D-038a): el choque te tumba y te endereza en ~1 s, la caída te rescata sobre la pista; solo eliminan cuando la vida llega a 0. Las partes con atributo `Bumper` (barandales, bordes) rebotan sin chocar, y una ayuda de dirección gira sola con las curvas.
 - Una carrera más corta que `GameConfig.Race.MinimumPlausibleSeconds` no cuenta: el servidor reinicia al jugador.
 
 ## Niveles

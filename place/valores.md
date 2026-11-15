@@ -7,8 +7,8 @@ generado: sí (ServerStorage.DevTools.PlaceMap, sección valores; no editar a ma
 Copia de los módulos de configuración. El código manda: para cambiar un valor se edita el módulo en Studio y se regenera esta nota. Tiempos en segundos, velocidades en studs/s.
 
 # huella
-place=PINGUINO TEST placeId=76340917059535 universeId=10776032682 generado=2026-11-14 14:50
-huella: scripts=161 lineas=25869 codigo=c2ee0efa instancias=106991 mundo=bb4cc67b
+place=PINGUINO TEST placeId=76340917059535 universeId=10776032682 generado=2026-11-14 22:28
+huella: scripts=193 lineas=30761 codigo=e6faf9f3 instancias=20481 mundo=938b1853
 # valores
 GameConfig.Boost.CapRecoverySeconds=0.8
 GameConfig.Boost.DragMultiplier=0.25
@@ -133,6 +133,13 @@ SkinCatalog.fire: nombre=Pingüino Inferno rareza=MÍTICO precio=2500 orden=2
 SkinCatalog.ice: nombre=Pingüino Glacial rareza=LEGENDARIO precio=1800 orden=3
 SkinCatalog.santa: nombre=Pingüino Santa rareza=ÉPICO precio=999 orden=4
 SkinCatalog.reindeer: nombre=Pingüino Reno rareza=ÉPICO precio=999 orden=5
+SkinCatalog.scarf: nombre=Pingüino Bufanda rareza=COMÚN precio=0 orden=6
+SkinCatalog.beanie: nombre=Pingüino Gorrito rareza=COMÚN precio=0 orden=7
+SkinCatalog.earmuffs: nombre=Pingüino Orejeras rareza=COMÚN precio=0 orden=8
+SkinCatalog.tophat: nombre=Pingüino Elegante rareza=RARO precio=0 orden=9
+SkinCatalog.explorer: nombre=Pingüino Explorador rareza=RARO precio=0 orden=10
+SkinCatalog.aurora: nombre=Pingüino Aurora rareza=CELESTIAL precio=0 orden=11
+SkinCatalog.shadow: nombre=Pingüino Sombra rareza=SECRETO precio=0 orden=12
 WheelCatalog: SkinPrize=fire ChestRange=300-1500 SkinDuplicateFish=2500 pesoTotal=100
 WheelCatalog.1: 100 peces | tipo=fish cantidad=100 peso=18 prob=18.0%
 WheelCatalog.2: Cofre Épico | tipo=chest cantidad=0 peso=8 prob=8.0%
@@ -149,6 +156,7 @@ WheelCatalog.12: ¡JACKPOT! 10,000 peces | tipo=fish cantidad=10000 peso=1 prob=
 PlayerProfile.Name=PenguinPlayer
 PlayerProfile.Template.bestTimes={}
 PlayerProfile.Template.boostUntil=0
+PlayerProfile.Template.eggs={}
 PlayerProfile.Template.equippedSkin=classic
 PlayerProfile.Template.extraSpins=0
 PlayerProfile.Template.finishes={}
@@ -157,7 +165,11 @@ PlayerProfile.Template.giftStreak=0
 PlayerProfile.Template.lastAvalancheMode=0
 PlayerProfile.Template.lastFreeSpin=0
 PlayerProfile.Template.lastGift=0
+PlayerProfile.Template.nests={}
 PlayerProfile.Template.ownedSkins: classic=true
+PlayerProfile.Template.penguins={}
+PlayerProfile.Template.shopBought={}
+PlayerProfile.Template.shopRotation=0
 PlayerProfile.Template.totalFish=0
 PlayerProfile.Template.week=0
 PlayerProfile.Template.weekFish=0

@@ -3,7 +3,7 @@ tipo: decision
 id: D-031c
 fecha: 2026-11-14
 autor: ciervo
-estado: vigente
+estado: reemplazada por D-050a
 tema: obstaculos
 ---
 # D-031c · Muchos más obstáculos y recta final en slalom
