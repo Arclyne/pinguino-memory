@@ -1,6 +1,6 @@
 ---
 tipo: estado
-verificado: 2026-11-14 (Studio; bajada infinita, huevos y bases probados en Play por angel; pantalla de muerte probada en Play por angel; antes, por inspección de la place en modo edición; la pista navideña no se jugó; el Modo Avalancha se probó en Play con bot)
+verificado: 2026-11-17 (Studio; pista cerrada, obstáculos en movimiento y huevos con aura probados en Play con bot el 17 por ciervo; biomas nuevos y frío apagado el 17, sin bajar jugando por ellos; bajada infinita, huevos y bases probados en Play por angel; pantalla de muerte probada en Play por angel; antes, por inspección de la place en modo edición; la pista navideña no se jugó; el Modo Avalancha se probó en Play con bot)
 ---
 # Estado
 
@@ -9,11 +9,11 @@ Prototipo jugable en **PINGUINO TEST** (placeId 76340917059535, universeId 10776
 Esta nota solo cambia cuando cambia lo que existe en el juego. Lo que se mueve cada sesión (huella, bitácoras, tareas urgentes, preguntas) lo arma `python3 herramientas/ver.py inicio`.
 
 ## Existe en Studio
-- **Bajada infinita (N1):** sale de la resortera del lobby. Mapa sin fin armado en el cliente con 9 piezas del bioma navideño, semilla semanal, obstáculos repartidos por el generador, frío que quita vida con la distancia (con avisos en pantalla), estadísticas según la skin puesta (D-039a, valores sin aprobar: Q-27a), sin curación ni meta (D-038a, D-045a, D-048a, D-050a). → [[nivel-1]]
-- **Carrera:** resortera → vuelo → deslizamiento hasta quedarte sin vida. Un choque te tumba y te endereza sobre la pista; sin vida (choque, caída o frío): pantalla de muerte con bioma, distancia y botones REINTENTAR o LOBBY (D-037a). → [[juego]]
+- **Bajada infinita (N1):** sale de la resortera del lobby. Mapa sin fin armado en el cliente, semilla semanal, 14 biomas en orden fijo (navideño con 9 piezas y 13 temas hechos con constructor, 3 piezas y obstáculos propios cada uno, D-058c), obstáculos repartidos por el generador, frío apagado de momento (D-058c), paredes y cerco para que nadie se salga, obstáculos en movimiento y fijos en cada bioma, huevos grandes con aura y con los 47 diseños aprobados (D-059c, D-060c), estadísticas según la skin puesta (D-039a, valores sin aprobar: Q-27a), sin curación ni meta (D-038a, D-045a, D-048a, D-050a). → [[nivel-1]]
+- **Carrera:** resortera → vuelo → deslizamiento hasta quedarte sin vida. Un choque te tumba y te endereza sobre la pista; sin vida (choque o caída): pantalla de muerte con bioma, distancia y botones REINTENTAR o LOBBY (D-037a). → [[juego]]
 - **Huevos (D-040a, D-052a):** de 1 a 3 por bioma en la bajada, con 7 rarezas; llevas uno a la vez, se aseguran al pasar al siguiente bioma y se pierden si mueres antes. → [[nivel-1]]
 - **Bases (D-052a):** 12 parcelas junto al lobby, una por jugador, con nidos para incubar por tiempo, pingüinos exhibidos y letrero; panel MI BASE. De los huevos nacen pingüinos; cada uno es un objeto propio. → [[lobby-economia]]
-- **Obstáculos:** 45 modelos repartidos por el generador, más las pilas de regalos de cada pieza. Nada quita vida entre el lanzamiento y el aterrizaje (D-030c). **Pads de turbo** dentro de las piezas y **efectos de movimiento** (D-018).
+- **Obstáculos:** 49 en el navideño y 8–9 en cada bioma nuevo (46 en movimiento, D-059c), repartidos por el generador, más las pilas de regalos de las piezas navideñas. Nada quita vida entre el lanzamiento y el aterrizaje (D-030c). **Pads de turbo** dentro de las piezas y **efectos de movimiento** (D-018).
 - **Avalancha:** cinemática al subirse a la resortera y ola que persigue al inicio de la bajada (D-029c).
 - **Eventos (D-032c):** solo la Nevada de peces. Los de la bajada (Santa, tormenta, desfile, duendes, trineo dorado) y la carrera programada están en pausa: dependían de la pista vieja (Q-33a).
 - **Modo Avalancha (D-033c):** botón de arriba del lobby, una vez cada 12 h. Mapa aparte (nivel 2): bajada de ~4 min a ~450 km/h con ~2,000 peces, barreras para saltar, muros para esquivar, avalancha que te alcanza si chocas dos veces seguidas, y rampa final a un campo de distancias con premio. → [[nivel-2]]
@@ -36,7 +36,8 @@ Personalizar, Pack inicial, VIP, Renacer, Lanzarse con un amigo. No hay ninguna 
 - Huevos y bases a mano y con dos jugadores (dos bases a la vez, que nadie use el nido de otro); perfiles con muchos pingüinos; el servidor aún admite 60 jugadores y solo hay 12 bases (T-17a).
 - Session lock de DataKit con dos servidores.
 - Celular y consola: no hay controles táctiles.
-- Rendimiento en celular: Workspace bajó a ~19,800 instancias, pero cada cliente carga ~38,400 de piezas en `ReplicatedStorage`.
+- Rendimiento en celular: Workspace bajó a ~19,800 instancias, pero cada cliente carga ~99,000 de piezas en `ReplicatedStorage` (~61,000 de los biomas nuevos).
+- Los 13 biomas nuevos jugando: solo se vieron las piezas desde una cámara fija.
 - Que el lobby coincida con los artefactos aprobados (Q-01).
 
 ## Frases gatillo

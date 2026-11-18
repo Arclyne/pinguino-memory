@@ -21,3 +21,4 @@ tema: progresion,niveles
 - Angel decidió: los tres biomas, en orden, son **Navideño** (pista navideña, [[nivel-1]]) → **Ciudad Nevada** ([[nivel-3]]) → **Valle del Avión** ([[nivel-4]]). Las dos últimas salen de `ServerStorage.Respaldo_MapaViejo`. Fuera del prototipo: Modo Avalancha ([[nivel-2]]) y Vecindario Navideño ([[nivel-5]]).
 - aviso: la forma de la pista navideña la genera código (`Shared.ChristmasTrack`), no está hecha de piezas sueltas; hay que cortarla en tramos que encajen.
 - dónde vive: nada en Studio aún.
+- Ciervo decidió (2026-11-17): los biomas son otros 13 hechos con constructor, no Ciudad Nevada ni Valle del Avión → D-058c.

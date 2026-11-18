@@ -17,3 +17,4 @@ tema: progresion
 - porqué: solo con el terreno, un jugador hábil llega lejos con el pingüino básico; solo con una barrera, la habilidad deja de contar.
 - sin decidir: si además hay puertas con requisito como hitos (idea de ciervo), si las zonas dejan de curar o curan menos, y los valores del frío → Q-29a.
 - dónde vive: nada en Studio aún.
+- Ciervo decidió (2026-11-17): el frío queda apagado de momento → D-058c.

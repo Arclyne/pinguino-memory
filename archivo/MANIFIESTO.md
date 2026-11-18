@@ -23,6 +23,7 @@ No es fuente de verdad. Material de una sola vez o histórico; se abre solo si h
 | `artefactos/Nivel2Decoracion_artefacto_v01.html` | Código del artefacto del Festival de Faroles de N2 (D-019) | referencia de diseño |
 | `artefactos/HuevosPorRareza_artefacto_v01.html` | Código del artefacto con los 47 diseños de huevo en 8 biomas (D-055c, D-056c); abre en el navegador | referencia de diseño |
 | `artefactos/BaseIncubacion_artefacto_v01.html` | Código del artefacto de la base de incubación rediseñada (D-057c); abre en el navegador | referencia de diseño |
+| `construccion/HuevosARoblox_v01.js` | Saca los 47 huevos del artefacto `HuevosPorRareza` (necesita three r128 en `node_modules` y el `<script>` del artefacto como `eggs_src.js`) y los codifica para `ClaudeBuild.EggDesignData` (D-060c) | ya corrido; volver a correrlo si cambia el artefacto |
 | `artefactos/pinguino-3d.html` | Primer modelo 3D redondo del pingüino | descartado |
 | `modelos/pinguino.blend` | Modelo v1 del pingüino en Blender | no importado a Studio |
 | `modelos/pinguino.fbx` | Exportación del modelo v1 | no importado a Studio |

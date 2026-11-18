@@ -1,6 +1,6 @@
 ---
 tipo: diseno
-verificado: 2026-11-14 (HUD del lobby y eventos leídos del código y probados en Play; bases, nidos y panel de huevos probados en Play el 14; botón del Modo Avalancha probado en Play)
+verificado: 2026-11-17 (huevo de los nidos cambiado al diseño aprobado, sin verlo en un nido; antes, 2026-11-14: HUD del lobby y eventos leídos del código y probados en Play; bases, nidos y panel de huevos probados en Play el 14; botón del Modo Avalancha probado en Play)
 ---
 # Lobby y economía
 
@@ -74,7 +74,7 @@ Arriba a la derecha: contador de peces y aviso de impulso activo.
 ## Bases (D-052a)
 - Cada jugador recibe al entrar una de las 12 parcelas, en dos alas a los lados de la meseta (6 y 6). Todos ven las de todos. Al salir se libera.
 - Cada parcela tiene letrero con el avatar y nombre del dueño, 6 nidos al fondo (3 abiertos y 3 con candado para el gamepass de incubadora, D-042a) y 8 pedestales donde se paran sus pingüinos más raros.
-- Incubar: en tu nido, E pone tu huevo más raro; o desde el panel MI BASE eliges cuál. Sobre el nido se ve el huevo y el tiempo que falta (`EggConfig.IncubationSeconds`, D-048a); corre aunque no estés conectado. Cuando dice ¡LISTO!, E o ABRIR hacen nacer un pingüino al azar de esa rareza. Los repetidos se guardan como otra copia.
+- Incubar: en tu nido, E pone tu huevo más raro; o desde el panel MI BASE eliges cuál. Sobre el nido se ve el huevo (el primer diseño aprobado de su rareza, D-060c) y el tiempo que falta (`EggConfig.IncubationSeconds`, D-048a); corre aunque no estés conectado. Cuando dice ¡LISTO!, E o ABRIR hacen nacer un pingüino al azar de esa rareza. Los repetidos se guardan como otra copia.
 - El panel MI BASE (J) también tiene IR A MI BASE, que te lleva a tu parcela.
 - Para encontrarlas desde el lobby (D-053a): letreros BASES a cada lado, un camino dorado en el piso desde el centro, portería con banderines en cada parcela, el nombre del dueño flotando encima y un haz dorado con TU BASE sobre la tuya.
 - Claude eligió (sin aprobar): dónde van las alas y su tamaño, el aspecto de la parcela, que E ponga el huevo más raro, cuántos pingüinos se exhiben y cuáles, y las skins provisionales con sus estadísticas.
