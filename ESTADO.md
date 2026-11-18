@@ -1,6 +1,6 @@
 ---
 tipo: estado
-verificado: 2026-11-17 (Studio; pista cerrada, obstáculos en movimiento y huevos con aura probados en Play con bot el 17 por ciervo; biomas nuevos y frío apagado el 17, sin bajar jugando por ellos; bajada infinita, huevos y bases probados en Play por angel; pantalla de muerte probada en Play por angel; antes, por inspección de la place en modo edición; la pista navideña no se jugó; el Modo Avalancha se probó en Play con bot)
+verificado: 2026-11-18 (Studio; frío reencendido y bases rediseñadas el 18 por angel, probados en Play; pista cerrada, obstáculos en movimiento y huevos con aura probados en Play con bot el 17 por ciervo; biomas nuevos y frío apagado el 17, sin bajar jugando por ellos; bajada infinita, huevos y bases probados en Play por angel; pantalla de muerte probada en Play por angel; antes, por inspección de la place en modo edición; la pista navideña no se jugó; el Modo Avalancha se probó en Play con bot)
 ---
 # Estado
 
@@ -9,10 +9,10 @@ Prototipo jugable en **PINGUINO TEST** (placeId 76340917059535, universeId 10776
 Esta nota solo cambia cuando cambia lo que existe en el juego. Lo que se mueve cada sesión (huella, bitácoras, tareas urgentes, preguntas) lo arma `python3 herramientas/ver.py inicio`.
 
 ## Existe en Studio
-- **Bajada infinita (N1):** sale de la resortera del lobby. Mapa sin fin armado en el cliente, semilla semanal, 14 biomas en orden fijo (navideño con 9 piezas y 13 temas hechos con constructor, 3 piezas y obstáculos propios cada uno, D-058c), obstáculos repartidos por el generador, frío apagado de momento (D-058c), paredes y cerco para que nadie se salga, obstáculos en movimiento y fijos en cada bioma, huevos grandes con aura y con los 47 diseños aprobados (D-059c, D-060c), estadísticas según la skin puesta (D-039a, valores sin aprobar: Q-27a), sin curación ni meta (D-038a, D-045a, D-048a, D-050a). → [[nivel-1]]
+- **Bajada infinita (N1):** sale de la resortera del lobby. Mapa sin fin armado en el cliente, semilla semanal, 14 biomas en orden fijo (navideño con 9 piezas y 13 temas hechos con constructor, 3 piezas y obstáculos propios cada uno, D-058c), obstáculos repartidos por el generador, frío encendido (D-061a), paredes y cerco para que nadie se salga, obstáculos en movimiento y fijos en cada bioma, huevos grandes con aura y con los 47 diseños aprobados (D-059c, D-060c), estadísticas según la skin puesta (D-039a, valores sin aprobar: Q-27a), sin curación ni meta (D-038a, D-045a, D-048a, D-050a). → [[nivel-1]]
 - **Carrera:** resortera → vuelo → deslizamiento hasta quedarte sin vida. Un choque te tumba y te endereza sobre la pista; sin vida (choque o caída): pantalla de muerte con bioma, distancia y botones REINTENTAR o LOBBY (D-037a). → [[juego]]
 - **Huevos (D-040a, D-052a):** de 1 a 3 por bioma en la bajada, con 7 rarezas; llevas uno a la vez, se aseguran al pasar al siguiente bioma y se pierden si mueres antes. → [[nivel-1]]
-- **Bases (D-052a):** 12 parcelas junto al lobby, una por jugador, con nidos para incubar por tiempo, pingüinos exhibidos y letrero; panel MI BASE. De los huevos nacen pingüinos; cada uno es un objeto propio. → [[lobby-economia]]
+- **Bases (D-052a, rediseñadas según D-057c):** 12 parcelas junto al lobby, una por jugador, con portada de hielo, cúpula con nidos para incubar por tiempo (3 abiertos y 3 congelados para el gamepass), pingüinos exhibidos en pedestales y letrero; panel MI BASE. De los huevos nacen pingüinos; cada uno es un objeto propio. → [[lobby-economia]]
 - **Obstáculos:** 49 en el navideño y 8–9 en cada bioma nuevo (46 en movimiento, D-059c), repartidos por el generador, más las pilas de regalos de las piezas navideñas. Nada quita vida entre el lanzamiento y el aterrizaje (D-030c). **Pads de turbo** dentro de las piezas y **efectos de movimiento** (D-018).
 - **Avalancha:** cinemática al subirse a la resortera y ola que persigue al inicio de la bajada (D-029c).
 - **Eventos (D-032c):** solo la Nevada de peces. Los de la bajada (Santa, tormenta, desfile, duendes, trineo dorado) y la carrera programada están en pausa: dependían de la pista vieja (Q-33a).

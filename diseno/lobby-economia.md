@@ -1,6 +1,6 @@
 ---
 tipo: diseno
-verificado: 2026-11-17 (huevo de los nidos cambiado al diseño aprobado, sin verlo en un nido; antes, 2026-11-14: HUD del lobby y eventos leídos del código y probados en Play; bases, nidos y panel de huevos probados en Play el 14; botón del Modo Avalancha probado en Play)
+verificado: 2026-11-18 (bases rediseñadas, D-057c: construidas y probadas en Play con la cuenta de Angel, ver § Bases; huevo de los nidos cambiado al diseño aprobado, sin verlo en un nido; antes, 2026-11-14: HUD del lobby y eventos leídos del código y probados en Play; bases, nidos y panel de huevos probados en Play el 14; botón del Modo Avalancha probado en Play)
 ---
 # Lobby y economía
 
@@ -73,11 +73,14 @@ Arriba a la derecha: contador de peces y aviso de impulso activo.
 
 ## Bases (D-052a)
 - Cada jugador recibe al entrar una de las 12 parcelas, en dos alas a los lados de la meseta (6 y 6). Todos ven las de todos. Al salir se libera.
-- Cada parcela tiene letrero con el avatar y nombre del dueño, 6 nidos al fondo (3 abiertos y 3 con candado para el gamepass de incubadora, D-042a) y 8 pedestales donde se paran sus pingüinos más raros.
+- Cada parcela sigue el diseño de D-057c (24 × 30 studs; la parcela anterior medía 24 × 28 y el ala tiene espacio): borde de neón del color de la parcela, portada de dos torres de hielo con orbes que giran, letrero con avatar y nombre, banderines, pasarela dorada con luces que avanzan, 8 pedestales con reflector y aro, cúpula de hielo al fondo con huevo gigante girando, pinos, faroles y nieve cayendo.
+- 6 nidos en dos gradas bajo la cúpula: abajo 3 abiertos (lámpara de calor y resistencia encendidas; vapor cuando hay huevo; el huevo listo tiembla, salta y suelta chispas) y arriba 3 congelados con cadenas y candado (gamepass de incubadora, D-042a). Se sube a la primera grada por una rampa: el pingüino no sube escalones de 0.4.
+- 8 pedestales donde se paran sus pingüinos más raros: el aro toma el color de la rareza del pingüino y los dos primeros llevan corona.
+- El color de cada parcela sale de su número (12 tonos), como antes; no depende del jugador.
 - Incubar: en tu nido, E pone tu huevo más raro; o desde el panel MI BASE eliges cuál. Sobre el nido se ve el huevo (el primer diseño aprobado de su rareza, D-060c) y el tiempo que falta (`EggConfig.IncubationSeconds`, D-048a); corre aunque no estés conectado. Cuando dice ¡LISTO!, E o ABRIR hacen nacer un pingüino al azar de esa rareza. Los repetidos se guardan como otra copia.
 - El panel MI BASE (J) también tiene IR A MI BASE, que te lleva a tu parcela.
 - Para encontrarlas desde el lobby (D-053a): letreros BASES a cada lado, un camino dorado en el piso desde el centro, portería con banderines en cada parcela, el nombre del dueño flotando encima y un haz dorado con TU BASE sobre la tuya.
-- Claude eligió (sin aprobar): dónde van las alas y su tamaño, el aspecto de la parcela, que E ponga el huevo más raro, cuántos pingüinos se exhiben y cuáles, y las skins provisionales con sus estadísticas.
+- Claude eligió (sin aprobar): dónde van las alas y su tamaño, que E ponga el huevo más raro, cuántos pingüinos se exhiben y cuáles, y las skins provisionales con sus estadísticas. Del rediseño: menos piezas que el artefacto (cúpula con 16 bloques por anillo, nido con 8 ramas, un solo barandal por lado; ~470 partes por parcela), sin contorno negro, la lámpara de calor más alta para que quepan los huevos del juego, y la rampa de la grada.
 - Falta: multiplicador de incubación por eventos (D-041a), gamepass de incubadora, y que el servidor admita solo 12 jugadores (hoy 60; T-17a).
 
 ## Skins (diseño v0.2, Claude eligió)

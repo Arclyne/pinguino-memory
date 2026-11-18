@@ -18,3 +18,4 @@ tema: progresion
 - sin decidir: si además hay puertas con requisito como hitos (idea de ciervo), si las zonas dejan de curar o curan menos, y los valores del frío → Q-29a.
 - dónde vive: nada en Studio aún.
 - Ciervo decidió (2026-11-17): el frío queda apagado de momento → D-058c.
+- Angel decidió (2026-11-18): el frío vuelve a encenderse → D-061a.

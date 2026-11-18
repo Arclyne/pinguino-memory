@@ -22,3 +22,4 @@ tema: progresion,niveles
 - aviso: la forma de la pista navideña la genera código (`Shared.ChristmasTrack`), no está hecha de piezas sueltas; hay que cortarla en tramos que encajen.
 - dónde vive: nada en Studio aún.
 - Ciervo decidió (2026-11-17): los biomas son otros 13 hechos con constructor, no Ciudad Nevada ni Valle del Avión → D-058c.
+- Angel decidió (2026-11-18): aprueba los 13 biomas de ciervo en lugar de Ciudad Nevada y Valle del Avión → D-061a.

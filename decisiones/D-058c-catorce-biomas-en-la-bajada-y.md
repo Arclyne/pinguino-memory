@@ -3,7 +3,7 @@ tipo: decision
 id: D-058c
 fecha: 2026-11-17
 autor: ciervo
-estado: vigente
+estado: vigente (el frío se reencendió en D-061a)
 tema: progresion,niveles
 ---
 # D-058c · Catorce biomas en la bajada y frío apagado
@@ -18,3 +18,4 @@ tema: progresion,niveles
 - cambia: D-047a (los biomas 2 y 3 iban a ser Ciudad Nevada y Valle del Avión, sacados del respaldo; no se hicieron). Arco y cambio de ambiente de D-047a siguen. Los 8 biomas del catálogo de huevos de D-056c ya no coinciden con estos nombres.
 - sin decidir: si Angel está de acuerdo (D-047a era suya); si el orden debe cambiar por semana (D-045a habla de semilla, hoy el orden es fijo); si el frío vuelve y con qué valores (Q-29a).
 - dónde vive: `Shared.EndlessConfig` (`Cold.Enabled`, `Biome.ThemeRotation`, `Biome.DisplayNames`, `Biome.Looks`), `ReplicatedStorage.EndlessPieces.<Tema>`, constructor `ServerStorage.ClaudeBuild.EndlessBiomeBuilder` → [[nivel-1]].
+- Angel decidió (2026-11-18): el frío vuelve a encenderse y los 13 biomas quedan aprobados → D-061a.

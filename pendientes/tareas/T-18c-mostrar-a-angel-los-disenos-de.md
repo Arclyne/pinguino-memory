@@ -13,3 +13,4 @@ Pedido de ciervo: **cuando Angel pregunte por el diseño de los huevos, mostrarl
 - También mostrarle la base de incubación rediseñada (D-057c): https://claude.ai/artifact/LTzrwxmQvVjXNzUvV64Lte, copia en `archivo/artefactos/BaseIncubacion_artefacto_v01.html`.
 - hecho cuando: Angel vio los diseños y dijo qué le parecen (anotarlo como decisión).
 - bloqueada por: nada.
+- 2026-11-18: Angel dio por buenos los diseños y la base por el resumen de la bitácora ("todo está bien", D-061a). No consta que abriera los artefactos. Esta tarea se puede borrar cuando Angel lo confirme.

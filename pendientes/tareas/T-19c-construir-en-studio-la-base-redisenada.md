@@ -3,7 +3,7 @@ tipo: tarea
 id: T-19c
 fecha: 2026-11-15
 autor: ciervo
-estado: pendiente
+estado: en curso
 grupo: construir
 ---
 # T-19c · Construir en Studio la base rediseñada
@@ -12,3 +12,4 @@ Rehacer las 12 parcelas `PlayerBase` con el diseño de D-057c (artefacto https:/
 - El color de cada parcela, el nombre y el avatar los pone el servidor según el dueño.
 - hecho cuando: las 12 parcelas se ven como el artefacto, se probó en Play incubar, abrir un huevo y exhibir pingüinos, y se guardó la place.
 - bloqueada por: nada. Conviene que Angel lo vea antes (T-18c), porque las bases las hizo él (D-052a).
+- 2026-11-18 (angel): las 12 parcelas ya están rehechas en Studio y probadas en Play (incubar, abrir, exhibir, ir a la base). Falta: probar la rampa de la grada, guardar la place y regenerar `place/` (Studio dejó de contestar; ver bitácora del 18).
