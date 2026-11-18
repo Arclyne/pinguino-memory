@@ -7,8 +7,8 @@ generado: sí (ServerStorage.DevTools.PlaceMap; no editar a mano; ver herramient
 Formato. scripts: `Nombre TipoLíneas | api | req | rem | tag | attr | key | svc` (M módulo, S script, L local; `+N` = N más sin listar). etiquetas: `Etiqueta total | por nivel | clases | atributos{valores}`. niveles: posiciones del mundo redondeadas a studs. Qué hace cada sistema: [[sistemas]].
 
 # huella
-place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-18 07:10
-huella: scripts=217 lineas=37516 codigo=9e9617e4 instancias=25809 mundo=0536bfb1
+place=Prueba de pingüino placeId=76340917059535 universeId=10776032682 generado=2026-11-18 07:53
+huella: scripts=218 lineas=38018 codigo=ec476a59 instancias=25809 mundo=0536bfb1
 # scripts
 ## ReplicatedStorage.Shared
 AvalancheModeConfig M31
@@ -21,9 +21,9 @@ EggCatalog M49 | api:get,isValid,list,orderOf
 EggConfig M90 | tag:BaseNest,PlayerBase | attr:NestIndex,PlotIndex,SpotIndex
 EggField M147 | api:_eggsOfBiome,between,find,new,positionOf | req:EggCatalog,EggConfig,EndlessConfig,EndlessLayout
 EggRemotes M14
-EndlessCatalog M165 | api:theme | req:EndlessConfig | attr:Blocked,Exit,Fork,From,GuardLeft,GuardRight,Length,PathBank,PathStep,PathX,PathY,Role,To,Weight
-EndlessConfig M187 | attr:PenguinHealth,PenguinMaxHealth
-EndlessLayout M285 | api:_append,bankAt,biomeName,biomeSpanAt,centerAt,chunk,chunkAt,chunkWorldOrigin,distanceOf,forPlayer,forSeed,frameAt,guardAt,heightAt,+6 | req:EconomyConfig,EndlessCatalog,EndlessConfig
+EndlessCatalog M178 | api:theme | req:EndlessConfig | attr:Blocked,Exit,Fork,From,GuardLeft,GuardRight,Length,PathBank,PathStep,PathX,PathY,Role,To,Weight
+EndlessConfig M189 | attr:PenguinHealth,PenguinMaxHealth
+EndlessLayout M296 | api:_append,bankAt,biomeName,biomeSpanAt,centerAt,chunk,chunkAt,chunkWorldOrigin,distanceOf,forPlayer,forSeed,frameAt,guardAt,heightAt,+6 | req:EconomyConfig,EndlessCatalog,EndlessConfig
 EventConfig M87 | attr:AvalancheEventRun
 EventRemotes M11
 GameConfig M107 | tag:BoostRamp | attr:JumpDistance,KeepSpeed
@@ -91,11 +91,11 @@ ChristmasKit M862 | api:ball,boostPad,buildRail,building,candyCane,car,conveyor,
 ChristmasObstacles M465 | api:build | req:Clone | attr:Bumper,TrackDistance
 EggDesignBuilder M157 | api:build,runAll | req:ServerStorage | attr:DisplayName,EggHeight,Rarity
 EggDesignData M50
-EndlessBiomeBuilder M2081 | api:run,runFork,themeNames | req:Clone | tag:BoostRamp | attr:Blocked,Bumper,Exit,Fork,From,JumpDistance,JumpRamp,KeepSpeed,Length,Motion,PathBank,PathStep,PathX,PathY,Ramp,RoadHalf,Role,SliceLength,Theme,To
-EndlessGuardBuilder M179 | api:run,runAll | attr:Bumper,From,GuardLeft,GuardRight,Length,PathStep,PathX,PathY,To
+EndlessBiomeBuilder M2348 | api:run,runSpecials,themeNames | req:Clone,ServerStorage | tag:BoostRamp | attr:Blocked,Bumper,CustomSkin,Exit,Fork,From,GlideHeight,GlideLength,GlideSlope,JumpDistance,JumpRamp,KeepSpeed,Lanes,Length,Motion,PathBank,PathStep,PathX,PathY,Ramp,RoadHalf,RoadSkin,Role,SliceLength,Theme,To
+EndlessGuardBuilder M192 | api:run,runAll | attr:Bumper,CustomSkin,From,GuardLeft,GuardRight,Length,PathStep,PathX,PathY,RoadHalf,To
 EndlessObstacleBuilder M1200 | api:run,runAll | tag:BoostRamp | attr:Builder,DropOffset,JumpDistance,JumpRamp,KeepSpeed,Ramp,Weight
 EndlessPieceCutter M554 | api:cut,cutObstacles,pieceIds | req:ChristmasTrack | attr:Blocked,Exit,From,Length,PathBank,PathStep,PathX,PathY,Role,SliceLength,SourceFrom,SourceTo,Theme,To,TrackDistance
-EndlessRoadSkin M208 | api:run,skinPiece | attr:From,GuardLeft,GuardRight,Length,PathBank,PathStep,PathX,PathY,RoadHalf,RoadSkin,SkinLowered,To
+EndlessRoadSkin M211 | api:run,skinPiece | attr:CustomSkin,From,GuardLeft,GuardRight,Length,PathBank,PathStep,PathX,PathY,RoadHalf,RoadSkin,SkinLowered,To
 RearrangeLobby M77 | api:run | attr:RearrangedForBases
 ## ServerStorage
 ClaudeScriptDump M1270 | api:_crashInto,_holdFrame,_onRaceNotice,_playStretchFeedback,_setPhase,_step,_stepFlight,_stepSlide,_switchTo,_tumble,_updateHeading,clearFinish,detect,elapsedSeconds,+14 | req:AimCamera,AimHudPresenter,AimHudView,AimInput,AimModel,AimingMode,BodyMover,ChaseCamera,Cleaner,CrashSensor,DecorationController,DefaultCamera,FeedbackSounds,FinishPresenter,FinishView,FinishedMode,+26 | rem:AimChanged,CrashReported,DismountRequested,LaunchRequested,RaceNotice,RunStateChanged | tag:FinishLine,Hazard | attr:HazardKind
@@ -223,10 +223,11 @@ ParticleFactory M70 | api:aimedAttachment,fading,groundTrail,snowPlume
 RaceFeel M79 | api:_measureAcceleration,destroy,new,onBoost,update | req:BoostEffects,BrakeEffects,CameraFeel,CarveEffects,MotionSample,TopSpeedRumble
 TopSpeedRumble M67 | api:_setHaptic,destroy,new,update | req:CameraFeel,GameConfig,MotionSample | svc:Haptic
 ## StarterPlayer.StarterPlayerScripts.Client.Race
+GlideWing M84 | api:attach,detach
 GroundProbe M36 | api:new,probe | req:GameConfig
 HyperSpeedFx M210 | api:start,stop
 RaceModel M70 | api:clearFinish,elapsedSeconds,finish,new,reportSpeed,speed,start,stop | req:Signal
-SlideMotor M250 | api:_speedCap,_updateHeading,boost,boostFraction,groundNormal,new,requestJump,resetHeading,step | req:BodyMover,GameConfig,GroundProbe,LevelRegistry,PenguinOrientation
+SlideMotor M350 | api:_speedCap,_startGlide,_stepGlide,_updateHeading,boost,boostFraction,groundNormal,isGliding,new,requestJump,resetHeading,step,stopGlide | req:BodyMover,GameConfig,GlideWing,GroundProbe,LevelRegistry,PenguinOrientation | attr:GlideHeight,GlideLength,GlideSlope,Gliding
 SpeedEffects M227 | api:setBoost,start,stop | req:GameConfig,HyperSpeedFx
 TrackFence M56 | api:keepInside | req:EndlessConfig,EndlessLayout,LevelRegistry
 TrackGuide M45 | api:at | req:EndlessConfig,EndlessLayout,LevelRegistry
@@ -234,7 +235,7 @@ TrackGuide M45 | api:at | req:EndlessConfig,EndlessLayout,LevelRegistry
 AimingMode M142 | api:_holdFrame,_playStretchFeedback,_step,enter,exit,new | req:AimCamera,AimInput,AimModel,Cleaner,FeedbackSounds,LaunchMath,LevelRegistry,LocalCharacter,LocalPose,PenguinOrientation,Pose,Remotes,SlingshotBandController,SlingshotGeometry,TrajectoryPreview | rem:AimChanged,DismountRequested,LaunchRequested
 FinishedMode M59 | api:enter,exit,new | req:DefaultCamera,FeedbackSounds,GameConfig,LocalCharacter,LocalPose,Pose,RaceModel
 IdleMode M36 | api:enter,exit,new | req:DefaultCamera,LocalCharacter,LocalPose,Pose
-RacingMode M482 | api:_absorbHit,_assistSteer,_bounceOff,_crashInto,_onRaceNotice,_recoverAt,_scheduleRecover,_setPhase,_step,_stepFlight,_stepSlide,_tumble,_updateFeel,enter,+2 | req:AvalancheModeConfig,AvalancheTrack,BoostRampSensor,CameraFeel,ChaseCamera,Cleaner,CrashSensor,FeedbackSounds,GameConfig,GroundProbe,LevelRegistry,LocalCharacter,LocalPose,MoveInput,PenguinOrientation,Pose,+9 | rem:CrashReported,RaceNotice | attr:Bumper
+RacingMode M491 | api:_absorbHit,_assistSteer,_bounceOff,_crashInto,_onRaceNotice,_recoverAt,_scheduleRecover,_setPhase,_step,_stepFlight,_stepSlide,_tumble,_updateFeel,enter,+2 | req:AvalancheModeConfig,AvalancheTrack,BoostRampSensor,CameraFeel,ChaseCamera,Cleaner,CrashSensor,FeedbackSounds,GameConfig,GroundProbe,LevelRegistry,LocalCharacter,LocalPose,MoveInput,PenguinOrientation,Pose,+9 | rem:CrashReported,RaceNotice | attr:Bumper
 ## StarterPlayer.StarterPlayerScripts.Client.Run
 RunController M54 | api:_switchTo,new,start | req:LocalCharacter,Remotes,RunState | rem:RunStateChanged
 ## StarterPlayer.StarterPlayerScripts.Client
@@ -290,7 +291,7 @@ Slingshot: Slingshot [Model] pos(0,614,20) AimPitch=0,AimPull=0,AimYaw=0,Dismoun
 LobbyWheel: Lobby.LuckyWheel.LobbyWheel [Model] pos(-78,625,139) SegmentCount=12
 LobbyLeaderboard: Lobby.HallOfFame.LobbyLeaderboard [Model] pos(0,626,150)
 Hazard: ninguno
-Lobby: Bases(123,611,43) · ChevronRoad(0,600,66) · HallOfFame(-12,611,149) · LobbyDecor(0,607,159) · LuckyWheel(-68,603,132) · MostPopular(64,602,32) · PenguinCampfire(-33,603,101) · PenguinCampfire2(35,603,99) · PlateauSpawn(0,601,110) · Shop(63,607,141)
+Lobby: Bases(123,611,90) · ChevronRoad(-5,600,66) · HallOfFame(-20,611,149) · LobbyDecor(166,607,80) · LuckyWheel(-71,603,129) · MostPopular(68,611,28) · PenguinCampfire(-33,603,101) · PenguinCampfire2(35,603,99) · PlateauSpawn(0,601,110) · Shop(64,609,140)
 ## N2 AvalancheMode | instancias=14726 partes=14468 conColision=633 | min(-21080,-6437,-39376) max(-18911,6765,38436)
 hijos: AvalancheMountain[Folder]226 · Finale[Model]127 · GroundTexture[Folder]9563 · Obstacles[Folder]1000 · Plateau[Folder]12 · ReturnPortalGate[Model]574 · Scenery[Folder]2636 · SlingshotDecor[Model]52 · Slingshot[Model]61 · Track[Folder]465
 PlateauSpawn: Plateau.PlateauSpawn [Part] pos(-20000,6545,38120) size(30,1,30)
@@ -306,78 +307,78 @@ N1 PenguinSlingshotMap_v01.Lobby.LuckyWheel.LobbyWheel.Base | Girar · Ruleta de
 N1 PenguinSlingshotMap_v01.Lobby.HallOfFame.PromptAnchor | Ver tabla · Salón de la fama | tecla=E dist=22 OpensPanel=leaderboard
 N1 PenguinSlingshotMap_v01.Lobby.MostPopular.PromptAnchor | Ver skins · Más populares | tecla=E dist=18 OpensPanel=skins
 N1 PenguinSlingshotMap_v01.Lobby.Shop.PromptAnchor | Abrir · Tienda | tecla=E dist=16 OpensPanel=shop
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base06.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base06.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base06.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base06.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base06.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base06.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base03.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base02.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base10.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base05.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base11.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base08.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base07.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
-N1 PenguinSlingshotMap_v01.Lobby.Bases.Base09.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base12.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base01.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest4 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest2 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest5 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest6 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest1 | Poner huevo · Nido | tecla=E dist=10
+N1 PenguinSlingshotMap_v01.Lobby.Bases.Base04.Nests.Nest3 | Poner huevo · Nido | tecla=E dist=10
 N1 PenguinSlingshotMap_v01.Slingshot.Frame.Trunk.MountPromptAttachment | Subirse · Resortera | tecla=E dist=24
 N2 AvalancheMode.Slingshot.Frame.Trunk.MountPromptAttachment | Subirse · Resortera | tecla=E dist=24
 ## StarterGui
