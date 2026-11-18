@@ -14,3 +14,4 @@ tema: progresion,niveles
 - sin saber: Angel aprobó por el resumen de la bitácora; no consta que haya abierto los artefactos de los huevos y de la base (son privados de ciervo, T-18c).
 - cambia: D-058c en lo del frío apagado; D-047a en los biomas 2 y 3 (ya no se cortan piezas de Ciudad Nevada ni de Valle del Avión).
 - dónde vive: `EndlessConfig.Cold.Enabled` (encendido en Studio el 2026-11-18) → [[nivel-1]].
+- 2026-11-18: ciervo apagó el frío otra vez el mismo día (D-063c) sin saber de esta decisión. En Studio quedó apagado. Sin resolver → Q-37a.
